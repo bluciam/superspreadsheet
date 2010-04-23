@@ -22,6 +22,15 @@ static void callback_state( GtkWidget *widget,
     g_print ("The state of your system is ... asleep. %s.\n", (gchar *) data);
 }
 
+static void callback_eqns ( GtkWidget *widget,
+                            GtkWidget *entry )
+{
+  const gchar *entry_text;
+  entry_text = gtk_entry_get_text (GTK_ENTRY (entry));
+  printf ("Equation entered: %s\n", entry_text);
+}
+
+
 /* Callback funtion for delele event from the window manager.
  * We only want to quit with the Quit button to do proper finalization. */
 static gboolean delete_event( GtkWidget *widget,
@@ -51,6 +60,8 @@ int main( int   argc,
     GtkWidget *box;
     GtkWidget *table;
     GtkWidget *table_bot;
+    GtkWidget *entry;
+    GtkWidget *separator;
 
     /* This is called in all GTK applications. Arguments are parsed
      * from the command line and are returned to the application. */
@@ -96,6 +107,18 @@ int main( int   argc,
     gtk_widget_show (button);
 /* End State button */
 
+    table_bot = gtk_table_new (1, 3, FALSE);
+    /* Creates the quit button with the label "Quit". */
+    button = gtk_button_new_with_label ("Dimension Browser");
+    /* When the quit button is clicked, we call the "quitting" function
+     * with a pointer to "quit" as its argument */
+    g_signal_connect (G_OBJECT (button), "clicked",
+		      G_CALLBACK (quitting), (gpointer) "quit");
+    g_signal_connect (G_OBJECT (button), "clicked",
+		      G_CALLBACK (quitting), (gpointer) "quit");
+    gtk_table_attach_defaults (GTK_TABLE (table_bot), button, 0, 1, 0, 1);
+    gtk_widget_show (button);
+
 
 /* Begin The SpreadSheet */
     int row = 10;
@@ -124,23 +147,51 @@ int main( int   argc,
        }
     }
     gtk_widget_show (table);
-    gtk_box_pack_start(GTK_BOX (box), table, TRUE, TRUE, 0);
+    gtk_table_attach_defaults (GTK_TABLE (table_bot), table, 1, 2, 0, 1);
+/*    gtk_box_pack_start(GTK_BOX (box), table, TRUE, TRUE, 0);  */
 /* End The SpreadSheet */
 
 
-/* Begin bottom box with equation field and quit button */
-    /* Bottom box (not really visible) to pack equations and quit button. */
-    table_bot = gtk_table_new (1, 2, FALSE);
+    button = gtk_button_new_with_label ("Equation Browser");
+    /* When the quit button is clicked, we call the "quitting" function
+     * with a pointer to "quit" as its argument */
+    g_signal_connect (G_OBJECT (button), "clicked",
+		      G_CALLBACK (quitting), (gpointer) "quit");
+    g_signal_connect (G_OBJECT (button), "clicked",
+		      G_CALLBACK (quitting), (gpointer) "quit");
+    gtk_table_attach_defaults (GTK_TABLE (table_bot), button, 2, 3, 0, 1);
+    gtk_widget_show (button);
 
-    /* Create the equation field, now as a button. */
-    button = gtk_button_new_with_label ("Equations in TL");
+    gtk_box_pack_start(GTK_BOX (box), table_bot, TRUE, TRUE, 0);
+    gtk_widget_show (table_bot);
+
+    separator = gtk_hseparator_new ();
+    gtk_box_pack_start (GTK_BOX (box), separator, FALSE, TRUE, 0);
+    gtk_widget_show (separator);
+
+/* Begin bottom table with equation field and commit and quit buttons */
+    table_bot = gtk_table_new (1, 3, FALSE);
+
+/* Begin Equations field */
+    entry = gtk_entry_new ();
+    gtk_entry_set_max_length (GTK_ENTRY (entry), 150);
+    g_signal_connect (G_OBJECT (entry), "activate", 
+                      G_CALLBACK (callback_eqns), (gpointer) entry);
+    gtk_entry_set_text (GTK_ENTRY (entry), "Type in your TransLucid equation");
+    gtk_table_attach_defaults (GTK_TABLE (table_bot), entry, 0, 1, 0, 1);
+    gtk_widget_show (entry);
+/* End Equations field */
+
+/* Begin Commit button */
+    button = gtk_button_new_with_label ("Commit changes");
 
     /* Call the same callback function as for state with a different argument,
-     * passing a pointer to "equations" instead. */
+     * passing a pointer to "commit" instead. */
     g_signal_connect (G_OBJECT (button), "clicked",
-		      G_CALLBACK (callback_cell), (gpointer) "equations");
-    gtk_table_attach_defaults (GTK_TABLE (table_bot), button, 0, 1, 0, 1);
+		      G_CALLBACK (callback_cell), (gpointer) "commit");
+    gtk_table_attach_defaults (GTK_TABLE (table_bot), button, 1, 2, 0, 1);
     gtk_widget_show (button);
+/* End Commit button */
 
     /* Creates the quit button with the label "Quit". */
     button = gtk_button_new_with_label ("Quit");
@@ -151,7 +202,7 @@ int main( int   argc,
 		      G_CALLBACK (quitting), (gpointer) "quit");
     g_signal_connect (G_OBJECT (button), "clicked",
 		      G_CALLBACK (quitting), (gpointer) "quit");
-    gtk_table_attach_defaults (GTK_TABLE (table_bot), button, 1, 2, 0, 1);
+    gtk_table_attach_defaults (GTK_TABLE (table_bot), button, 2, 3, 0, 1);
     gtk_widget_show (button);
 
     gtk_box_pack_start(GTK_BOX (box), table_bot, TRUE, TRUE, 0);
