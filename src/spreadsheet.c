@@ -12,10 +12,13 @@ typedef struct
   /* Assuming dimnames no bigger than 30 characters */
   char* dimA_displayed;
   char* dimB_displayed;
-  char* dimA_chosen;
-  char* dimB_chosen;
+  char* dim_col;
+  char* dim_row;
 } userEntries;
 userEntries thisEntry;
+
+GtkWidget *button_col;
+static int i;
 
 /* Callback function to display the content of a widget.
  * The data passed to this function is printed to stdout. */
@@ -33,59 +36,69 @@ callback_state (GtkWidget* widget, gpointer data)
   g_print ("The state of your system is ... %s.\n", (gchar *) data);
 }
 
-      /* Need to toggle to FALSE the dim check button but don't know how
-      gtk_toggle_button_set_active (
-          GTK_TOGGLE_BUTTON (thisEntry.dimB_chosen), FALSE);
-      changing strategy, asking the user to choose properly.  */
 static void
-choose_dim (GtkWidget* widget, gpointer dim)
+choose_dim_row (GtkWidget* widget, gpointer dim)
 {
-  static int i = 0;
   if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (widget))) 
   {
   /* When a dimension in chosen */
-    if (i == 0) {
-      i = 1;
-      thisEntry.dimA_chosen = (char *) dim;
-      printf ("Dimension choosen: %s.\n", (gchar *) thisEntry.dimA_chosen);
+    if (thisEntry.dim_col == dim) {
+      i = 1; 
+      g_print ("Cannot display the same dimension in both directions.\n");
+    } else {
+      thisEntry.dim_row = dim;
+      printf ("Dimension %s will be displayed in the rows.\n", (gchar *) dim);
     }
-    else if (i == 1) {
-      i = 2;
-      thisEntry.dimB_chosen = thisEntry.dimA_chosen;
-      thisEntry.dimA_chosen = (char *) dim;
-      printf ("Current dimensions chosen: %s and %s.\n",
-               (gchar *) thisEntry.dimA_chosen,
-               (gchar *) thisEntry.dimB_chosen);
-    }
-    else {
-      i = 3;
-      printf ("You can only choose two dimensions to display.\n");
-      printf ("  Please release a dimension then choose again.\n");
-      printf ("  Current dimensions chosen: %s and %s.\n",
-               (gchar *) thisEntry.dimA_chosen,
-               (gchar *) thisEntry.dimB_chosen);
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), FALSE);
-    }
-
   } else {
   /* When a dimension in released */
-    if (i == 3) {
-      i = 2;
-    }
-    else if (i == 2) {
-      i = 1;
-      printf ("Releasing dimension %s.\n", (gchar *) dim);
-      if (dim == thisEntry.dimA_chosen) {
-        thisEntry.dimA_chosen = thisEntry.dimB_chosen;
-      }
-      thisEntry.dimB_chosen = NULL;
-      printf ("  Current dimension: %s.\n", (gchar *) thisEntry.dimA_chosen);
-    }    
-    else {
+    if (i == 1) {
+      g_print ("Dimension row was %s.\n", (gchar *) thisEntry.dim_row);
+      printf ("Dimension %s has been deactivated for row display.\n",
+           (gchar *) dim);
+/*
+      thisEntry.dim_row = NULL;
+*/
       i = 0;
-      thisEntry.dimA_chosen = NULL;
-      printf ("Releasing dimension %s. No dimensions chosen.\n", (gchar *) dim);
+    } else {
     }
+  }
+return;
+}
+
+static void
+choose_dim_col (GtkWidget* widget, gpointer dim)
+{
+  if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (widget))) 
+  /* When a dimension in chosen */
+  {
+    if (thisEntry.dim_row == dim) {
+      i = 2;
+      g_print ("Cannot display the same dimension in both directions.\n");
+      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button_col), TRUE);
+      g_print ("Cannot display the same dimension in both directions.\n");
+    } else {
+      thisEntry.dim_col = dim;
+      printf ("Dimension %s will be displayed in the columns.\n",(gchar *) dim);
+    }
+  } else {
+  /* When a dimension in released */
+      i = 0;
+      g_print ("Dimension col was %s.\n", (gchar *) thisEntry.dim_col);
+      printf ("Dimension %s has been deactivated for the column display.\n",
+             (gchar *) dim);
+  }
+}
+
+static void
+no_dim_col (GtkWidget* widget, gpointer dim)
+{
+  if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (widget))) 
+  /* When a dimension in chosen */
+  {
+      g_print ("No dimension selected for display.\n");
+      thisEntry.dim_col = NULL;
+  } else {
+  /* When a dimension in released */
   }
 }
 
@@ -125,11 +138,14 @@ main (int argc, char *argv[])
   GtkWidget *window;
   GtkWidget *button;
   GtkWidget *box;
-  GtkWidget *box1;
+  GtkWidget *box1, *box2, *box3;
   GtkWidget *table;
   GtkWidget *table_bot;
   GtkWidget *entry;
   GtkWidget *separator;
+  GSList    *group;
+  
+
 
   /* This is called in all GTK applications. Arguments are parsed
    * from the command line and are returned to the application. */
@@ -181,22 +197,78 @@ main (int argc, char *argv[])
 
 /* Begin "Dimension Browser" widget */
   box1 = gtk_vbox_new (FALSE, 0);
+  box3 = gtk_hbox_new (FALSE, 0);
 
-  button = gtk_button_new_with_label ("Choose two dimensions");
+  button = gtk_button_new_with_label ("Dimensions displayed and their values");
   gtk_widget_show (button);
-  gtk_box_pack_start(GTK_BOX (box1), button, FALSE, TRUE, 0);
-
+  gtk_box_pack_start(GTK_BOX (box1), button, TRUE, FALSE, 0);
   int   dimnumber = 10;
   char* dimname[dimnumber]; /* To hold the dimension names comming from ...? */
+
+  /* Just display dimension names */
+  box2 = gtk_vbox_new (FALSE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (box2), 30);
+  button = gtk_button_new_with_label ("DIMENSIONS");
+  gtk_widget_show (button);
+  gtk_box_pack_start(GTK_BOX (box2), button, TRUE, FALSE, 0);
   for (int i = 0; i != dimnumber; ++i) {
     dimname[i] = (char*) malloc(10);
     sprintf(dimname[i],"Dimension%2d", i);
-    button = gtk_check_button_new_with_label (dimname[i]);
-    g_signal_connect (G_OBJECT (button), "toggled", G_CALLBACK (choose_dim),
+    button = gtk_button_new_with_label (dimname[i]);
+    gtk_widget_show (button);
+    gtk_box_pack_start(GTK_BOX (box2), button, TRUE, FALSE, 0);
+  }
+  gtk_widget_show (box2);
+  gtk_box_pack_start(GTK_BOX (box3), box2, TRUE, FALSE, 0);
+
+  /* Need to choose one dim for row */
+  box2 = gtk_vbox_new (FALSE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (box2), 30);
+  button = gtk_button_new_with_label ("ROW DIM");
+  gtk_widget_show (button);
+  gtk_box_pack_start(GTK_BOX (box2), button, TRUE, FALSE, 0);
+
+  button_col = gtk_radio_button_new_with_label (NULL, "no dim");
+  group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (button_col));
+  g_signal_connect (G_OBJECT (button_col), "toggled",
+                    G_CALLBACK (no_dim_col),
+                    (gpointer) dimname[i] );
+  gtk_box_pack_start(GTK_BOX (box2), button_col, TRUE, FALSE, 0);
+  gtk_widget_show (button_col);
+  button = gtk_radio_button_new (group);
+  for (int i = 0; i != dimnumber; ++i) {
+    group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (button));
+    button = gtk_radio_button_new (group);
+    g_signal_connect (G_OBJECT (button), "toggled", G_CALLBACK (choose_dim_row),
                       (gpointer) dimname[i] );
-    gtk_box_pack_start(GTK_BOX (box1), button, TRUE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX (box2), button, TRUE, FALSE, 0);
     gtk_widget_show (button);
   }
+  gtk_widget_show (box2);
+  gtk_box_pack_start(GTK_BOX (box3), box2, TRUE, FALSE, 0);
+
+  /* Need to choose one dim for column */
+  box2 = gtk_vbox_new (FALSE, 0);
+  gtk_container_set_border_width (GTK_CONTAINER (box2), 30);
+  button = gtk_button_new_with_label ("COLUMN DIM");
+  gtk_widget_show (button);
+  gtk_box_pack_start(GTK_BOX (box2), button, TRUE, FALSE, 0);
+
+  button = gtk_radio_button_new (NULL);
+  for (int i = 0; i != dimnumber; ++i) {
+    group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (button));
+    button = gtk_radio_button_new (group);
+    g_signal_connect (G_OBJECT (button), "toggled", G_CALLBACK (choose_dim_col),
+                      (gpointer) dimname[i] );
+    gtk_box_pack_start(GTK_BOX (box2), button, TRUE, TRUE, 0);
+    gtk_widget_show (button);
+  }
+  gtk_widget_show (box2);
+  gtk_box_pack_start(GTK_BOX (box3), box2, TRUE, FALSE, 0);
+
+
+  gtk_widget_show (box3);
+  gtk_box_pack_start(GTK_BOX (box1), box3, TRUE, FALSE, 0);
   gtk_table_attach_defaults (GTK_TABLE (table_bot), box1, 0, 1, 0, 1);
   gtk_widget_show (box1);
 /* End "Dimension Browser" widget */
