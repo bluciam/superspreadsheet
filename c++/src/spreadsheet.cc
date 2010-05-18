@@ -1,23 +1,17 @@
 #include "spreadsheet.h"
 #include <cstdio>
 
-
 spreadsheet::spreadsheet() :
-  main_box(false, 10),
-  hbox1(false, 10),
+  main_box(false, 10), // false: child widget don't have the same width
+  hbox1(false, 10),    // 10: pixels between widgets
   hbox2(false, 10),
   hbox3(false, 10),
   hbox4(false, 10),
-//  the_button("Any name") = new Gtk::Button,
-//  the_button("Any name"),
-  f_dim_title("Frame for Dimensions Displayed"),
-  l_dim_title("Label for Dimensions Displayed"),
-  ll_dim_title("Another Label for Dimensions Displayed"),
+
   window_title("The S³ is displaying these dimensions ..."),
 
   commit_button("Commit your changes"), 
   quit_button(Gtk::Stock::QUIT),
-//  other_button("Other Button"),
   close_button("_Close", true) // to use alt-C to close app
 {
   int dimnumber = 10;
@@ -25,81 +19,65 @@ spreadsheet::spreadsheet() :
   // Set title and border of the window
   set_title("The Super SpreadSheet, The S³");
   set_border_width(10);
+//  set_default_size(800,400);
 
-  // Add outer box to the window (because the window
-  // can only contain a single widget)
+  // Add outer box to the window since the window may contain a single widget 
   add(main_box);
 
-  //Put the inner boxes and the separator in the outer box:
+  //Put the inner boxes in the outer box:
   main_box.pack_start(hbox1);
   main_box.pack_start(hbox2);
   main_box.pack_start(hbox3);
   main_box.pack_start(hbox4);
 
-  table = new Gtk::Table(dimnumber, 4, false);
-  (*table).set_col_spacings(10);
-
-  hbox2.pack_start(*table);
-  hbox2.pack_start(vbox2);
-  hbox2.pack_start(vbox3);
-
-  // Set the inner boxes' borders
-  vbox1.set_border_width(10);
-  vbox2.set_border_width(10);
-  vbox3.set_border_width(10);
-
-  hbox1.set_border_width(10);
+  // Set the boxes' spacing around the outside of the container: 10 pixels
+  hbox1.set_border_width(10); 
   hbox2.set_border_width(10);
   hbox3.set_border_width(10);
   hbox4.set_border_width(10);
 
 // Begin hbox1 
-
   hbox1.pack_start(window_title);
-//  (other_button).signal_clicked().connect(sigc::bind<Glib::ustring>(
-//                 sigc::mem_fun(*this, &spreadsheet::on_other_clicked),
-//                 "Hello" ));
+// End   hbox1 
 
-  label = new Gtk::Label;
-  (*label).set_label("Name");
+// Begin hbox2 
+  // Begin first table
+  table = new Gtk::Table(dimnumber, 4, false);
+  (*table).set_col_spacings(10);
+  hbox2.pack_start(*table);
+
+  // Column titles
+  label = Gtk::manage(new Gtk::Label);
+  (*label).set_label("Dimension\nName");
   (*table).attach((*label),0,1,0,1);
 
   label = new Gtk::Label;
   (*label).set_label("Horizontal\ndimension");
   (*table).attach((*label),1,2,0,1);
-//  vbox2.pack_start(*headers);
 
   label = new Gtk::Label;
   (*label).set_label("Vertical\ndimension");
   (*table).attach((*label),2,3,0,1);
-//  vbox3.pack_start(*headers);
 
   label = new Gtk::Label;
   (*label).set_label("Value");
   (*table).attach((*label),3,4,0,1);
 
+  // First row: no dimension chosen
   label = new Gtk::Label;
   (*label).set_label("No dimension");
   (*table).attach((*label),0,1,1,2);
 
-//  hdisplay = new Gtk::RadioButton;
   Gtk::RadioButton::Group hgroup = (hnodisplay).get_group();
   (*table).attach((hnodisplay),1,2,1,2);
   (hnodisplay).signal_toggled().connect(sigc::mem_fun(*this,
               &spreadsheet::on_h_nodim_toggled) );
-//  vbox2.pack_start(*hdisplay);
-//  vbox2.add(*hdisplay);
 
-//  vdisplay = new Gtk::RadioButton;
   Gtk::RadioButton::Group vgroup = (vnodisplay).get_group();
   (*table).attach((vnodisplay),2,3,1,2);
-//  vbox3.pack_start(*vdisplay);
   (vnodisplay).signal_toggled().connect(sigc::mem_fun(*this,
               &spreadsheet::on_v_nodim_toggled) );
 
-
-
-// Need a table otherwise they don't line up.
   for (int i = 0; i != dimnumber; ++i) {
     std::string s;
     std::stringstream out;
@@ -111,16 +89,9 @@ spreadsheet::spreadsheet() :
     (*label).set_label("Dimension " + s); // Name to come from TL HD
     (*table).attach((*label),0,1,i+2,ii+2);
 
-//    (*the_button).set_label("Dimension " + s); // Name to come from TL HD
-//    vbox1.pack_start(*the_button);
-//    (*the_button).signal_clicked().connect(sigc::bind<Glib::ustring>( 
-//                  sigc::mem_fun(*this, &spreadsheet::on_other_clicked), 
-//                  (*the_button).get_label() ));
-
     hdisplay = new Gtk::RadioButton;
     (*hdisplay).set_group(hgroup);
     (*table).attach((*hdisplay),1,2,i+2,ii+2);
-//    vbox2.pack_start(*hdisplay);
 
     vdisplay = new Gtk::RadioButton;
     (*vdisplay).set_group(vgroup);
@@ -138,18 +109,12 @@ spreadsheet::spreadsheet() :
     (*table).attach((*values),3,4,i+2,ii+2);
 
   }
+  // End first table
 
+  // Begin second table, which is within a Gtk::ScrolledWindow
 
-// End hbox1 
-
-
-// Begin hbox2 
-//  f_dim_title.add(l_dim_title);
-//  hbox2.pack_start(ll_dim_title);
-//  hbox2.pack_start(f_dim_title);
-
-//  scrollDimsWindow.set_border_width(100);
   scrollDimsWindow.set_policy(Gtk::POLICY_AUTOMATIC,Gtk::POLICY_AUTOMATIC);
+  scrollDimsWindow.set_size_request(400,400); // Set minimum size of widget
 
 //  get_vbox()->pack_start(scrollDimsWindow); //not sure what this does.
 
@@ -159,8 +124,10 @@ spreadsheet::spreadsheet() :
 
   scrollDimsWindow.add(*table);
 
-  /* this simply creates a grid of toggle buttons on the table
-   * to demonstrate the scrolled window. */
+  /* This simply creates a grid of toggle buttons on the table
+   * to demonstrate the scrolled window. 
+   * Taken from examples for tutorial. 
+   * TODO: should change to just labels. Not sure what has to be done. */
   for(int i = 0; i < 10; i++)
   {
      for(int j = 0; j < 10; j++)
@@ -177,9 +144,10 @@ spreadsheet::spreadsheet() :
 // End hbox2 
 
 // Begin hbox3 
-  // Filling up the last horizontal box with new eqn field, commit and quit 
 
-// Trying to add a meesage when "commiting changes" is taking place.
+/* Trying to add a meesage when "commiting changes" is taking place.
+ * Taken from example, not fully understood.
+ */
   Gtk::Container* infoBarContainer =
     dynamic_cast<Gtk::Container*>(InfoBar_commit.get_content_area());
   if (infoBarContainer)
@@ -189,7 +157,7 @@ spreadsheet::spreadsheet() :
   Label_commit.set_text("Commiting changes...");
   InfoBar_commit.set_message_type(Gtk::MESSAGE_INFO);
   InfoBar_commit.signal_response().connect(sigc::mem_fun(*this,
-              &spreadsheet::on_infobar_commit ) );
+                 &spreadsheet::on_infobar_commit ) );
 
   hbox3.pack_end(InfoBar_commit, Gtk::PACK_SHRINK);
 
@@ -197,6 +165,8 @@ spreadsheet::spreadsheet() :
 
 
 // Begin hbox4 
+  // Filling up the last horizontal box with new eqn field, commit and quit 
+
 //  eqns_entry.set_max_length(50);
   eqns_entry.set_text("hello");
   eqns_entry.set_text(eqns_entry.get_text() + " world");
@@ -204,113 +174,114 @@ spreadsheet::spreadsheet() :
   eqns_entry.set_icon_from_stock(Gtk::Stock::INDEX );
   eqns_entry.signal_icon_press().connect( sigc::mem_fun(*this,
              &spreadsheet::on_icon_pressed_eqns) );
-// TODO: The actual text entry need to be handled.
+// TODO: The actual text entry needs to be handled.
 
 
   hbox4.pack_start(eqns_entry);
-
-
-//This any button is to be replaced with eqns browser
-//  the_button = new Gtk::Button;
-//  (*the_button).set_label("Any Name");
-//  (*the_button).signal_clicked().connect(sigc::mem_fun(*this,
-//               &spreadsheet::on_dimname_clicked), "Hello" );
-
-//  hbox3.pack_start(*the_button);
   hbox4.pack_start(commit_button);
   hbox4.pack_start(close_button);
   hbox4.pack_start(quit_button);
 
-// TODO: Need a signal handler for the commit button
+  hbox4.set_size_request(400,50); // need the maximum height only. not working
 
   // Make the button the default widget. from Widget. No idea what this 
-  // does as the explanation does not match the functionality
+  // does as the explanation does not match the functionality.
   close_button.set_can_default();
   close_button.grab_default();
 
-  // Connect the clicked signal of the close_button to
-  // spreadsheet::on_button_clicked()
-  commit_button.signal_clicked().connect(sigc::mem_fun(*this,
-                &spreadsheet::on_commit_clicked) );
+  // Connecting the signal to the corresponding handlers.
+  commit_button.signal_clicked().connect(sigc::bind (sigc::mem_fun(*this,
+                &spreadsheet::on_commit_clicked), "Hi :-)") );
   close_button.signal_clicked().connect(sigc::mem_fun(*this,
-               &spreadsheet::on_button_clicked) );
+               &spreadsheet::on_closebutton_clicked) );
   quit_button.signal_clicked().connect(sigc::ptr_fun(&Gtk::Main::quit));
 
 // End hbox4 
 
 
-
   // Show all children of the window
   show_all_children();
-  InfoBar_commit.hide();
+  InfoBar_commit.hide(); // InfoBar shown only when commit button is pressed
 }
+
 
 spreadsheet::~spreadsheet()
 {
 }
 
-void spreadsheet::on_button_clicked()
+void
+spreadsheet::on_closebutton_clicked()
 {
   std::cout << "Qutting the S³..." << std::endl;
   hide(); //to close the application.
 }
 
-void spreadsheet::on_commit_clicked()
+void
+spreadsheet::on_commit_clicked(Glib::ustring msg)
 {
-  InfoBar_commit.show(); //to show the message
+  InfoBar_commit.show(); // To show the message when commit is clicked.
+  // Extra handling when known what to do.
+  /* http://library.gnome.org/devel/gtkmm-tutorial/unstable/sec-progressbar.html.en
+   * to introduce progress bar instead of the Ok button.
+   */
+  std::cout << msg << std::endl;
 }
 
-void spreadsheet::on_dimname_clicked()
+void
+spreadsheet::on_infobar_commit(int)
 {
-  std::cout << "Any button has been clicked." << std::endl;
+  // Hide the commit InfoBar:
+  InfoBar_commit.hide();
 }
 
-void spreadsheet::on_other_clicked(Glib::ustring msg)
-{
-  std::cout << msg << " been clicked." << std::endl;
-}
-
-void spreadsheet::on_v_nodim_toggled()
-{
-  if ((vnodisplay).get_active()) 
-  std::cout << "No dimension chosen for vertical display." << std::endl;
-
-//  std::cout << "The Button was clicked: state="
-//      << (vnodisplay.get_active() ? "true" : "false")
-//      << std::endl;
-
-}
-
-//void spreadsheet::on_v_toggled(Gtk::RadioButon * radio)
-//{
-//  std::cout << "Some dimension chosen for vertical display."<< std::endl;
-//}
-
-void spreadsheet::on_h_nodim_toggled()
+void
+spreadsheet::on_h_nodim_toggled()
 {
   if ((hnodisplay).get_active()) 
   std::cout << "No dimension chosen for horizontal display."<< std::endl;
 }
 
-void spreadsheet::on_h_toggled()
+void
+spreadsheet::on_v_nodim_toggled()
+{
+  if ((vnodisplay).get_active()) 
+  std::cout << "No dimension chosen for vertical display." << std::endl;
+//  std::cout << "The Button was clicked: state="
+//      << (vnodisplay.get_active() ? "true" : "false")
+//      << std::endl;
+}
+
+// Need to know how to hook a (* widget) here after it has been reused in 
+// the main. 
+//void
+//spreadsheet::on_v_toggled(Gtk::RadioButon * radio)
+//{
+//  std::cout << "Some dimension chosen for vertical display."<< std::endl;
+//}
+
+void
+spreadsheet::on_v_toggled()
+{
+  std::cout << "Some dimension chosen for vertical display."<< std::endl;
+}
+
+void
+spreadsheet::on_h_toggled()
 {
   std::cout << "Some dimension chosen for horizontal display."<< std::endl;
 }
 
-void spreadsheet::on_icon_pressed_eqns(Gtk::EntryIconPosition /* icon_pos */,
-                                       const GdkEventButton* /* event */)
+void
+spreadsheet::on_icon_pressed_eqns(Gtk::EntryIconPosition /* icon_pos */,
+                                  const GdkEventButton*  /* event */)
 {
-// TODO: figure out how to produce a drop down list of existing equations
-// for now just selecting text in it.
+/* TODO: figure out how to produce a drop down list of existing equations
+ * for now just selecting/highlighting text in it.
+ * http://library.gnome.org/devel/gtkmm-tutorial/unstable/sec-text-entry.html.en#sec-text-entry-completion
+ */
   eqns_entry.select_region(0, eqns_entry.get_text_length());
   std::cout << "Equation field clicked." << std::endl;
 
-}
-void spreadsheet::on_infobar_commit(int)
-{
-  // Clear the message and hide the info bar:
-//  Label_commit.set_text("");
-  InfoBar_commit.hide();
 }
 
 
