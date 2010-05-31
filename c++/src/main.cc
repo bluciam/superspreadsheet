@@ -3,11 +3,13 @@
 
 int main(int argc, char *argv[])
 {
-  Gtk::Main kit(argc, argv);
+  Gtk::Main* kit = new Gtk::Main(argc, argv);
 
-  spreadsheet spreadsheet;
+  spreadsheet* sss = new spreadsheet;
   //Shows the spreadsheet window and returns when it is closed.
-  Gtk::Main::run(spreadsheet);
+  Gtk::Main::run(*sss);
+  delete sss;
+  delete kit;
 
   return 0;
 }
