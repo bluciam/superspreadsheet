@@ -21,5 +21,5 @@ bin_PROGRAMS = spreadsheet
 ## file from each source file. Header files (.h) will also be 
 ## included in distribution archives of the project.
 spreadsheet_SOURCES = spreadsheet.h spreadsheet.cc main.cc 
-## spreadsheet_LDFLAGS = -ltlinterpreter -ltlsystem
-## AM_CXXFLAGS = -std=gnu++0x
+spreadsheet_LDFLAGS = -ltlsystem
+AM_CXXFLAGS = -std=gnu++0x

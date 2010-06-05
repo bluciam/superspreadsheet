@@ -47,6 +47,8 @@ PROGRAMS = $(bin_PROGRAMS)
 am_spreadsheet_OBJECTS = spreadsheet.$(OBJEXT) main.$(OBJEXT)
 spreadsheet_OBJECTS = $(am_spreadsheet_OBJECTS)
 spreadsheet_LDADD = $(LDADD)
+spreadsheet_LINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
+	$(spreadsheet_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -193,6 +195,8 @@ SUBDIRS = examples
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 spreadsheet_SOURCES = spreadsheet.h spreadsheet.cc main.cc 
+spreadsheet_LDFLAGS = -ltlsystem
+AM_CXXFLAGS = -std=gnu++0x
 all: all-recursive
 
 .SUFFIXES:
@@ -266,7 +270,7 @@ clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 spreadsheet$(EXEEXT): $(spreadsheet_OBJECTS) $(spreadsheet_DEPENDENCIES) 
 	@rm -f spreadsheet$(EXEEXT)
-	$(CXXLINK) $(spreadsheet_OBJECTS) $(spreadsheet_LDADD) $(LIBS)
+	$(spreadsheet_LINK) $(spreadsheet_OBJECTS) $(spreadsheet_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
