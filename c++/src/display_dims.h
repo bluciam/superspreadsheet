@@ -1,18 +1,22 @@
 #include <gtkmm/window.h>
-#include <gtkmm/radiobutton.h>
-#include <gtkmm/box.h>
-#include <iostream>
 #include <gtkmm.h> // Needed for now for Stock Items
 
 
-class spreadsheet : public Gtk::Window
+class display_dims : public Gtk::ScrolledWindow
 {
 public:
 //Constructor and Destructor
-  spreadsheet();
-  virtual ~spreadsheet();
+  display_dims(guint row_range, guint col_range, guint h_min, guint v_min);
+  virtual ~display_dims();
 
 protected:
+  //Child widgets:
+  Gtk::Table * table;
+  Gtk::Label * label;
+  Gtk::Frame * frame;
+};
+
+/*
   //Signal handlers:
   void on_closebutton_clicked();
   void on_v_nodim_toggled();
@@ -24,10 +28,9 @@ protected:
   void on_commit_clicked(Glib::ustring msg);
   void on_infobar_commit(int commit);
 
-  //Child widgets:
+
   Gtk::VBox main_box;
   Gtk::HBox hbox1,
-//            hbox2,
             hbox3,
             hbox4;
   Gtk::HPaned hbox2;
@@ -49,8 +52,6 @@ protected:
       h_upper_limit,
       v_upper_limit;
 
-  Gtk::Table * table;
-  Gtk::ScrolledWindow scrollDimsWindow;
 
   Gtk::InfoBar InfoBar_commit;
 
@@ -69,5 +70,4 @@ protected:
   Gtk::HButtonBox last_box;
 
   void create_equations ();
-};
-
+*/

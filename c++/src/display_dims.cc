@@ -1,44 +1,49 @@
 #include "display_dims.h"
 #include <cstdio>
-#include <map>
 #include <tl/translator.hpp>
 #include <tl/utility.hpp>
 #include <tl/parser_util.hpp>
 
-
-display_dims::display_dims() :
-
+// Constructor
+display_dims::display_dims( guint row_range, guint col_range, guint h_min, guint v_min)
 {
 
-
-// UNTIL HERE
-
-std::cout << "h dim = " << h_dim << " and v dim = " << v_dim << std::endl;
-
   // Begin second table, which is within a Gtk::ScrolledWindow
-
+/*
   scrollDimsWindow.set_policy(Gtk::POLICY_AUTOMATIC,Gtk::POLICY_AUTOMATIC);
   scrollDimsWindow.set_size_request(400,200); // Set minimum size of widget
+*/
+ std::cout << "Checking on values in display_dims:\n h_min = " 
+           << h_min << "\n v_min = " <<
+            v_min << "\n row_range = " << row_range << "\n col_range "
+            << col_range << std::endl;
+
+
+  set_policy(Gtk::POLICY_AUTOMATIC,Gtk::POLICY_AUTOMATIC);
+  set_size_request(400,200); // Set minimum size of widget
 
   table = Gtk::manage(new Gtk::Table(row_range + 1, col_range + 1, false));
   (*table).set_col_spacings(10);
   (*table).set_row_spacings(10);
+  add(*table);
 
+/*
   big_frame = Gtk::manage(new Gtk::Frame);
   big_frame->set_shadow_type(Gtk::SHADOW_IN);
   big_frame->add(scrollDimsWindow);
   scrollDimsWindow.add(*table);
   hbox2.pack2(*big_frame);
+*/
 
   label = Gtk::manage(new Gtk::Label);
   (*label).set_label("  Dim\nIndices"); 
   (*table).attach(*label, 0, 1, 0, 1);
-  int value = tuples[h_dim] - h_radius;
+//  int value = tuples[h_dim] - h_radius;    // h_min
   for (int i = 1 ; i != row_range + 1; ++i)
   {
     std::string s;
     std::stringstream out;
-    out << value + i - 1;
+    out << h_min + i - 1;
     s = out.str();
     label = Gtk::manage(new Gtk::Label);
     Glib::ustring cell = s; 
@@ -46,12 +51,12 @@ std::cout << "h dim = " << h_dim << " and v dim = " << v_dim << std::endl;
     (*table).attach(*label, i, i+1, 0, 1);
   }
 
-  value = tuples[v_dim] - v_radius;
+//   value = tuples[v_dim] - v_radius;     // v_min
   for (int i = 1 ; i != col_range + 1; ++i)
   {
     std::string s;
     std::stringstream out;
-    out << value + i - 1;
+    out << v_min + i - 1;
     s = out.str();
     label = Gtk::manage(new Gtk::Label);
     Glib::ustring cell = s; 

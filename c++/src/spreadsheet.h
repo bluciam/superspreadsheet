@@ -3,6 +3,7 @@
 #include <gtkmm/box.h>
 #include <iostream>
 #include <gtkmm.h> // Needed for now for Stock Items
+#include <display_dims.h>
 
 
 class spreadsheet : public Gtk::Window
@@ -50,7 +51,9 @@ protected:
       v_upper_limit;
 
   Gtk::Table * table;
-  Gtk::ScrolledWindow scrollDimsWindow;
+//  Gtk::ScrolledWindow display_dims;
+  display_dims dimensions_sheet;
+
 
   Gtk::InfoBar InfoBar_commit;
 

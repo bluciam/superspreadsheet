@@ -20,6 +20,6 @@ bin_PROGRAMS = spreadsheet
 ## produce rules which invoke ## the C++ compiler to produce an object
 ## file from each source file. Header files (.h) will also be 
 ## included in distribution archives of the project.
-spreadsheet_SOURCES = spreadsheet.h spreadsheet.cc main.cc 
+spreadsheet_SOURCES = spreadsheet.h spreadsheet.cc display_dims.h  display_dims.cc main.cc 
 spreadsheet_LDFLAGS = -ltlsystem
 AM_CXXFLAGS = -std=gnu++0x

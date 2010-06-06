@@ -4,6 +4,7 @@
 #include <tl/translator.hpp>
 #include <tl/utility.hpp>
 #include <tl/parser_util.hpp>
+// #include <display_dims.h>
 
 
 // These might not have to be global!
@@ -23,6 +24,8 @@ spreadsheet::spreadsheet() :
   // The initial_value is to be the radius, for now 0 with upper limit of 10. 
   h_spread_limits(0.0, 0.0, 10.0, 1.0, 3.0, 0.0),
   v_spread_limits(0.0, 0.0, 10.0, 1.0, 3.0, 0.0),
+
+  dimensions_sheet(5,5,5,5),
 
   window_title("The S³ is displaying these dimensions ..."),
   // last_button is Gtk::HButtonBox for equal spacing (30) of buttons.
@@ -97,7 +100,6 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   // Begin first table
   table = Gtk::manage(new Gtk::Table(num_dims, 4, false));
   (*table).set_col_spacings(10);
-//  hbox2.pack1(*table);
 
   big_frame = Gtk::manage(new Gtk::Frame);
   big_frame->set_shadow_type(Gtk::SHADOW_IN);
@@ -195,21 +197,48 @@ std::cout << "h dim = " << h_dim << " and v dim = " << v_dim << std::endl;
 
   // Begin second table, which is within a Gtk::ScrolledWindow
 
-  scrollDimsWindow.set_policy(Gtk::POLICY_AUTOMATIC,Gtk::POLICY_AUTOMATIC);
-  scrollDimsWindow.set_size_request(400,200); // Set minimum size of widget
+//  scrollDimsWindow.set_policy(Gtk::POLICY_AUTOMATIC,Gtk::POLICY_AUTOMATIC);
+//  scrollDimsWindow.set_size_request(400,200); // Set minimum size of widget
 
 //  get_vbox()->pack_start(scrollDimsWindow); //not sure what this does.
 
+// Somewhere here we have to create the second table using display_dims
+// no, it is a scrollDimsWindow
+
+  
+  int h_min = tuples[h_dim] - h_radius;
+  int v_min = tuples[v_dim] - v_radius;
+
+
+  std::cout << "Checking on values in spreadsheet:\n h_min = " 
+            << h_min << "\n v_min = " <<
+            v_min << "\n row_range = " << row_range << "\n col_range "
+            << col_range << std::endl;
+  
+/*
+  display_dims dimensions_sheet = display_dims( row_range, row_range, h_min, v_min);
+  dimensions_sheet = Gtk::manage(new display_dims(1,1,1,1));
+  display_dims * dimensions_sheet;
+*/
+
+/*
   table = Gtk::manage(new Gtk::Table(row_range + 1, col_range + 1, false));
   (*table).set_col_spacings(10);
   (*table).set_row_spacings(10);
+*/
+
+  display_dims Sheet(row_range, col_range, h_min, v_min);
 
   big_frame = Gtk::manage(new Gtk::Frame);
   big_frame->set_shadow_type(Gtk::SHADOW_IN);
-  big_frame->add(scrollDimsWindow);
-  scrollDimsWindow.add(*table);
+  hbox1.add(Sheet);
+  big_frame->add(dimensions_sheet);
   hbox2.pack2(*big_frame);
+  Sheet.set_visible(true);
+  (Sheet).show(); 
 
+
+/*
   label = Gtk::manage(new Gtk::Label);
   (*label).set_label("  Dim\nIndices"); 
   (*table).attach(*label, 0, 1, 0, 1);
@@ -239,9 +268,12 @@ std::cout << "h dim = " << h_dim << " and v dim = " << v_dim << std::endl;
     (*table).attach(*label, 0, 1, i, i+1);
 
   }
+*/
 
   /* For now just labels representing the values of each cell.
    */
+
+/*
   for (int i = 1 ; i != row_range + 1 ; ++i)
   {
      for (int j = 1 ; j != col_range + 1 ; ++j)
@@ -259,6 +291,7 @@ std::cout << "h dim = " << h_dim << " and v dim = " << v_dim << std::endl;
        (*table).attach(*frame, i, i+1, j, j+1);
      }
   }
+*/
 
 //  hbox2.pack2(scrollDimsWindow);
 
@@ -330,6 +363,7 @@ std::cout << "h dim = " << h_dim << " and v dim = " << v_dim << std::endl;
   show_all_children();
   InfoBar_commit.hide(); // InfoBar shown only when commit button is pressed
 
+  (Sheet).show(); 
   create_equations();
 
 }
