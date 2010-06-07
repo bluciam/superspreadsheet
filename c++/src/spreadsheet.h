@@ -16,26 +16,30 @@ public:
 protected:
   //Signal handlers:
   void on_closebutton_clicked();
-  void on_v_nodim_toggled();
   void on_h_nodim_toggled();
-  void on_v_toggled(Gtk::RadioButton *, Glib::ustring);
+  void on_v_nodim_toggled();
   void on_h_toggled(Gtk::RadioButton *, Glib::ustring);
+  void on_v_toggled(Gtk::RadioButton *, Glib::ustring);
+  void on_h_spread_spin();
+  void on_v_spread_spin();
   void on_icon_pressed_eqns(Gtk::EntryIconPosition icon_pos, 
                             const GdkEventButton* event);
   void on_commit_clicked(Glib::ustring msg);
+  void on_redraw_clicked(Glib::ustring msg);
+  void on_dimension_pivot_changed(Gtk::Entry *, Glib::ustring);
   void on_infobar_commit(int commit);
 
   //Child widgets:
   Gtk::VBox main_box;
-  Gtk::HBox hbox1,
-            hbox3,
-            hbox4;
-  Gtk::HBox extra_box;
-  Gtk::HPaned hbox2;
+  Gtk::HBox hbox_title,
+            hbox_eqns,
+            hbox_last;
+  Gtk::HPaned hpaned_content;
   Gtk::VBox * box;  // For packing label and spin buttons
 
   Gtk::Button quit_button,
               commit_button,
+              redraw_button,
               close_button;
 
   Gtk::Entry  eqns_entry,

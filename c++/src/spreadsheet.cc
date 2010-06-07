@@ -7,45 +7,46 @@
 // #include <display_dims.h>
 
 
+std::map<Glib::ustring,int> tuples;
+std::map<Glib::ustring,int>::iterator it;
+
 Glib::ustring v_dim, h_dim; // To globally tag the 2 chosen dims
 int           num_dims;     // Number of dims available for display 
 int           h_radius;     // horizontal radius of display
 int           v_radius;     // vertical radius of display
-int           row_range;
-int           col_range;
+int           row_spread;   // display spread of dimensions table
+int           col_spread;   //   based on the radius.
+int           h_min_index;  // minimum h and v value for the first position
+int           v_min_index;  //   in each H and V directions.
 
 spreadsheet::spreadsheet() :
-  main_box(false, 10), // false: child widgets don't have the same width
-  hbox1(false, 10),    //    10: pixels between widgets
-  hbox3(false, 10),
-  hbox4(false, 10),
-  extra_box(false, 10),
+  main_box  (false, 10),   // false: child widgets don't have the same width
+  hbox_title(false, 10),   //    10: pixels between widgets
+  hbox_eqns (false, 10),
+  hbox_last (false, 10),
 
-  // Gtk::Adjustment(float initial_value, float lower, float upper,
-  //      float step_increment, float page_increment, float page_size);
-  // The initial_value is to be the radius, for now 0 with upper limit of 10. 
-  h_spread_limits(0.0, 0.0, 10.0, 1.0, 3.0, 0.0),
-  v_spread_limits(0.0, 0.0, 10.0, 1.0, 3.0, 0.0),
-
-//  dimensions_sheet(5,5,5,5),
+  h_spread_limits(0.0, 0.0, 20.0, 1.0, 3.0, 0.0), // Gtk::Adjustment(
+  v_spread_limits(0.0, 0.0, 20.0, 1.0, 3.0, 0.0), //      initial_value, 
+                                                  //      lower, upper,
+                                                  //      step_increment, 
+                                                  //      page_increment, 
+                                                  //      page_size);
 
   window_title("The S³ is displaying these dimensions ..."),
-  // last_button is Gtk::HButtonBox for equal spacing (30) of buttons.
-  last_box(Gtk::BUTTONBOX_END, 30),
+  last_box(Gtk::BUTTONBOX_END, 30),   // last_button is Gtk::HButtonBox for
+                                      //   equal spacing (30) of buttons.
 
-  commit_button("  Redraw SpreadSheet  "), 
+  commit_button("  Commit changes  "), 
+  redraw_button("  Redraw SpreadSheet  "), 
   quit_button(Gtk::Stock::QUIT),
-  close_button("_Close", true) // to use alt-C to close app
+  close_button("_Close", true)       // to use alt-C to close app
 {
   num_dims = 4; 
   h_radius = 11;
   v_radius = 4;
-  row_range = h_radius * 2 + 1;
-  col_range = v_radius * 2 + 1;
+  row_spread = h_radius * 2 + 1;
+  col_spread = v_radius * 2 + 1;
 
-  std::map<Glib::ustring,int> tuples;
-  std::map<Glib::ustring,int>::iterator it;
-  
   tuples["x"] = 4;
   tuples["y"] = 7;
   tuples["w"] = 11;
@@ -55,9 +56,6 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
     std::cout << (*it).first << " => " << (*it).second << std::endl;
 */
 
-  it=tuples.begin();
-  h_dim = (*(it++)).first;
-  v_dim = (*it).first;
 
   // Set title and border of the window
   set_title("The Super SpreadSheet, The S³");
@@ -68,31 +66,32 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   add(main_box);
 
   //Put the inner boxes in the outer box:
-  main_box.pack_start(hbox1);
-  main_box.pack_start(hbox3);
-  main_box.pack_start(hbox2);
-  main_box.pack_start(extra_box);
+  main_box.pack_start(hbox_title);
+  main_box.pack_start(hbox_eqns);
+  main_box.pack_start(hpaned_content);
+  main_box.pack_start(hbox_last);
 
-  // Set the boxes' spacing around the outside of the container: 10 pixels
-  hbox1.set_border_width(5); 
-  hbox3.set_border_width(5);
-  hbox4.set_border_width(5);
+  // Set the boxes' spacing around the outside of the container: 5 pixels
+  hbox_title.set_border_width(5); 
+  hbox_eqns.set_border_width(5);
+  hbox_last.set_border_width(5);
 
-// Begin hbox1 
-  hbox1.pack_start(window_title);
-// End   hbox1 
+// Begin hbox_title 
+  hbox_title.pack_start(window_title);
+// End   hbox_title 
 
 
-// Begin hbox2 
+// Begin hpaned_content 
 
   h_spread_limits.set_value(h_radius);
-  v_spread_limits.set_value(v_radius);
   h_spread_spin.set_adjustment(h_spread_limits);
-  v_spread_spin.set_adjustment(v_spread_limits);
   h_spread_spin.set_size_request(50, -1);
   h_spread_spin.set_numeric(true);
   h_spread_spin.set_wrap(true);
   h_spread_spin.set_alignment(1);
+
+  v_spread_limits.set_value(v_radius);
+  v_spread_spin.set_adjustment(v_spread_limits);
   v_spread_spin.set_size_request(50, -1);
   v_spread_spin.set_numeric(true);
   v_spread_spin.set_wrap(true);
@@ -106,7 +105,7 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   big_frame->set_shadow_type(Gtk::SHADOW_IN);
   big_frame->set_size_request(300,-1);
   big_frame->add(*table);
-  hbox2.pack1(*big_frame);
+  hpaned_content.pack1(*big_frame);
 
   // Column titles
   label = manage(new Gtk::Label);
@@ -119,6 +118,9 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   (*box).add(h_spread_spin);
   (*label).set_label("H dim\nradius");
   (*table).attach((*box),1,2,0,1);
+
+  h_spread_spin.signal_activate().connect( sigc::mem_fun(
+                *this, &spreadsheet::on_h_spread_spin ) );
 
   box = Gtk::manage(new Gtk::VBox);
   label = Gtk::manage(new Gtk::Label);
@@ -138,14 +140,18 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
 
   Gtk::RadioButton::Group hgroup = (hnodisplay).get_group();
   (*table).attach((hnodisplay),1,2,1,2);
-  (hnodisplay).signal_toggled().connect(sigc::mem_fun(*this,
-              &spreadsheet::on_h_nodim_toggled) );
+  (hnodisplay).signal_toggled().connect(sigc::mem_fun(
+               *this, &spreadsheet::on_h_nodim_toggled) );
 
   Gtk::RadioButton::Group vgroup = (vnodisplay).get_group();
   (*table).attach((vnodisplay),2,3,1,2);
-  (vnodisplay).signal_toggled().connect(sigc::mem_fun(*this,
-              &spreadsheet::on_v_nodim_toggled) );
+  (vnodisplay).signal_toggled().connect(sigc::mem_fun(
+               *this, &spreadsheet::on_v_nodim_toggled) );
 
+
+  it=tuples.begin();
+  h_dim = (*(it++)).first;
+  v_dim = (*it).first;
 
   /* Following rows: radio buttons in two groups: H and V
      and the pivot value
@@ -187,78 +193,68 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
     (*values).set_size_request(50, -1);
     (*values).set_text(s);
     (*table).attach((*values),3,4,i+2,ii);
+    values->signal_activate().connect( sigc::bind (
+       sigc::mem_fun(
+            *this, &spreadsheet::on_dimension_pivot_changed), values, dim ) );
 
 /* TODO: attach signal when the text is changed and update 
          dim_tuples[i].pivot.
    signal is changed ...
-   values->signal_action_changed().connect( sigc::mem_fun(*this,
-              &spreadsheet::on_dimension_pivot_changed) );
 */
   }
   // End table
   std::cout << "h dim = " << h_dim << " and v dim = " << v_dim << std::endl;
 
   // Begin display of dimension values
-  int h_min = tuples[h_dim] - h_radius;
-  int v_min = tuples[v_dim] - v_radius;
+  h_min_index = tuples[h_dim] - h_radius;
+  v_min_index = tuples[v_dim] - v_radius;
 
-  std::cout << "Checking on values in spreadsheet:\n h_min = " 
-            << h_min << "\n v_min = " <<
-            v_min << "\n row_range = " << row_range << "\n col_range "
-            << col_range << std::endl;
-  dimensions_sheet = Gtk::manage(new display_dims(row_range, col_range, h_min, v_min));
+  std::cout << "Checking on values in spreadsheet:\n h_min_index = " 
+            << h_min_index << "\n v_min_index = " <<
+            v_min_index << "\n row_spread = " << row_spread << "\n col_spread "
+            << col_spread << std::endl;
+  dimensions_sheet = Gtk::manage(new display_dims(
+    row_spread, col_spread, h_min_index, v_min_index));
 
   big_frame = Gtk::manage(new Gtk::Frame);
   big_frame->set_shadow_type(Gtk::SHADOW_IN);
   big_frame->add(*dimensions_sheet);
-  hbox2.pack2(*big_frame);
-
-
-
-
+  hpaned_content.pack2(*big_frame);
   // End display of dimension values
 
+// End hpaned_content 
 
-// End hbox2 
 
-// Begin hbox3 
-
+// Begin hbox_eqns 
   //  eqns_entry.set_max_length(50);
-  eqns_entry.set_text("hello");
-  eqns_entry.set_text(eqns_entry.get_text() + " world");
+  eqns_entry.set_text("Enter your");
+  eqns_entry.set_text(eqns_entry.get_text() + " equations.");
   eqns_entry.set_icon_from_stock(Gtk::Stock::INDEX );
   eqns_entry.signal_icon_press().connect( sigc::mem_fun(*this,
              &spreadsheet::on_icon_pressed_eqns) );
-  hbox3.pack_start(eqns_entry);
-
-// End hbox3 
-
-
-// Begin hbox4 
-  // Filling up the last horizontal box with new eqn field, commit and quit 
+  hbox_eqns.pack_start(eqns_entry);
+// End hbox_eqns 
 
 
-/* Trying to add a message when "commiting changes" is taking place.
- * Taken from example, not fully understood.
- */
+// Begin hbox_last 
+
+// InfoBar is taken from example, not fully understood.
   Gtk::Container* infoBarContainer =
     dynamic_cast<Gtk::Container*>(InfoBar_commit.get_content_area());
   if (infoBarContainer)
     infoBarContainer->add(Label_commit);
-  // Add an ok button to the InfoBar:
+  // Add an OK button to the InfoBar:
   InfoBar_commit.add_button(Gtk::Stock::OK, 0);
   Label_commit.set_text("Commiting changes...");
   InfoBar_commit.set_message_type(Gtk::MESSAGE_INFO);
   InfoBar_commit.signal_response().connect(sigc::mem_fun(*this,
                  &spreadsheet::on_infobar_commit ) );
-  hbox4.pack_start(InfoBar_commit, Gtk::PACK_SHRINK);
-
+  hbox_last.pack_start(InfoBar_commit, Gtk::PACK_SHRINK);
 
   last_box.add(commit_button);
+  last_box.add(redraw_button);
   last_box.add(close_button);
-  last_box.add(quit_button);
-  hbox4.pack_start(last_box);
-  main_box.pack_start(hbox4);
+  hbox_last.pack_start(last_box);
 
 
   // Make the button the default widget. from Widget. No idea what this 
@@ -267,20 +263,21 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   close_button.grab_default();
 
   // Connecting the signal to the corresponding handlers.
-  commit_button.signal_clicked().connect(
-         sigc::bind<Glib::ustring> (
-             sigc::mem_fun(
-                *this,
-                &spreadsheet::on_commit_clicked), 
-                "Hi :-)") );
+  redraw_button.signal_clicked().connect( sigc::bind<Glib::ustring> (
+             sigc::mem_fun( *this,
+                            &spreadsheet::on_redraw_clicked), 
+                            "Redrawing...") );
+  commit_button.signal_clicked().connect( sigc::bind<Glib::ustring> (
+             sigc::mem_fun( *this,
+                            &spreadsheet::on_commit_clicked), 
+                            "Hi :-)") );
   close_button.signal_clicked().connect (
-             sigc::mem_fun(
-                *this,
-                &spreadsheet::on_closebutton_clicked) );
+             sigc::mem_fun( *this,
+                            &spreadsheet::on_closebutton_clicked) );
   quit_button.signal_clicked().connect(
-             sigc::ptr_fun(&Gtk::Main::quit));
+             sigc::ptr_fun( &Gtk::Main::quit));
 
-// End hbox4 
+// End hbox_last 
 
 
   // Show all children of the window
@@ -294,7 +291,9 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
 
 spreadsheet::~spreadsheet()
 {
-  // Trying to get rid of the problem of not deallocating memory.
+  /* Trying to get rid of the problem of not deallocating memory, but this is
+     blowing up with display_dims class as a pointer.
+  */
 //  Glib::Error::register_cleanup();
 //  Glib::wrap_register_cleanup();
 }
@@ -308,47 +307,73 @@ spreadsheet::on_closebutton_clicked()
 }
 
 void
+spreadsheet::on_redraw_clicked(Glib::ustring msg)
+{
+  std::cout << msg << std::endl;
+
+/*
+  h_min_index = tuples[h_dim] - h_radius;
+  v_min_index = tuples[v_dim] - v_radius;
+*/
+
+  big_frame->remove();
+  dimensions_sheet = Gtk::manage(new display_dims(
+    row_spread, col_spread,
+    tuples[h_dim] - h_radius,
+    tuples[v_dim] - v_radius));
+  big_frame->add(*dimensions_sheet);
+
+  hpaned_content.pack2(*big_frame);
+  (*this).show_all_children();
+
+}
+
+void
+spreadsheet::on_h_spread_spin()
+{
+
+  h_radius = h_spread_spin.get_value();
+  std::cout << h_radius << std::endl;
+  h_spread_limits.set_value(h_radius);
+
+}
+
+void
+spreadsheet::on_dimension_pivot_changed(Gtk::Entry * values, Glib::ustring dim)
+{
+  Glib::ustring s_pivot = values->get_text ();
+  std::cout << s_pivot << std::endl;
+  int pivot =  atoi(s_pivot.c_str()); 
+  tuples[dim] = pivot;
+
+  for ( it=tuples.begin() ; it != tuples.end(); it++ )
+      std::cout << (*it).first << " => " << (*it).second << std::endl;
+}
+
+void
 spreadsheet::on_commit_clicked(Glib::ustring msg)
 {
-//  (*dimensions_sheet).hide();
-  big_frame->remove();
-  
-
   InfoBar_commit.show(); // To show the message when commit is clicked.
   // Extra handling when known what to do.
   /* http://library.gnome.org/devel/gtkmm-tutorial/unstable/sec-progressbar.html.en
    * to introduce progress bar instead of the Ok button.
    */
   std::cout << msg << std::endl;
-//  (*dimensions_sheet).hide();
-//  delete dimensions_sheet;
-//  hbox2.remove(*big_frame);
 
-
+  big_frame->remove();
   dimensions_sheet = Gtk::manage(new display_dims(6, 6, 6, 6));
-//  big_frame = Gtk::manage(new Gtk::Frame);
-//  big_frame->set_shadow_type(Gtk::SHADOW_IN);
   big_frame->add(*dimensions_sheet);
-  std::cout << "End of on_commit_clicked."  << std::endl;
-Gtk::Button* pButton = new Gtk::Button("_Something", true);
-//  extra_box.pack_start(*pButton);
-//  extra_box.pack_start(*dimensions_sheet);
 
-  hbox2.pack2(*big_frame);
+  hpaned_content.pack2(*big_frame);
   (*this).show_all_children();
 
-//  show_all_children();
-//  (*dimensions_sheet).show();
 }
 
 void
 spreadsheet::on_infobar_commit(int)
 {
   // Hide the commit InfoBar:
-//  (*this).show_all_children();
-//  (*dimensions_sheet).show();
   InfoBar_commit.hide();
-  std::cout << "End of on_infobar_commit."  << std::endl;
 }
 
 void
