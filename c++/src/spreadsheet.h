@@ -2,7 +2,7 @@
 #include <gtkmm/radiobutton.h>
 #include <gtkmm/box.h>
 #include <iostream>
-#include <gtkmm.h> // Needed for now for Stock Items
+#include <gtkmm.h> 
 #include <display_dims.h>
 
 
@@ -28,9 +28,9 @@ protected:
   //Child widgets:
   Gtk::VBox main_box;
   Gtk::HBox hbox1,
-//            hbox2,
             hbox3,
             hbox4;
+  Gtk::HBox extra_box;
   Gtk::HPaned hbox2;
   Gtk::VBox * box;  // For packing label and spin buttons
 
@@ -50,9 +50,8 @@ protected:
       h_upper_limit,
       v_upper_limit;
 
-  Gtk::Table * table;
-//  Gtk::ScrolledWindow display_dims;
-  display_dims dimensions_sheet;
+  Gtk::Table   * table;
+  display_dims * dimensions_sheet;
 
 
   Gtk::InfoBar InfoBar_commit;
@@ -71,6 +70,7 @@ protected:
                    * vdisplay;
   Gtk::HButtonBox last_box;
 
+  //Functions dealing with TL entities
   void create_equations ();
 };
 

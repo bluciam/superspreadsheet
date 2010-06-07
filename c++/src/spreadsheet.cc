@@ -7,17 +7,19 @@
 // #include <display_dims.h>
 
 
-// These might not have to be global!
 Glib::ustring v_dim, h_dim; // To globally tag the 2 chosen dims
 int           num_dims;     // Number of dims available for display 
-int           h_radius,     // horizontal radius of display
-              v_radius;     // vertical radius of display
+int           h_radius;     // horizontal radius of display
+int           v_radius;     // vertical radius of display
+int           row_range;
+int           col_range;
 
 spreadsheet::spreadsheet() :
   main_box(false, 10), // false: child widgets don't have the same width
-  hbox1(false, 10),    // 10: pixels between widgets
+  hbox1(false, 10),    //    10: pixels between widgets
   hbox3(false, 10),
   hbox4(false, 10),
+  extra_box(false, 10),
 
   // Gtk::Adjustment(float initial_value, float lower, float upper,
   //      float step_increment, float page_increment, float page_size);
@@ -25,7 +27,7 @@ spreadsheet::spreadsheet() :
   h_spread_limits(0.0, 0.0, 10.0, 1.0, 3.0, 0.0),
   v_spread_limits(0.0, 0.0, 10.0, 1.0, 3.0, 0.0),
 
-  dimensions_sheet(5,5,5,5),
+//  dimensions_sheet(5,5,5,5),
 
   window_title("The S³ is displaying these dimensions ..."),
   // last_button is Gtk::HButtonBox for equal spacing (30) of buttons.
@@ -36,10 +38,10 @@ spreadsheet::spreadsheet() :
   close_button("_Close", true) // to use alt-C to close app
 {
   num_dims = 4; 
-  h_radius = 4;
-  v_radius = 2;
-  int row_range = h_radius * 2 + 1;
-  int col_range = v_radius * 2 + 1;
+  h_radius = 11;
+  v_radius = 4;
+  row_range = h_radius * 2 + 1;
+  col_range = v_radius * 2 + 1;
 
   std::map<Glib::ustring,int> tuples;
   std::map<Glib::ustring,int>::iterator it;
@@ -69,11 +71,10 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   main_box.pack_start(hbox1);
   main_box.pack_start(hbox3);
   main_box.pack_start(hbox2);
-//  main_box.pack_start(hbox4);
+  main_box.pack_start(extra_box);
 
   // Set the boxes' spacing around the outside of the container: 10 pixels
   hbox1.set_border_width(5); 
-//  hbox2.set_border_width(5);
   hbox3.set_border_width(5);
   hbox4.set_border_width(5);
 
@@ -82,8 +83,8 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
 // End   hbox1 
 
 
-
 // Begin hbox2 
+
   h_spread_limits.set_value(h_radius);
   v_spread_limits.set_value(v_radius);
   h_spread_spin.set_adjustment(h_spread_limits);
@@ -97,12 +98,13 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   v_spread_spin.set_wrap(true);
   v_spread_spin.set_alignment(1);
 
-  // Begin first table
+  // Begin table
   table = Gtk::manage(new Gtk::Table(num_dims, 4, false));
   (*table).set_col_spacings(10);
 
   big_frame = Gtk::manage(new Gtk::Frame);
   big_frame->set_shadow_type(Gtk::SHADOW_IN);
+  big_frame->set_size_request(300,-1);
   big_frame->add(*table);
   hbox2.pack1(*big_frame);
 
@@ -115,14 +117,14 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   label = Gtk::manage(new Gtk::Label);
   (*box).add(*label);
   (*box).add(h_spread_spin);
-  (*label).set_label("H dim");
+  (*label).set_label("H dim\nradius");
   (*table).attach((*box),1,2,0,1);
 
   box = Gtk::manage(new Gtk::VBox);
   label = Gtk::manage(new Gtk::Label);
   (*box).add(*label);
   (*box).add(v_spread_spin);
-  (*label).set_label("V dim");
+  (*label).set_label("V dim\nradius");
   (*table).attach((*box),2,3,0,1);
 
   label = Gtk::manage(new Gtk::Label);
@@ -145,10 +147,11 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
               &spreadsheet::on_v_nodim_toggled) );
 
 
-int i=0; // Can't put this in the for loop, it explodes. 
-  // Filling in the rest of the table with the dimension's information
-  for ( it=tuples.begin(); it != tuples.end(); it++, ++i )
-  // JOHN: why do you like to put the ++ to the right?
+  /* Following rows: radio buttons in two groups: H and V
+     and the pivot value
+  */
+  int i = 0; // Can't put this in the for loop, it explodes. 
+  for ( it=tuples.begin(); it != tuples.end(); ++it, ++i )
   {
     int ii = i+3;
 
@@ -171,7 +174,7 @@ int i=0; // Can't put this in the for loop, it explodes.
        sigc::bind( 
          sigc::mem_fun(*this, &spreadsheet::on_v_toggled), vdisplay, dim ) );
 
-    // Initial arbitrary values. 
+    // Initial dimensions chosen for display by the programmer
     if (i == 0) (*hdisplay).set_active();
     else if (i == 1) (*vdisplay).set_active();
 
@@ -192,108 +195,29 @@ int i=0; // Can't put this in the for loop, it explodes.
               &spreadsheet::on_dimension_pivot_changed) );
 */
   }
-  // End first table
-std::cout << "h dim = " << h_dim << " and v dim = " << v_dim << std::endl;
+  // End table
+  std::cout << "h dim = " << h_dim << " and v dim = " << v_dim << std::endl;
 
-  // Begin second table, which is within a Gtk::ScrolledWindow
-
-//  scrollDimsWindow.set_policy(Gtk::POLICY_AUTOMATIC,Gtk::POLICY_AUTOMATIC);
-//  scrollDimsWindow.set_size_request(400,200); // Set minimum size of widget
-
-//  get_vbox()->pack_start(scrollDimsWindow); //not sure what this does.
-
-// Somewhere here we have to create the second table using display_dims
-// no, it is a scrollDimsWindow
-
-  
+  // Begin display of dimension values
   int h_min = tuples[h_dim] - h_radius;
   int v_min = tuples[v_dim] - v_radius;
-
 
   std::cout << "Checking on values in spreadsheet:\n h_min = " 
             << h_min << "\n v_min = " <<
             v_min << "\n row_range = " << row_range << "\n col_range "
             << col_range << std::endl;
-  
-/*
-  display_dims dimensions_sheet = display_dims( row_range, row_range, h_min, v_min);
-  dimensions_sheet = Gtk::manage(new display_dims(1,1,1,1));
-  display_dims * dimensions_sheet;
-*/
-
-/*
-  table = Gtk::manage(new Gtk::Table(row_range + 1, col_range + 1, false));
-  (*table).set_col_spacings(10);
-  (*table).set_row_spacings(10);
-*/
-
-  display_dims Sheet(row_range, col_range, h_min, v_min);
+  dimensions_sheet = Gtk::manage(new display_dims(row_range, col_range, h_min, v_min));
 
   big_frame = Gtk::manage(new Gtk::Frame);
   big_frame->set_shadow_type(Gtk::SHADOW_IN);
-  hbox1.add(Sheet);
-  big_frame->add(dimensions_sheet);
+  big_frame->add(*dimensions_sheet);
   hbox2.pack2(*big_frame);
-  Sheet.set_visible(true);
-  (Sheet).show(); 
 
 
-/*
-  label = Gtk::manage(new Gtk::Label);
-  (*label).set_label("  Dim\nIndices"); 
-  (*table).attach(*label, 0, 1, 0, 1);
-  int value = tuples[h_dim] - h_radius;
-  for (int i = 1 ; i != row_range + 1; ++i)
-  {
-    std::string s;
-    std::stringstream out;
-    out << value + i - 1;
-    s = out.str();
-    label = Gtk::manage(new Gtk::Label);
-    Glib::ustring cell = s; 
-    (*label).set_label(cell); 
-    (*table).attach(*label, i, i+1, 0, 1);
-  }
 
-  value = tuples[v_dim] - v_radius;
-  for (int i = 1 ; i != col_range + 1; ++i)
-  {
-    std::string s;
-    std::stringstream out;
-    out << value + i - 1;
-    s = out.str();
-    label = Gtk::manage(new Gtk::Label);
-    Glib::ustring cell = s; 
-    (*label).set_label(cell); 
-    (*table).attach(*label, 0, 1, i, i+1);
 
-  }
-*/
+  // End display of dimension values
 
-  /* For now just labels representing the values of each cell.
-   */
-
-/*
-  for (int i = 1 ; i != row_range + 1 ; ++i)
-  {
-     for (int j = 1 ; j != col_range + 1 ; ++j)
-     {
-       std::string s;
-       std::stringstream out;
-       out << i << " " << j;
-       s = out.str();
-
-       label = Gtk::manage(new Gtk::Label);
-       frame = Gtk::manage(new Gtk::Frame);
-       Glib::ustring cell = s; // Name to come from TL HD
-       (*label).set_label(cell); 
-       (*frame).add(*label);
-       (*table).attach(*frame, i, i+1, j, j+1);
-     }
-  }
-*/
-
-//  hbox2.pack2(scrollDimsWindow);
 
 // End hbox2 
 
@@ -363,7 +287,6 @@ std::cout << "h dim = " << h_dim << " and v dim = " << v_dim << std::endl;
   show_all_children();
   InfoBar_commit.hide(); // InfoBar shown only when commit button is pressed
 
-  (Sheet).show(); 
   create_equations();
 
 }
@@ -372,8 +295,8 @@ std::cout << "h dim = " << h_dim << " and v dim = " << v_dim << std::endl;
 spreadsheet::~spreadsheet()
 {
   // Trying to get rid of the problem of not deallocating memory.
-  Glib::Error::register_cleanup();
-  Glib::wrap_register_cleanup();
+//  Glib::Error::register_cleanup();
+//  Glib::wrap_register_cleanup();
 }
 
 
@@ -387,19 +310,45 @@ spreadsheet::on_closebutton_clicked()
 void
 spreadsheet::on_commit_clicked(Glib::ustring msg)
 {
+//  (*dimensions_sheet).hide();
+  big_frame->remove();
+  
+
   InfoBar_commit.show(); // To show the message when commit is clicked.
   // Extra handling when known what to do.
   /* http://library.gnome.org/devel/gtkmm-tutorial/unstable/sec-progressbar.html.en
    * to introduce progress bar instead of the Ok button.
    */
   std::cout << msg << std::endl;
+//  (*dimensions_sheet).hide();
+//  delete dimensions_sheet;
+//  hbox2.remove(*big_frame);
+
+
+  dimensions_sheet = Gtk::manage(new display_dims(6, 6, 6, 6));
+//  big_frame = Gtk::manage(new Gtk::Frame);
+//  big_frame->set_shadow_type(Gtk::SHADOW_IN);
+  big_frame->add(*dimensions_sheet);
+  std::cout << "End of on_commit_clicked."  << std::endl;
+Gtk::Button* pButton = new Gtk::Button("_Something", true);
+//  extra_box.pack_start(*pButton);
+//  extra_box.pack_start(*dimensions_sheet);
+
+  hbox2.pack2(*big_frame);
+  (*this).show_all_children();
+
+//  show_all_children();
+//  (*dimensions_sheet).show();
 }
 
 void
 spreadsheet::on_infobar_commit(int)
 {
   // Hide the commit InfoBar:
+//  (*this).show_all_children();
+//  (*dimensions_sheet).show();
   InfoBar_commit.hide();
+  std::cout << "End of on_infobar_commit."  << std::endl;
 }
 
 void
