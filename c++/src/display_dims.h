@@ -6,7 +6,12 @@ class display_dims : public Gtk::ScrolledWindow
 {
 public:
 //Constructor and Destructor
-  display_dims(guint row_range, guint col_range, guint h_min, guint v_min);
+  display_dims(int row_range,
+               int col_range,
+               int h_min,
+               int v_min,
+               int type_sheet);
+  display_dims(int type_sheet);  // To draw just one cell
   virtual ~display_dims();
 
 protected:

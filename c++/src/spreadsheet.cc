@@ -14,10 +14,10 @@ Glib::ustring v_dim, h_dim; // To globally tag the 2 chosen dims
 int           num_dims;     // Number of dims available for display 
 int           h_radius;     // horizontal radius of display
 int           v_radius;     // vertical radius of display
-int           row_spread;   // display spread of dimensions table
-int           col_spread;   //   based on the radius.
-int           h_min_index;  // minimum h and v value for the first position
-int           v_min_index;  //   in each H and V directions.
+//int           row_spread;   // display spread of dimensions table
+//int           col_spread;   //   based on the radius.
+//int           h_min_index;  // minimum h and v value for the first position
+//int           v_min_index;  //   in each H and V directions.
 
 spreadsheet::spreadsheet() :
   main_box  (false, 10),   // false: child widgets don't have the same width
@@ -44,8 +44,8 @@ spreadsheet::spreadsheet() :
   num_dims = 4; 
   h_radius = 11;
   v_radius = 4;
-  row_spread = h_radius * 2 + 1;
-  col_spread = v_radius * 2 + 1;
+//  row_spread = h_radius * 2 + 1;
+//  col_spread = v_radius * 2 + 1;
 
   tuples["x"] = 4;
   tuples["y"] = 7;
@@ -87,14 +87,12 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   h_spread_spin.set_adjustment(h_spread_limits);
   h_spread_spin.set_size_request(50, -1);
   h_spread_spin.set_numeric(true);
-  h_spread_spin.set_wrap(true);
   h_spread_spin.set_alignment(1);
 
   v_spread_limits.set_value(v_radius);
   v_spread_spin.set_adjustment(v_spread_limits);
   v_spread_spin.set_size_request(50, -1);
   v_spread_spin.set_numeric(true);
-  v_spread_spin.set_wrap(true);
   v_spread_spin.set_alignment(1);
 
   // Begin table
@@ -119,7 +117,7 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   (*label).set_label("H dim\nradius");
   (*table).attach((*box),1,2,0,1);
 
-  h_spread_spin.signal_activate().connect( sigc::mem_fun(
+  h_spread_spin.signal_value_changed().connect( sigc::mem_fun(
                 *this, &spreadsheet::on_h_spread_spin ) );
 
   box = Gtk::manage(new Gtk::VBox);
@@ -128,6 +126,9 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   (*box).add(v_spread_spin);
   (*label).set_label("V dim\nradius");
   (*table).attach((*box),2,3,0,1);
+
+  v_spread_spin.signal_value_changed().connect( sigc::mem_fun(
+                *this, &spreadsheet::on_v_spread_spin ) );
 
   label = Gtk::manage(new Gtk::Label);
   (*label).set_label("Pivot");
@@ -193,7 +194,8 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
     (*values).set_size_request(50, -1);
     (*values).set_text(s);
     (*table).attach((*values),3,4,i+2,ii);
-    values->signal_activate().connect( sigc::bind (
+//    values->signal_activate().connect( sigc::bind (
+    values->signal_changed().connect( sigc::bind (
        sigc::mem_fun(
             *this, &spreadsheet::on_dimension_pivot_changed), values, dim ) );
 
@@ -206,15 +208,35 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   std::cout << "h dim = " << h_dim << " and v dim = " << v_dim << std::endl;
 
   // Begin display of dimension values
-  h_min_index = tuples[h_dim] - h_radius;
-  v_min_index = tuples[v_dim] - v_radius;
+//  h_min_index = tuples[h_dim] - h_radius;
+//  v_min_index = tuples[v_dim] - v_radius;
 
+/*
   std::cout << "Checking on values in spreadsheet:\n h_min_index = " 
-            << h_min_index << "\n v_min_index = " <<
-            v_min_index << "\n row_spread = " << row_spread << "\n col_spread "
-            << col_spread << std::endl;
+            << (tuples[h_dim] - h_radius) << "\n v_min_index = " <<
+            ( tuples[v_dim] - v_radius ) << "\n row_spread = " << (h_radius * 2 + 1)
+            << "\n col_spread "
+            << (v_radius * 2 + 1) << std::endl;
+*/
+
+  if ( h_dim == "" ) {
   dimensions_sheet = Gtk::manage(new display_dims(
-    row_spread, col_spread, h_min_index, v_min_index));
+    1,
+    ( v_radius * 2 + 1 ),
+    0,
+    ( tuples[v_dim] - v_radius ),
+    1  ));
+  } else {
+  dimensions_sheet = Gtk::manage(new display_dims(
+    ( h_radius * 2 + 1 ),
+    ( v_radius * 2 + 1 ),
+    ( tuples[h_dim] - h_radius ),
+    ( tuples[v_dim] - v_radius ),
+    1  ));
+  }
+
+
+
 
   big_frame = Gtk::manage(new Gtk::Frame);
   big_frame->set_shadow_type(Gtk::SHADOW_IN);
@@ -317,25 +339,56 @@ spreadsheet::on_redraw_clicked(Glib::ustring msg)
 */
 
   big_frame->remove();
+
+  if (( h_dim == "") && (v_dim == "")) {
+    dimensions_sheet = Gtk::manage(new display_dims( 4 ));
+  } else 
+
+  if ( h_dim == "" ) {
   dimensions_sheet = Gtk::manage(new display_dims(
-    row_spread, col_spread,
-    tuples[h_dim] - h_radius,
-    tuples[v_dim] - v_radius));
+    1,
+    ( v_radius * 2 + 1 ),
+    0,
+    ( tuples[v_dim] - v_radius ),
+    2  ));
+  } else if ( v_dim == "" ) {
+  dimensions_sheet = Gtk::manage(new display_dims(
+    ( h_radius * 2 + 1 ),
+    1 ,
+    ( tuples[h_dim] - h_radius ),
+    0 ,
+    3  ));
+  } else {
+  dimensions_sheet = Gtk::manage(new display_dims(
+    ( h_radius * 2 + 1 ),
+    ( v_radius * 2 + 1 ),
+    ( tuples[h_dim] - h_radius ),
+    ( tuples[v_dim] - v_radius ),
+    1  ));
+  }
   big_frame->add(*dimensions_sheet);
 
   hpaned_content.pack2(*big_frame);
-  (*this).show_all_children();
+  (*dimensions_sheet).show();
+//  (*this).show_all_children();
+//  InfoBar_commit.hide();
 
 }
 
 void
 spreadsheet::on_h_spread_spin()
 {
-
   h_radius = h_spread_spin.get_value();
   std::cout << h_radius << std::endl;
   h_spread_limits.set_value(h_radius);
+}
 
+void
+spreadsheet::on_v_spread_spin()
+{
+  v_radius = v_spread_spin.get_value();
+  std::cout << v_radius << std::endl;
+  v_spread_limits.set_value(v_radius);
 }
 
 void
@@ -346,8 +399,10 @@ spreadsheet::on_dimension_pivot_changed(Gtk::Entry * values, Glib::ustring dim)
   int pivot =  atoi(s_pivot.c_str()); 
   tuples[dim] = pivot;
 
+/*
   for ( it=tuples.begin() ; it != tuples.end(); it++ )
       std::cout << (*it).first << " => " << (*it).second << std::endl;
+*/
 }
 
 void
@@ -360,12 +415,13 @@ spreadsheet::on_commit_clicked(Glib::ustring msg)
    */
   std::cout << msg << std::endl;
 
+/*
   big_frame->remove();
-  dimensions_sheet = Gtk::manage(new display_dims(6, 6, 6, 6));
+  dimensions_sheet = Gtk::manage(new display_dims(6, 6, 6, 6, 1));
   big_frame->add(*dimensions_sheet);
-
   hpaned_content.pack2(*big_frame);
   (*this).show_all_children();
+*/
 
 }
 
