@@ -73,6 +73,7 @@ protected:
                    * hdisplay,
                    * vdisplay;
   Gtk::HButtonBox last_box;
+  Gtk::HButtonBox hbuttonbox_content;
 
   //Functions dealing with TL entities
   void create_equations ();

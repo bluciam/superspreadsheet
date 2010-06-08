@@ -62,6 +62,7 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   main_box.pack_start(hbox_title);
   main_box.pack_start(hbox_eqns);
   main_box.pack_start(hpaned_content);
+//  main_box.pack_start(hbuttonbox_content);
   main_box.pack_start(hbox_last);
 
   // Set the boxes' spacing around the outside of the container: 5 pixels
@@ -94,9 +95,10 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
 
   big_frame = Gtk::manage(new Gtk::Frame);
   big_frame->set_shadow_type(Gtk::SHADOW_IN);
-  big_frame->set_size_request(300,-1);
+//  big_frame->set_size_request(300,-1);
   big_frame->add(*table);
-  hpaned_content.pack1(*big_frame);
+   hpaned_content.pack1(*big_frame,Gtk::FILL);
+//  hbuttonbox_content.add(*big_frame);
 
   // Column titles
   label = manage(new Gtk::Label);
@@ -147,8 +149,8 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   h_dim = (*(it++)).first;
   v_dim = (*it).first;
 
-  /* Following rows: radio buttons in two groups: H and V
-     and the pivot value
+  /* Following rows: dimension names and radio buttons in two groups:
+      H and V and the pivot value.
   */
   int i = 0; // Can't put this in the for loop, it explodes. 
   for ( it=tuples.begin(); it != tuples.end(); ++it, ++i )
@@ -206,6 +208,7 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   big_frame->set_shadow_type(Gtk::SHADOW_IN);
   big_frame->add(*dimensions_sheet);
   hpaned_content.pack2(*big_frame);
+//  hbuttonbox_content.add(*big_frame);
   // End display of dimension values
 
 // End hpaned_content 
@@ -326,6 +329,7 @@ spreadsheet::on_redraw_clicked(Glib::ustring msg)
   big_frame->add(*dimensions_sheet);
 
   hpaned_content.pack2(*big_frame);
+//  hbuttonbox_content.add(*big_frame);
   (*dimensions_sheet).show();
 //  (*this).show_all_children();
 //  InfoBar_commit.hide();
