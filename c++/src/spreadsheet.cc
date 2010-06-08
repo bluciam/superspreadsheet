@@ -4,7 +4,6 @@
 #include <tl/translator.hpp>
 #include <tl/utility.hpp>
 #include <tl/parser_util.hpp>
-// #include <display_dims.h>
 
 
 std::map<Glib::ustring,int> tuples;
@@ -14,10 +13,6 @@ Glib::ustring v_dim, h_dim; // To globally tag the 2 chosen dims
 int           num_dims;     // Number of dims available for display 
 int           h_radius;     // horizontal radius of display
 int           v_radius;     // vertical radius of display
-//int           row_spread;   // display spread of dimensions table
-//int           col_spread;   //   based on the radius.
-//int           h_min_index;  // minimum h and v value for the first position
-//int           v_min_index;  //   in each H and V directions.
 
 spreadsheet::spreadsheet() :
   main_box  (false, 10),   // false: child widgets don't have the same width
@@ -44,8 +39,6 @@ spreadsheet::spreadsheet() :
   num_dims = 4; 
   h_radius = 11;
   v_radius = 4;
-//  row_spread = h_radius * 2 + 1;
-//  col_spread = v_radius * 2 + 1;
 
   tuples["x"] = 4;
   tuples["y"] = 7;
@@ -198,45 +191,16 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
     values->signal_changed().connect( sigc::bind (
        sigc::mem_fun(
             *this, &spreadsheet::on_dimension_pivot_changed), values, dim ) );
-
-/* TODO: attach signal when the text is changed and update 
-         dim_tuples[i].pivot.
-   signal is changed ...
-*/
   }
   // End table
   std::cout << "h dim = " << h_dim << " and v dim = " << v_dim << std::endl;
 
-  // Begin display of dimension values
-//  h_min_index = tuples[h_dim] - h_radius;
-//  v_min_index = tuples[v_dim] - v_radius;
-
-/*
-  std::cout << "Checking on values in spreadsheet:\n h_min_index = " 
-            << (tuples[h_dim] - h_radius) << "\n v_min_index = " <<
-            ( tuples[v_dim] - v_radius ) << "\n row_spread = " << (h_radius * 2 + 1)
-            << "\n col_spread "
-            << (v_radius * 2 + 1) << std::endl;
-*/
-
-  if ( h_dim == "" ) {
-  dimensions_sheet = Gtk::manage(new display_dims(
-    1,
-    ( v_radius * 2 + 1 ),
-    0,
-    ( tuples[v_dim] - v_radius ),
-    1  ));
-  } else {
   dimensions_sheet = Gtk::manage(new display_dims(
     ( h_radius * 2 + 1 ),
     ( v_radius * 2 + 1 ),
     ( tuples[h_dim] - h_radius ),
     ( tuples[v_dim] - v_radius ),
     1  ));
-  }
-
-
-
 
   big_frame = Gtk::manage(new Gtk::Frame);
   big_frame->set_shadow_type(Gtk::SHADOW_IN);
@@ -333,18 +297,11 @@ spreadsheet::on_redraw_clicked(Glib::ustring msg)
 {
   std::cout << msg << std::endl;
 
-/*
-  h_min_index = tuples[h_dim] - h_radius;
-  v_min_index = tuples[v_dim] - v_radius;
-*/
-
   big_frame->remove();
 
   if (( h_dim == "") && (v_dim == "")) {
-    dimensions_sheet = Gtk::manage(new display_dims( 4 ));
-  } else 
-
-  if ( h_dim == "" ) {
+    dimensions_sheet = Gtk::manage(new display_dims());
+  } else if ( h_dim == "" ) {
   dimensions_sheet = Gtk::manage(new display_dims(
     1,
     ( v_radius * 2 + 1 ),
@@ -415,20 +372,11 @@ spreadsheet::on_commit_clicked(Glib::ustring msg)
    */
   std::cout << msg << std::endl;
 
-/*
-  big_frame->remove();
-  dimensions_sheet = Gtk::manage(new display_dims(6, 6, 6, 6, 1));
-  big_frame->add(*dimensions_sheet);
-  hpaned_content.pack2(*big_frame);
-  (*this).show_all_children();
-*/
-
 }
 
 void
 spreadsheet::on_infobar_commit(int)
 {
-  // Hide the commit InfoBar:
   InfoBar_commit.hide();
 }
 

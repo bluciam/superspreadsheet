@@ -9,7 +9,7 @@ display_dims::display_dims( int row_range,
                             int col_range,
                             int h_min,
                             int v_min,
-                            int type_sheet)
+                            int type_sheet) // 1 = 2D, 2 = v only, 3 = H only
 {
 
  std::cout << "Checking on values in display_dims:\n h_min = " 
@@ -87,7 +87,7 @@ display_dims::display_dims( int row_range,
 
 }
 
-display_dims::display_dims( int type_sheet)
+display_dims::display_dims()  // single cell
 {
 
 //  set_policy(Gtk::POLICY_AUTOMATIC,Gtk::POLICY_AUTOMATIC);

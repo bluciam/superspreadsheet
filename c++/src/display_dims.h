@@ -11,7 +11,7 @@ public:
                int h_min,
                int v_min,
                int type_sheet);
-  display_dims(int type_sheet);  // To draw just one cell
+  display_dims();  // To draw just one cell
   virtual ~display_dims();
 
 protected:
