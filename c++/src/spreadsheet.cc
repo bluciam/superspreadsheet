@@ -14,6 +14,10 @@ Glib::ustring * h_dim = new Glib::ustring;
 int           * h_radius = new int;     // horizontal radius of display
 int           * v_radius = new int;     // vertical radius of display
 
+Glib::ustring drawn_v_dim;
+Glib::ustring drawn_h_dim;
+Glib::ustring expression = "";
+
 spreadsheet::spreadsheet() :
   main_box  (false, 10),   // false: child widgets don't have the same width
   hbox_title(false, 10),   //    10: pixels between widgets
@@ -27,10 +31,10 @@ spreadsheet::spreadsheet() :
   add_dim_button("_Add dimension", true),
 
   cancel_button("_Cancel",true),
-  commit_button("  Commit changes  "), 
-  redraw_button("  Redraw SpreadSheet  "), 
+  status_button(" _Show Status ",true), 
+  redraw_button(" _Redraw SpreadSheet  ",true), 
   quit_button(Gtk::Stock::QUIT),
-  close_button("_Close", true)       // to use alt-C to close app
+  close_button("_Quit", true)       // to use alt-C to close app
 {
   (*h_radius) = 3;
   (*v_radius) = 4;
@@ -73,11 +77,13 @@ spreadsheet::spreadsheet() :
 
 // Begin hbox_exprs 
   //  exprs_entry.set_max_length(50);
-  exprs_entry.set_text("Enter your");
-  exprs_entry.set_text(exprs_entry.get_text() + " expressions.");
+  exprs_entry.set_text("Enter your expression");
+  exprs_entry.set_text(exprs_entry.get_text() + " and press Enter.");
   exprs_entry.set_icon_from_stock(Gtk::Stock::INDEX );
   exprs_entry.signal_icon_press().connect( sigc::mem_fun(*this,
              &spreadsheet::on_icon_pressed_exprs) );
+  exprs_entry.signal_activate().connect( sigc::mem_fun(*this,
+             &spreadsheet::on_get_exprs) );
   hbox_exprs.pack_start(exprs_entry);
 // End hbox_exprs 
 
@@ -101,6 +107,9 @@ spreadsheet::spreadsheet() :
     ( tuples[(*v_dim)] - (*v_radius) ),
     1  ));
 
+    drawn_h_dim = (*h_dim);
+    drawn_v_dim = (*v_dim);
+
   content_frame.set_shadow_type(Gtk::SHADOW_IN);
   content_frame.add(*dimensions_sheet);
   hpaned_content.pack2(content_frame);
@@ -110,8 +119,8 @@ spreadsheet::spreadsheet() :
 // Begin hbox_edit_dim
   edit_dim_frame.add(hbox_edit_dim);
   hbox_edit_dim.set_border_width(5);
-  hbox_edit_dim.pack_start(add_dim_button, Gtk::FILL,2   );
-  hbox_edit_dim.pack_start(del_dim_button, Gtk::FILL,2   );
+  hbox_edit_dim.pack_start(add_dim_button, Gtk::FILL, 2 );
+  hbox_edit_dim.pack_start(del_dim_button, Gtk::FILL, 2 );
 
   del_dim_button.signal_clicked().connect(
     sigc::bind (
@@ -156,16 +165,16 @@ spreadsheet::spreadsheet() :
 // Begin hbox_last 
   // InfoBar is taken from example, not fully understood.
   Gtk::Container* infoBarContainer =
-    dynamic_cast<Gtk::Container*>(InfoBar_commit.get_content_area());
-  if (infoBarContainer) infoBarContainer->add(Label_commit);
-  InfoBar_commit.add_button(Gtk::Stock::OK, 0);
-  Label_commit.set_text("Commiting changes...");
-  InfoBar_commit.set_message_type(Gtk::MESSAGE_INFO);
-  InfoBar_commit.signal_response().connect(
-    sigc::mem_fun(*this, &spreadsheet::on_infobar_commit ) );
-  hbox_last.pack_start(InfoBar_commit, Gtk::PACK_SHRINK);
+    dynamic_cast<Gtk::Container*>(infoBar_status.get_content_area());
+  if (infoBarContainer) infoBarContainer->add(label_status);
+  infoBar_status.add_button(Gtk::Stock::OK, 0);
+//  label_status.set_text("Status is ");
+  infoBar_status.set_message_type(Gtk::MESSAGE_INFO);
+  infoBar_status.signal_response().connect(
+    sigc::mem_fun(*this, &spreadsheet::on_infobar_status ) );
+  hbox_last.pack_start(infoBar_status, Gtk::PACK_SHRINK);
 
-  last_box.add(commit_button);
+  last_box.add(status_button);
   last_box.add(redraw_button);
   last_box.add(close_button);
   hbox_last.pack_start(last_box);
@@ -179,9 +188,9 @@ spreadsheet::spreadsheet() :
   redraw_button.signal_clicked().connect(
     sigc::bind<Glib::ustring> (
       sigc::mem_fun( *this, &spreadsheet::on_redraw_clicked),"Redrawing...") );
-  commit_button.signal_clicked().connect(
+  status_button.signal_clicked().connect(
     sigc::bind<Glib::ustring> (
-      sigc::mem_fun( *this, &spreadsheet::on_commit_clicked), "Hi :-)") );
+      sigc::mem_fun( *this, &spreadsheet::on_status_clicked), "Hi :-)") );
   close_button.signal_clicked().connect (
     sigc::mem_fun( *this, &spreadsheet::on_closebutton_clicked) );
   quit_button.signal_clicked().connect(
@@ -191,7 +200,7 @@ spreadsheet::spreadsheet() :
 
   // Show all children of the window
   show_all_children();
-  InfoBar_commit.hide(); // InfoBar shown only when commit button is pressed
+  infoBar_status.hide(); // InfoBar shown only when status button is pressed
 
   // Connecting to TL code
   create_equations();
@@ -306,6 +315,9 @@ spreadsheet::on_redraw_clicked(Glib::ustring msg)
   std::cout << msg << std::endl;
   content_frame.remove();
 
+  drawn_h_dim = (*h_dim);
+  drawn_v_dim = (*v_dim);
+
   if (( (*h_dim) == "") && ((*v_dim) == "")) {
     dimensions_sheet = Gtk::manage(new display_dims());
   } else if ( (*h_dim) == "" ) {
@@ -327,7 +339,11 @@ spreadsheet::on_redraw_clicked(Glib::ustring msg)
   (*dimensions_sheet).show();
 }
 
-
+void
+spreadsheet::on_get_exprs()
+{
+  expression = exprs_entry.get_text();
+}
 
 void
 spreadsheet::on_icon_pressed_exprs(Gtk::EntryIconPosition /* icon_pos */,
@@ -342,20 +358,42 @@ spreadsheet::on_icon_pressed_exprs(Gtk::EntryIconPosition /* icon_pos */,
 }
 
 void
-spreadsheet::on_commit_clicked(Glib::ustring msg)
+spreadsheet::on_status_clicked(Glib::ustring msg)
 {
-  InfoBar_commit.show(); // To show the message when commit is clicked.
-  // Extra handling when known what to do.
+  Glib::ustring hd, vd, exp, dhd, dvd;
+  if ((*h_dim) == "")
+    hd = "No horizontal dimension chosen.";
+  else
+    hd = "The horizontal dimension is " + (*h_dim);
+  if ((*v_dim) == "")
+    vd = "\nNo vertical dimension chosen.";
+  else
+    vd = "\nThe vertical dimension is " + (*v_dim);
+  if (expression == "")
+    exp = "\nThere is no expression.";
+  else
+    exp = "\nExpression is " + expression ;
+  if (drawn_h_dim == "")
+    dhd = "No horizontal dimension drawn.";
+  else
+    dhd = "\nDrawn horizontal dimension is " + (drawn_h_dim) ;
+  if (drawn_v_dim == "")
+    dvd = "\nNo vertical dimension drawn.";
+  else
+    dvd = "\nDrawn vertical dimension is " + (drawn_v_dim);
+  Glib::ustring text = hd + vd + exp + dhd + dvd;
+  label_status.set_text(text);
+  infoBar_status.show(); // To show the message when status is clicked.
   /* http://library.gnome.org/devel/gtkmm-tutorial/unstable/sec-progressbar.html.en
    * to introduce progress bar instead of the Ok button.
    */
-  std::cout << msg << std::endl;
+//  std::cout <<  msg << std::endl;
 }
 
 void
-spreadsheet::on_infobar_commit(int)
+spreadsheet::on_infobar_status(int)
 {
-  InfoBar_commit.hide();
+  infoBar_status.hide();
 }
 
 void
