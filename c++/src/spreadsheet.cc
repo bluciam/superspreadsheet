@@ -46,12 +46,6 @@ spreadsheet::spreadsheet() :
   (*h_dim) = (*(it++)).first;
   (*v_dim) = (*it).first;
 
-/*
-for ( it=tuples.begin() ; it != tuples.end(); it++ )
-    std::cout << (*it).first << " => " << (*it).second << std::endl;
-*/
-
-
   // Set title and border of the window
   set_title("The Super SpreadSheet, The S³");
 //  set_border_width(10);
@@ -111,14 +105,11 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   content_frame.add(*dimensions_sheet);
   hpaned_content.pack2(content_frame);
   // End second table
-
 // End hpaned_content 
 
 // Begin hbox_edit_dim
-
   edit_dim_frame.add(hbox_edit_dim);
   hbox_edit_dim.set_border_width(5);
-
   hbox_edit_dim.pack_start(add_dim_button, Gtk::FILL,2   );
   hbox_edit_dim.pack_start(del_dim_button, Gtk::FILL,2   );
 
@@ -132,22 +123,18 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
       sigc::mem_fun( *this, &spreadsheet::on_add_dimension),
                      "Adding dim...") );
 
-
   hbox_add_dim.set_border_width(5);
   label = Gtk::manage(new Gtk::Label("Add new dimension:     "));
   hbox_add_dim.pack_start(*label);
 
   Gtk::HBox * hbox = Gtk::manage(new Gtk::HBox);
   label = Gtk::manage(new Gtk::Label("Name "));
-//  Gtk::Entry * entry = Gtk::manage(new Gtk::Entry);
   (*hbox).pack_start(*label); 
   (*hbox).pack_start(new_dim_entry); 
   hbox_add_dim.pack_start(*hbox);
 
   hbox = Gtk::manage(new Gtk::HBox);
   label = Gtk::manage(new Gtk::Label("Pivot "));
-//  entry = Gtk::manage(new Gtk::Entry);
-//  (*entry).set_has_frame(true);   // Not doing anything?
   (*hbox).pack_start(*label); 
   (*hbox).pack_start(new_pivot_entry); 
   hbox_add_dim.pack_start(*hbox);
@@ -159,31 +146,23 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
       sigc::mem_fun( *this, &spreadsheet::on_add_OK),
                      "New values entered...") );
 
-//  button = Gtk::manage(new Gtk::Button("_Cancel",true));
-//  hbox_add_dim.pack_start(*button);
   hbox_add_dim.pack_start(cancel_button);
-//  (*button).signal_clicked().connect(
   (cancel_button).signal_clicked().connect(
     sigc::bind (
       sigc::mem_fun( *this, &spreadsheet::on_cancel_edit),
                      "Cancelling adding dimensions..." ) );
-
-
 // End hbox_edit_dim
 
 // Begin hbox_last 
-
-// InfoBar is taken from example, not fully understood.
+  // InfoBar is taken from example, not fully understood.
   Gtk::Container* infoBarContainer =
     dynamic_cast<Gtk::Container*>(InfoBar_commit.get_content_area());
-  if (infoBarContainer)
-    infoBarContainer->add(Label_commit);
-  // Add an OK button to the InfoBar:
+  if (infoBarContainer) infoBarContainer->add(Label_commit);
   InfoBar_commit.add_button(Gtk::Stock::OK, 0);
   Label_commit.set_text("Commiting changes...");
   InfoBar_commit.set_message_type(Gtk::MESSAGE_INFO);
-  InfoBar_commit.signal_response().connect(sigc::mem_fun(*this,
-                 &spreadsheet::on_infobar_commit ) );
+  InfoBar_commit.signal_response().connect(
+    sigc::mem_fun(*this, &spreadsheet::on_infobar_commit ) );
   hbox_last.pack_start(InfoBar_commit, Gtk::PACK_SHRINK);
 
   last_box.add(commit_button);
@@ -191,9 +170,8 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   last_box.add(close_button);
   hbox_last.pack_start(last_box);
 
-
-  // Make the button the default widget. from Widget. No idea what this 
-  // does as the explanation does not match the functionality.
+  // Make the button the default widget. No idea what this 
+  // does, as the explanation does not match the functionality.
   close_button.set_can_default();
   close_button.grab_default();
 
@@ -208,7 +186,6 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
     sigc::mem_fun( *this, &spreadsheet::on_closebutton_clicked) );
   quit_button.signal_clicked().connect(
     sigc::ptr_fun( &Gtk::Main::quit));
-
 // End hbox_last 
 
 
@@ -216,56 +193,10 @@ for ( it=tuples.begin() ; it != tuples.end(); it++ )
   show_all_children();
   InfoBar_commit.hide(); // InfoBar shown only when commit button is pressed
 
+  // Connecting to TL code
   create_equations();
-
 }
 
-
-spreadsheet::~spreadsheet()
-{
-  /* Trying to get rid of the problem of not deallocating memory, but this is
-     blowing up with display_dims class as a pointer.
-  */
-//  Glib::Error::register_cleanup();
-//  Glib::wrap_register_cleanup();
-}
-
-
-void
-spreadsheet::on_closebutton_clicked()
-{
-  std::cout << "Qutting the S³..." << std::endl;
-  hide(); //to close the application.
-}
-
-void
-spreadsheet::on_del_dimension(Glib::ustring msg)
-{
-  label = Gtk::manage(new Gtk::Label("Delete which dimension?"));
-  hbox_del_dim = Gtk::manage(new Gtk::HBox());
-  (*hbox_del_dim).pack_start(*label);
-//  hbox_del_dim.pack_start(*label);
-  for ( it=tuples.begin() ; it != tuples.end(); it++ ) {
-    button = Gtk::manage(new Gtk::Button((*it).first));
-    (*hbox_del_dim).pack_start(*button,Gtk::FILL,2);
-
-    button->signal_clicked().connect( sigc::bind (
-      sigc::mem_fun (
-        *this, &spreadsheet::on_which_dimension ), ((*it).first) ) ) ;
-  }
-  button = Gtk::manage(new Gtk::Button("_Cancel",true));
-  (*hbox_del_dim).pack_start(*button);
-  (*button).signal_clicked().connect(
-    sigc::bind (
-      sigc::mem_fun( *this, &spreadsheet::on_cancel_edit),
-                     "Cancelling deleting dimensions..." ) );
-
-  edit_dim_frame.remove();
-  edit_dim_frame.add(*hbox_del_dim);
-//  edit_dim_frame.add(hbox_del_dim);
-  edit_dim_frame.show_all_children();
-  std::cout << msg << std::endl;
-}
 
 void
 spreadsheet::on_add_dimension(Glib::ustring msg)
@@ -277,35 +208,8 @@ spreadsheet::on_add_dimension(Glib::ustring msg)
 }
 
 void
-spreadsheet::on_which_dimension(Glib::ustring dim)
-{
-
-  edit_dim_frame.remove();
-  edit_dim_frame.add(hbox_edit_dim);
-  (tuples).erase (dim);
-
-  if (dim == (*h_dim)) {
-    (*h_dim) = "";
-    (*info_sheet).hnodisplay.toggled();
-  } else if (dim == (*v_dim)) {
-    (*v_dim) = "";
-    (*info_sheet).vnodisplay.toggled();
-  } 
-
-
-  info_frame.remove();
-  info_sheet = Gtk::manage(new display_info(
-    &tuples, h_radius, v_radius, h_dim, v_dim ) );
-
-  info_frame.add(*info_sheet);
-  (*info_sheet).show();
-  edit_dim_frame.show_all_children();
-}
-
-void
 spreadsheet::on_add_OK(Glib::ustring msg)
 {
-
   std::cout << msg << std::endl;
   Glib::ustring dimname  = new_dim_entry.get_text();
   Glib::ustring dimpivot = new_pivot_entry.get_text();
@@ -338,24 +242,68 @@ spreadsheet::on_add_OK(Glib::ustring msg)
   }
 }
 
+void
+spreadsheet::on_del_dimension(Glib::ustring msg)
+{
+  label = Gtk::manage(new Gtk::Label("Delete which dimension?"));
+  hbox_del_dim = Gtk::manage(new Gtk::HBox());
+  (*hbox_del_dim).pack_start(*label);
+  for ( it=tuples.begin() ; it != tuples.end(); it++ ) {
+    button = Gtk::manage(new Gtk::Button((*it).first));
+    (*hbox_del_dim).pack_start(*button,Gtk::FILL,2);
+
+    button->signal_clicked().connect( sigc::bind (
+      sigc::mem_fun (
+        *this, &spreadsheet::on_which_dimension ), ((*it).first) ) ) ;
+  }
+  button = Gtk::manage(new Gtk::Button("_Cancel",true));
+  (*hbox_del_dim).pack_start(*button);
+  (*button).signal_clicked().connect(
+    sigc::bind (
+      sigc::mem_fun( *this, &spreadsheet::on_cancel_edit),
+                     "Cancelling deleting dimensions..." ) );
+
+  edit_dim_frame.remove();
+  edit_dim_frame.add(*hbox_del_dim);
+  edit_dim_frame.show_all_children();
+  std::cout << msg << std::endl;
+}
+
+void
+spreadsheet::on_which_dimension(Glib::ustring dim)
+{
+  edit_dim_frame.remove();
+  edit_dim_frame.add(hbox_edit_dim);
+  (tuples).erase (dim);
+
+  if (dim == (*h_dim)) {
+    (*h_dim) = "";
+    (*info_sheet).hnodisplay.toggled();
+  } else if (dim == (*v_dim)) {
+    (*v_dim) = "";
+    (*info_sheet).vnodisplay.toggled();
+  } 
+
+  info_frame.remove();
+  info_sheet = Gtk::manage(new display_info(
+    &tuples, h_radius, v_radius, h_dim, v_dim ) );
+  info_frame.add(*info_sheet);
+  (*info_sheet).show();
+  edit_dim_frame.show_all_children();
+}
 
 void
 spreadsheet::on_cancel_edit(Glib::ustring msg)
 {
-
   edit_dim_frame.remove();
   edit_dim_frame.add(hbox_edit_dim);
   std::cout << msg << std::endl;
-
 }
-
-
 
 void
 spreadsheet::on_redraw_clicked(Glib::ustring msg)
 {
   std::cout << msg << std::endl;
-
   content_frame.remove();
 
   if (( (*h_dim) == "") && ((*v_dim) == "")) {
@@ -374,31 +322,11 @@ spreadsheet::on_redraw_clicked(Glib::ustring msg)
     ( tuples[(*v_dim)] - (*v_radius) ),
     1  ));
   }
+
   content_frame.add(*dimensions_sheet);
-
-//  hpaned_content.pack2(*big_frame);
   (*dimensions_sheet).show();
-
 }
 
-
-void
-spreadsheet::on_commit_clicked(Glib::ustring msg)
-{
-  InfoBar_commit.show(); // To show the message when commit is clicked.
-  // Extra handling when known what to do.
-  /* http://library.gnome.org/devel/gtkmm-tutorial/unstable/sec-progressbar.html.en
-   * to introduce progress bar instead of the Ok button.
-   */
-  std::cout << msg << std::endl;
-
-}
-
-void
-spreadsheet::on_infobar_commit(int)
-{
-  InfoBar_commit.hide();
-}
 
 
 void
@@ -413,6 +341,22 @@ spreadsheet::on_icon_pressed_exprs(Gtk::EntryIconPosition /* icon_pos */,
   std::cout << "Expression field clicked." << std::endl;
 }
 
+void
+spreadsheet::on_commit_clicked(Glib::ustring msg)
+{
+  InfoBar_commit.show(); // To show the message when commit is clicked.
+  // Extra handling when known what to do.
+  /* http://library.gnome.org/devel/gtkmm-tutorial/unstable/sec-progressbar.html.en
+   * to introduce progress bar instead of the Ok button.
+   */
+  std::cout << msg << std::endl;
+}
+
+void
+spreadsheet::on_infobar_commit(int)
+{
+  InfoBar_commit.hide();
+}
 
 void
 spreadsheet::create_equations ()
@@ -470,3 +414,19 @@ spreadsheet::create_equations ()
   std::cout << v.first.index() << " and " << v.first.value<TL::Intmp>().value() << std::endl;
 }
 */
+
+void
+spreadsheet::on_closebutton_clicked()
+{
+  std::cout << "Qutting the S³..." << std::endl;
+  hide(); //to close the application.
+}
+
+spreadsheet::~spreadsheet()
+{
+  /* Trying to get rid of the problem of not deallocating memory, but this is
+     blowing up with display_dims class as a pointer.
+  */
+//  Glib::Error::register_cleanup();
+//  Glib::wrap_register_cleanup();
+}
