@@ -12,10 +12,12 @@ display_dims::display_dims( int row_range,
                             int type_sheet) // 1 = 2D, 2 = V only, 3 = H only
 {
 
+/*
  std::cout << "Checking on values in display_dims:\n h_min = " 
            << h_min << "\n v_min = "
            << v_min << "\n row_range = " << row_range << "\n col_range "
            << col_range << std::endl;
+*/
 
   set_policy(Gtk::POLICY_AUTOMATIC,Gtk::POLICY_AUTOMATIC);
 //  set_size_request(300,200); // Set minimum size of widget
