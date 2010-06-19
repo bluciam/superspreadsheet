@@ -64,6 +64,7 @@ spreadsheet::spreadsheet() :
   main_box.pack_start(hpaned_content);
   main_box.pack_start(edit_dim_frame);
   main_box.pack_start(hbox_last);
+  main_box.pack_start(status_bar);
 
   // Set the boxes' spacing around the outside of the container: 5 pixels
   hbox_title.set_border_width(5); 
@@ -125,12 +126,12 @@ spreadsheet::spreadsheet() :
   del_dim_button.signal_clicked().connect(
     sigc::bind (
       sigc::mem_fun( *this, &spreadsheet::on_del_dimension),
-                     "Deleting dim...") );
+                     "Deleting dimension. Click on the chosen dimension.") );
 
   add_dim_button.signal_clicked().connect(
     sigc::bind (
       sigc::mem_fun( *this, &spreadsheet::on_add_dimension),
-                     "Adding dim...") );
+                     "Adding dimension. Enter the appropriate values.") );
 
   hbox_add_dim.set_border_width(5);
   label = Gtk::manage(new Gtk::Label("Add new dimension:     "));
@@ -190,7 +191,8 @@ spreadsheet::spreadsheet() :
       sigc::mem_fun( *this, &spreadsheet::on_redraw_clicked),"Redrawing...") );
   status_button.signal_clicked().connect(
     sigc::bind<Glib::ustring> (
-      sigc::mem_fun( *this, &spreadsheet::on_status_clicked), "Hi :-)") );
+      sigc::mem_fun(
+        *this, &spreadsheet::on_status_clicked), "Showing current status") );
   close_button.signal_clicked().connect (
     sigc::mem_fun( *this, &spreadsheet::on_closebutton_clicked) );
   quit_button.signal_clicked().connect(
@@ -214,6 +216,7 @@ spreadsheet::on_add_dimension(Glib::ustring msg)
   edit_dim_frame.add(hbox_add_dim);
   edit_dim_frame.show_all_children();
   std::cout << msg << std::endl;
+  status_bar.push(msg);
 }
 
 void
@@ -245,6 +248,8 @@ spreadsheet::on_add_OK(Glib::ustring msg)
   info_frame.add(*info_sheet);
   (*info_sheet).show();
 
+  status_bar.push("Adding dimension name = \"" + dimname + 
+                  "\" and pivot = \"" + dimpivot + "\"");
   edit_dim_frame.remove();
   edit_dim_frame.add(hbox_edit_dim);
   edit_dim_frame.show_all_children();
@@ -276,6 +281,7 @@ spreadsheet::on_del_dimension(Glib::ustring msg)
   edit_dim_frame.add(*hbox_del_dim);
   edit_dim_frame.show_all_children();
   std::cout << msg << std::endl;
+  status_bar.push(msg);
 }
 
 void
@@ -299,6 +305,7 @@ spreadsheet::on_which_dimension(Glib::ustring dim)
   info_frame.add(*info_sheet);
   (*info_sheet).show();
   edit_dim_frame.show_all_children();
+  status_bar.push("Deleting dimension " + dim);
 }
 
 void
@@ -307,6 +314,7 @@ spreadsheet::on_cancel_edit(Glib::ustring msg)
   edit_dim_frame.remove();
   edit_dim_frame.add(hbox_edit_dim);
   std::cout << msg << std::endl;
+  status_bar.push("Canceling the editing of dimensions.");
 }
 
 void
@@ -337,12 +345,14 @@ spreadsheet::on_redraw_clicked(Glib::ustring msg)
 
   content_frame.add(*dimensions_sheet);
   (*dimensions_sheet).show();
+  status_bar.push("Redrawing the spreadsheet.");
 }
 
 void
 spreadsheet::on_get_exprs()
 {
   expression = exprs_entry.get_text();
+  status_bar.push("Expression \"" + expression + "\" entered.");
 }
 
 void
@@ -374,7 +384,7 @@ spreadsheet::on_status_clicked(Glib::ustring msg)
   else
     exp = "\nExpression is " + expression ;
   if (drawn_h_dim == "")
-    dhd = "No horizontal dimension drawn.";
+    dhd = "\nNo horizontal dimension drawn.";
   else
     dhd = "\nDrawn horizontal dimension is " + (drawn_h_dim) ;
   if (drawn_v_dim == "")
@@ -388,6 +398,7 @@ spreadsheet::on_status_clicked(Glib::ustring msg)
    * to introduce progress bar instead of the Ok button.
    */
 //  std::cout <<  msg << std::endl;
+  status_bar.push(msg);
 }
 
 void

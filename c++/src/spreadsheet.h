@@ -69,6 +69,8 @@ protected:
                edit_dim_frame;
   Gtk::HButtonBox last_box;
 
+  Gtk::Statusbar status_bar;
+
   //Functions dealing with TL entities
   void create_equations ();
 };
