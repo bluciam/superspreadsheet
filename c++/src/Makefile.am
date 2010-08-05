@@ -10,4 +10,4 @@ spreadsheet_SOURCES = spreadsheet.h spreadsheet.cc \
                       display_info.h  display_info.cc \
                       main.cc 
 spreadsheet_LDFLAGS = -ltlsystem
-AM_CXXFLAGS = -std=gnu++0x
+AM_CXXFLAGS = -std=gnu++0x -DBOOST_SPIRIT_UNICODE

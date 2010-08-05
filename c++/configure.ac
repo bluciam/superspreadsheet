@@ -26,8 +26,7 @@ PKG_CHECK_MODULES(GTKMM, gtkmm-2.4,
 # Checks for typedefs, structures, and compiler characteristics.
 
 # Checks for library functions.
-AC_CONFIG_FILES([Makefile src/Makefile src/examples/Makefile
-                 src/examples/window/Makefile src/examples/infobar/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile ])
 
 
 AC_OUTPUT

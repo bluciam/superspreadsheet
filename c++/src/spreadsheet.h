@@ -6,6 +6,11 @@
 #include <display_dims.h>
 #include <display_info.h>
 
+#include <tl/translator.hpp>
+#include <tl/utility.hpp>
+#include <tl/parser_util.hpp>
+
+namespace TL = TransLucid;
 
 class spreadsheet : public Gtk::Window
 {
@@ -73,5 +78,7 @@ protected:
 
   //Functions dealing with TL entities
   void create_equations ();
+  TL::Translator traductor;
+  Glib::ustring expression;
 };
 

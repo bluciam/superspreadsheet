@@ -1,10 +1,6 @@
-#include "spreadsheet.h"
 #include <cstdio>
 #include <map>
-#include <tl/translator.hpp>
-#include <tl/utility.hpp>
-#include <tl/parser_util.hpp>
-
+#include "spreadsheet.h"
 
 std::map<Glib::ustring,int> tuples;
 std::map<Glib::ustring,int>::iterator it;
@@ -16,7 +12,6 @@ int           * v_radius = new int;     // vertical radius of display
 
 Glib::ustring drawn_v_dim;
 Glib::ustring drawn_h_dim;
-Glib::ustring expression = "";
 
 spreadsheet::spreadsheet() :
   main_box  (false, 10),   // false: child widgets don't have the same width
@@ -39,16 +34,21 @@ spreadsheet::spreadsheet() :
   (*h_radius) = 3;
   (*v_radius) = 4;
 
-  tuples["x"] = 4;
+  tuples["x"] = 5;
   tuples["y"] = 7;
   tuples["w"] = 11;
   tuples["z"] = 42;
-  tuples["t"] = -2;
+  tuples["t"] = 8;
 
   // Initial dimensions chosen for display by the programmer
   it=(tuples).begin();
   (*h_dim) = (*(it++)).first;
   (*v_dim) = (*it).first;
+
+  expression = "0";
+
+  // Connecting to TL code
+  create_equations();
 
   // Set title and border of the window
   set_title("The Super SpreadSheet, The S³");
@@ -106,7 +106,8 @@ spreadsheet::spreadsheet() :
     ((*v_radius) * 2 + 1 ),
     ( tuples[(*h_dim)] - (*h_radius) ),
     ( tuples[(*v_dim)] - (*v_radius) ),
-    1  ));
+    1,
+    tuples, h_dim, v_dim, traductor, expression ));
 
     drawn_h_dim = (*h_dim);
     drawn_v_dim = (*v_dim);
@@ -204,8 +205,6 @@ spreadsheet::spreadsheet() :
   show_all_children();
   infoBar_status.hide(); // InfoBar shown only when status button is pressed
 
-  // Connecting to TL code
-  create_equations();
 }
 
 
@@ -330,17 +329,20 @@ spreadsheet::on_redraw_clicked(Glib::ustring msg)
     dimensions_sheet = Gtk::manage(new display_dims());
   } else if ( (*h_dim) == "" ) {
   dimensions_sheet = Gtk::manage(new display_dims(
-    1, ( (*v_radius) * 2 + 1 ), 0, ( tuples[(*v_dim)] - (*v_radius) ), 2  ));
+    1, ( (*v_radius) * 2 + 1 ), 0, ( tuples[(*v_dim)] - (*v_radius) ), 2,
+    tuples, h_dim, v_dim, traductor, expression ));
   } else if ( (*v_dim) == "" ) {
   dimensions_sheet = Gtk::manage(new display_dims(
-    ( (*h_radius) * 2 + 1 ), 1 , ( tuples[(*h_dim)] - (*h_radius) ), 0 , 3  ));
+    ( (*h_radius) * 2 + 1 ), 1 , ( tuples[(*h_dim)] - (*h_radius) ), 0 , 3,
+      tuples, h_dim, v_dim, traductor, expression));
   } else {
   dimensions_sheet = Gtk::manage(new display_dims(
     ( (*h_radius) * 2 + 1 ),
     ( (*v_radius) * 2 + 1 ),
     ( tuples[(*h_dim)] - (*h_radius) ),
     ( tuples[(*v_dim)] - (*v_radius) ),
-    1  ));
+    1,
+    tuples, h_dim, v_dim, traductor, expression ));
   }
 
   content_frame.add(*dimensions_sheet);
@@ -353,6 +355,19 @@ spreadsheet::on_get_exprs()
 {
   expression = exprs_entry.get_text();
   status_bar.push("Expression \"" + expression + "\" entered.");
+  std::cout << "Expression \"" + expression + "\" entered." << std::endl;
+  std::u32string expr32;
+  for (Glib::ustring::iterator it = expression.begin();
+       it != expression.end(); ++it)
+  {
+    int i = *it;
+    char32_t c = i;
+    expr32.push_back(c);
+  }
+  TL::HD *h = traductor.translate_expr(expr32);
+  TL::TaggedConstant v = (*h)(TL::Tuple());
+  mpz_class ival = v.first.value<TL::Intmp>().value();
+  std::cout << "Result = \"" << ival << "\"." << std::endl;
 }
 
 void
@@ -410,22 +425,28 @@ spreadsheet::on_infobar_status(int)
 void
 spreadsheet::create_equations ()
 {
-  using namespace TransLucid;
-  Translator traductor;
- // traductor.loadLibrary(U"int");
+  // TL::Translator traductor;
+  // traductor.loadLibrary(U"int");
   traductor.parse_header (
     U"dimension ustring<n>;;"
     U"infixl ustring<-> ustring<operator-> 5;;"
+    U"infixl ustring<+> ustring<operator+> 5;;"
     U"infixl ustring<*> ustring<operator*> 10;;"
     U"library ustring<int>;;"
+    U"dimension ustring<t>;;"
+    U"dimension ustring<w>;;"
+    U"dimension ustring<x>;;"
+    U"dimension ustring<y>;;"
+    U"dimension ustring<z>;;"
   );
   traductor.translate_and_add_equation_set (
     U"fact | [n:0] = 1;;"
     U"fact = #n * (fact @ [n:#n-1]);;"
   );
-  HD* e = traductor.translate_expr(U"fact @ [n:20]");
-  TaggedConstant result = (*e)(Tuple());
-//  std::cout << result.first.value<Intmp>().value() << std::endl;
+  TL::HD* e = traductor.translate_expr(U"fact @ [n:5]");
+  TL::TaggedConstant result = (*e)(TL::Tuple());
+  std::cout << "fact(5) = "
+            << result.first.value<TL::Intmp>().value() << std::endl;
   delete e;
 }
 
@@ -467,7 +488,7 @@ spreadsheet::create_equations ()
 void
 spreadsheet::on_closebutton_clicked()
 {
-  std::cout << "Qutting the S³..." << std::endl;
+  std::cout << "Quitting the S³..." << std::endl;
   hide(); //to close the application.
 }
 

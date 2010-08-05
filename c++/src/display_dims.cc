@@ -1,15 +1,17 @@
-#include "display_dims.h"
 #include <cstdio>
-#include <tl/translator.hpp>
-#include <tl/utility.hpp>
-#include <tl/parser_util.hpp>
+#include "display_dims.h"
 
 // Constructor
 display_dims::display_dims( int row_range,
                             int col_range,
                             int h_min,
                             int v_min,
-                            int type_sheet) // 1 = 2D, 2 = V only, 3 = H only
+                            int type_sheet,
+			    std::map<Glib::ustring,int>& tuples,
+			    Glib::ustring* h_dim, Glib::ustring* v_dim,
+                            TL::Translator& traductor,
+                            Glib::ustring& expression
+                            ) // 1 = 2D, 2 = V only, 3 = H only
 {
 
 /*
@@ -68,7 +70,7 @@ display_dims::display_dims( int row_range,
      {
        std::string s;
        std::stringstream out;
-       out << i << " " << j;
+       out << (i+h_min) << " " << (j+v_min);
        s = out.str();
 
        label = Gtk::manage(new Gtk::Label);
@@ -77,11 +79,37 @@ display_dims::display_dims( int row_range,
        (*label).set_label(cell); 
        (*frame).add(*label);
        (*table).attach(*frame, i+1, i+2, j+1, j+2, Gtk::FILL, Gtk::FILL);
+       std::cout << "expression = " << expression << std::endl;
+       std::stringstream newout;
+       newout << expression;
+       newout << " @ [";
+       newout << *h_dim << ":" << (i+h_min) << ", ";
+       newout << *v_dim << ":" << (j+v_min);
+       for (std::map<Glib::ustring,int>::iterator mit = tuples.begin();
+            mit != tuples.end(); ++mit)
+       {
+         if (mit->first != *h_dim && mit->first != *v_dim)
+         {
+	   newout << ", " << mit->first << ":" << mit->second;
+         }
+       }
+       newout << "]";
+       std::cout << newout.str() << std::endl;
+       std::u32string tuple32;
+       for (std::string::iterator it = newout.str().begin();
+            it != newout.str().end(); ++it)
+       {
+         int i = *it;
+         char32_t c = i;
+         tuple32.push_back(c);
+       }
+       tuple32.push_back(0);
+       TL::HD* cellContext = traductor.translate_expr(tuple32);
+       //std::cout << newout.str() << std::endl;
      }
   }
   // Show all children of the window
   show_all_children();
-
 }
 
 display_dims::display_dims()  // single cell
