@@ -45,10 +45,13 @@ spreadsheet::spreadsheet() :
   (*h_dim) = (*(it++)).first;
   (*v_dim) = (*it).first;
 
-  expression = "0";
+  expression.clear();
+  expression += '0';
 
   // Connecting to TL code
+  std::cout << "Calling create_equations()" << std::endl;
   create_equations();
+  std::cout << "Called create_equations()" << std::endl;
 
   // Set title and border of the window
   set_title("The Super SpreadSheet, The S³");
@@ -78,8 +81,7 @@ spreadsheet::spreadsheet() :
 
 // Begin hbox_exprs 
   //  exprs_entry.set_max_length(50);
-  exprs_entry.set_text("Enter your expression");
-  exprs_entry.set_text(exprs_entry.get_text() + " and press Enter.");
+  exprs_entry.set_text(expression);
   exprs_entry.set_icon_from_stock(Gtk::Stock::INDEX );
   exprs_entry.signal_icon_press().connect( sigc::mem_fun(*this,
              &spreadsheet::on_icon_pressed_exprs) );
@@ -356,18 +358,6 @@ spreadsheet::on_get_exprs()
   expression = exprs_entry.get_text();
   status_bar.push("Expression \"" + expression + "\" entered.");
   std::cout << "Expression \"" + expression + "\" entered." << std::endl;
-  std::u32string expr32;
-  for (Glib::ustring::iterator it = expression.begin();
-       it != expression.end(); ++it)
-  {
-    int i = *it;
-    char32_t c = i;
-    expr32.push_back(c);
-  }
-  TL::HD *h = traductor.translate_expr(expr32);
-  TL::TaggedConstant v = (*h)(TL::Tuple());
-  mpz_class ival = v.first.value<TL::Intmp>().value();
-  std::cout << "Result = \"" << ival << "\"." << std::endl;
 }
 
 void
@@ -425,8 +415,6 @@ spreadsheet::on_infobar_status(int)
 void
 spreadsheet::create_equations ()
 {
-  // TL::Translator traductor;
-  // traductor.loadLibrary(U"int");
   traductor.parse_header (
     U"dimension ustring<n>;;"
     U"infixl ustring<-> ustring<operator-> 5;;"
@@ -439,51 +427,7 @@ spreadsheet::create_equations ()
     U"dimension ustring<y>;;"
     U"dimension ustring<z>;;"
   );
-  traductor.translate_and_add_equation_set (
-    U"fact | [n:0] = 1;;"
-    U"fact = #n * (fact @ [n:#n-1]);;"
-  );
-  TL::HD* e = traductor.translate_expr(U"fact @ [n:5]");
-  TL::TaggedConstant result = (*e)(TL::Tuple());
-  std::cout << "fact(5) = "
-            << result.first.value<TL::Intmp>().value() << std::endl;
-  delete e;
 }
-
-/*
-void
-spreadsheet::create_equations ()
-{
-  namespace TL = TransLucid;
-  TL::Translator traductor;
-  traductor.loadLibrary(U"int");
-  std::cout << "Loaded the library" << std::endl;
-  TL::Parser::Header& header = traductor.header();
-  TL::Parser::addBinaryOpSymbol (
-    header, L"+", L"operator+", TL::Tree::ASSOC_LEFT, 5
-  );
-  TL::Parser::addBinaryOpSymbol (
-    header, L"*", L"operator*", TL::Tree::ASSOC_LEFT, 10
-  );
-  TL::Parser::addBinaryOpSymbol (
-    header, L"-", L"operator-", TL::Tree::ASSOC_LEFT, 5
-  );
-  std::cout << "Loaded the three operators" << std::endl;
-  traductor.translate_and_add_equation_set(U" x = 5;; y = 6;;");
-  std::cout << "Added the equations" << std::endl;
-
-  TL::HD& system = traductor.system();
-  std::cout << "Created a HD system" << std::endl;
-  TL::TaggedConstant v = system
-  (TL::Tuple(TL::tuple_t(
-    {
-      {TL::DIM_ID, TL::generate_string(U"x")}
-    }
-  )));
-  std::cout << "Created a tuple" << std::endl;
-  std::cout << v.first.index() << " and " << v.first.value<TL::Intmp>().value() << std::endl;
-}
-*/
 
 void
 spreadsheet::on_closebutton_clicked()

@@ -1,5 +1,5 @@
 AC_PREREQ([2.65])
-AC_INIT([basic], [Basic Cartesian Interfaces], [0.0])
+AC_INIT([basic], [BasicCartesianInterfaces], [0.0])
 AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for programs.
