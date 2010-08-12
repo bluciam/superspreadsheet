@@ -45,10 +45,10 @@ spreadsheet::spreadsheet() :
   (*h_dim) = (*(it++)).first;
   (*v_dim) = (*it).first;
 
-  expression = "0";
+//  expression = "0";
 
   // Connecting to TL code
-  create_equations();
+//  create_equations();
 
   // Set title and border of the window
   set_title("The Super SpreadSheet, The S³");
