@@ -8,6 +8,7 @@ spreadsheet::spreadsheet() :
   hbox_title(false, 10),
   hbox_exprs (false, 10),
   hbox_last (false, 10),
+  hbox_edit_dim(false, 10),
 
   window_header("The S³ is displaying these dimensions ..."),
   // last_button is Gtk::HButtonBox for equal spacing (30) between buttons.
@@ -52,7 +53,7 @@ spreadsheet::spreadsheet() :
 
   // Set title and size of the SuperSpreadSheet main window
   set_title("The Super SpreadSheet, The S³");
-//  set_default_size(800,400);
+  set_default_size(800,500);
 
   // Add outer box to the window since it may only contain a single widget 
   add(main_box);
@@ -93,9 +94,8 @@ spreadsheet::spreadsheet() :
   display_info();
   info_frame.set_shadow_type(Gtk::SHADOW_IN);
   info_frame.add(*display_info_SW);
-//  hpaned_content.pack1(info_frame,Gtk::FILL);
+  // void Gtk::Paned::pack1 (Widget& child, bool resize, bool shrink )
   hpaned_content.pack1(info_frame,true,false);
-//  hpaned_content.pack1(info_frame);
   // End first table
 
 
@@ -113,7 +113,7 @@ spreadsheet::spreadsheet() :
 
   content_frame.set_shadow_type(Gtk::SHADOW_IN);
   content_frame.add(*dimensions_sheet);
-//  hpaned_content.pack2(content_frame);
+  // void Gtk::Paned::pack2 (Widget& child, bool resize, bool shrink )
   hpaned_content.pack2(content_frame,true,false);
   // End second table
 // End hpaned_content 
@@ -121,8 +121,12 @@ spreadsheet::spreadsheet() :
 // Begin frame_edit_dim
   frame_edit_dim.add(hbox_edit_dim);
   hbox_edit_dim.set_border_width(5);
-  hbox_edit_dim.pack_start(add_dim_button, Gtk::FILL, 2 );
-  hbox_edit_dim.pack_start(del_dim_button, Gtk::FILL, 2 );
+//  hbox_edit_dim.pack_start(add_dim_button, Gtk::FILL, 2 );
+//  hbox_edit_dim.pack_start(del_dim_button, Gtk::FILL, 2 );
+  hbox_edit_dim.pack_start(add_dim_button, true, false, 0 );
+  hbox_edit_dim.pack_start(del_dim_button, true, false, 0 );
+//hbox_edit_dim.pack_start(add_dim_button);
+//hbox_edit_dim.pack_start(del_dim_button);
 
   del_dim_button.signal_clicked().connect(
     sigc::bind (
@@ -241,8 +245,6 @@ spreadsheet::on_add_OK(Glib::ustring msg)
   info_frame.remove();
   display_info();
   info_frame.add(*display_info_SW);
-  info_frame.show_all_children();
-  (*display_info_SW).show();
   (*display_info_SW).show_all_children();
 
   status_bar.push("Adding dimension name = \"" + dimname + 
@@ -299,14 +301,7 @@ spreadsheet::on_which_dimension(Glib::ustring dim)
   info_frame.remove();
   display_info();
   info_frame.add(*display_info_SW);
-  info_frame.show_all_children();
-  (*display_info_SW).show();
   (*display_info_SW).show_all_children();
-
-//  info_sheet = Gtk::manage(new display_info(
-//    &tuples, h_radius, v_radius, h_dim, v_dim ) );
-//  info_frame.add(*info_sheet);
-//  (*info_sheet).show();
   frame_edit_dim.show_all_children();
   status_bar.push("Deleting dimension " + dim);
 }
@@ -393,23 +388,23 @@ spreadsheet::on_status_clicked(Glib::ustring msg)
   if ((*h_dim) == "")
     hd = "No horizontal dimension chosen.";
   else
-    hd = "The horizontal dimension is " + (*h_dim);
+    hd = "The horizontal dimension is " + (*h_dim) + ".";
   if ((*v_dim) == "")
     vd = "\nNo vertical dimension chosen.";
   else
-    vd = "\nThe vertical dimension is " + (*v_dim);
+    vd = "\nThe vertical dimension is " + (*v_dim) + ".";
   if (expression == "")
     exp = "\nThere is no expression.";
   else
-    exp = "\nExpression is " + expression ;
+    exp = "\nExpression is " + expression + "." ;
   if (drawn_h_dim == "")
     dhd = "\nNo horizontal dimension drawn.";
   else
-    dhd = "\nDrawn horizontal dimension is " + (drawn_h_dim) ;
+    dhd = "\nDrawn horizontal dimension is " + (drawn_h_dim)  + ".";
   if (drawn_v_dim == "")
     dvd = "\nNo vertical dimension drawn.";
   else
-    dvd = "\nDrawn vertical dimension is " + (drawn_v_dim);
+    dvd = "\nDrawn vertical dimension is " + (drawn_v_dim) + ".";
   Glib::ustring text = hd + vd + exp + dhd + dvd;
   label_status.set_text(text);
   infoBar_status.show(); // To show the message when status is clicked.
@@ -498,19 +493,18 @@ spreadsheet::display_info()
   table = Gtk::manage(new Gtk::Table(((tuples).size()+2), 4, false));
 
   (*table).set_col_spacings(10);
-  (*display_info_SW).add(*table);
 
   // Column titles
   label = manage(new Gtk::Label);
   (*label).set_label("Dimension");
-  (*table).attach((*label),0,1,0,1);
+  (*table).attach((*label),0,1,0,1,Gtk::FILL,Gtk::FILL);
 
   box = Gtk::manage(new Gtk::VBox);
   label = Gtk::manage(new Gtk::Label);
   (*box).add(*label);
   (*box).add(*h_spread_spin);
   (*label).set_label("H dim\nradius");
-  (*table).attach((*box),1,2,0,1);
+  (*table).attach((*box),1,2,0,1,Gtk::FILL,Gtk::FILL);
 
   h_spread_spin->signal_value_changed().connect(
     sigc::mem_fun( *this, &spreadsheet::on_h_spread_spin ) );
@@ -520,27 +514,27 @@ spreadsheet::display_info()
   (*box).add(*label);
   (*box).add(*v_spread_spin);
   (*label).set_label("V dim\nradius");
-  (*table).attach((*box),2,3,0,1);
+  (*table).attach((*box),2,3,0,1,Gtk::FILL,Gtk::FILL);
 
   v_spread_spin->signal_value_changed().connect(
     sigc::mem_fun( *this, &spreadsheet::on_v_spread_spin ) );
 
   label = Gtk::manage(new Gtk::Label);
   (*label).set_label("Pivot");
-  (*table).attach((*label),3,4,0,1);
+  (*table).attach((*label),3,4,0,1,Gtk::FILL,Gtk::FILL);
 
  // First row: no dimension chosen
   label = Gtk::manage(new Gtk::Label);
   (*label).set_label("None");
-  (*table).attach((*label),0,1,1,2);
+  (*table).attach((*label),0,1,1,2,Gtk::FILL,Gtk::FILL);
 
   Gtk::RadioButton::Group hgroup = (*hnodisplay).get_group();
-  (*table).attach((*hnodisplay),1,2,1,2);
+  (*table).attach((*hnodisplay),1,2,1,2,Gtk::FILL,Gtk::FILL);
   (*hnodisplay).signal_toggled().connect(
     sigc::mem_fun( *this, &spreadsheet::on_h_nodim_toggled ) );
 
   Gtk::RadioButton::Group vgroup = (*vnodisplay).get_group();
-  (*table).attach((*vnodisplay),2,3,1,2);
+  (*table).attach((*vnodisplay),2,3,1,2,Gtk::FILL,Gtk::FILL);
   (*vnodisplay).signal_toggled().connect(
      sigc::mem_fun( *this, &spreadsheet::on_v_nodim_toggled ) );
 
@@ -556,18 +550,18 @@ spreadsheet::display_info()
     label = Gtk::manage(new Gtk::Label);
     Glib::ustring dim = (*it).first;
     (*label).set_label(dim);
-    (*table).attach( (*label), 0, 1, i+2, ii);
+    (*table).attach( (*label), 0, 1, i+2, ii,Gtk::FILL,Gtk::FILL);
 
     hdisplay = Gtk::manage(new Gtk::RadioButton);
     (*hdisplay).set_group(hgroup);
-    (*table).attach( (*hdisplay), 1, 2, i+2, ii);
+    (*table).attach( (*hdisplay), 1, 2, i+2, ii,Gtk::FILL,Gtk::FILL);
     (*hdisplay).signal_toggled().connect(
        sigc::bind(
          sigc::mem_fun(*this, &spreadsheet::on_h_toggled), hdisplay, dim ) );
 
     vdisplay = Gtk::manage(new Gtk::RadioButton);
     (*vdisplay).set_group(vgroup);
-    (*table).attach((*vdisplay),2,3,i+2,ii);
+    (*table).attach((*vdisplay),2,3,i+2,ii,Gtk::FILL,Gtk::FILL);
     (*vdisplay).signal_toggled().connect(
        sigc::bind(
          sigc::mem_fun(*this, &spreadsheet::on_v_toggled), vdisplay, dim ) );
@@ -584,9 +578,9 @@ spreadsheet::display_info()
     std::stringstream out;
     out << (*it).second ;
     s = out.str();
-    (*values).set_size_request(50, -1);
+//    (*values).set_size_request(50, -1);
     (*values).set_text(s);
-    (*table).attach((*values),3,4,i+2,ii);
+    (*table).attach((*values),3,4,i+2,ii,Gtk::FILL,Gtk::FILL);
 //    values->signal_activate().connect( sigc::bind (
     values->signal_changed().connect(
       sigc::bind (
@@ -594,10 +588,8 @@ spreadsheet::display_info()
   }
 
 // End table
-//  table->show();
+  (*display_info_SW).add(*table);
   (*display_info_SW).show();
-//  info_frame.add(*display_info_SW);
-//  info_frame.show_all_children();
 
 }
 
