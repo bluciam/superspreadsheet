@@ -70,16 +70,21 @@ protected:
 
   Gtk::Frame   content_frame,
                info_frame,
+               * frame,
                frame_edit_dim;
   Gtk::HButtonBox last_box;
   Gtk::Statusbar status_bar;
 
-// Need to be changed to methods.
-  display_dims * dimensions_sheet;
-
   // DIMS INFO INTERFACE: methods for displaying
   void display_info();
-  Gtk::ScrolledWindow * display_info_SW;
+//  Gtk::ScrolledWindow * display_info_SW;
+  Gtk::Frame * display_info_SW;
+
+  // DIMS CONTENT INTERFACE: methods for displaying
+  void display_dims();
+  void display_dims(int row_range, int col_range, int h_min, int v_min);
+  Gtk::Frame * display_dims_SW;
+//  Gtk::ScrolledWindow * display_dims_SW;
 
   // DIMS INFO INTERFACE: Signal handlers
   void on_h_nodim_toggled();
@@ -124,6 +129,7 @@ protected:
   int           * h_radius ;     // horizontal radius of display
   int           * v_radius ;     // vertical radius of display
 
+  // Varaibles
   Glib::ustring drawn_v_dim;
   Glib::ustring drawn_h_dim;
 

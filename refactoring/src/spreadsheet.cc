@@ -11,16 +11,13 @@ spreadsheet::spreadsheet() :
   hbox_edit_dim(false, 10),
 
   window_header("The S³ is displaying these dimensions ..."),
-  // last_button is Gtk::HButtonBox for equal spacing (30) between buttons.
 
+  // Gtk::Adjustment(
+  //   initial_value, lower, upper, step_increment, page_increment, page_size);
   h_spread_limits(0.0, 0.0, 20.0, 1.0, 3.0, 0.0),
   v_spread_limits(0.0, 0.0, 20.0, 1.0, 3.0, 0.0),
-            // Gtk::Adjustment( initial_value, 
-            //      lower, upper,
-            //      step_increment, 
-            //      page_increment, 
-            //      page_size);
 
+  // last_button is Gtk::HButtonBox for equal spacing (30) between buttons.
   last_box(Gtk::BUTTONBOX_END, 30),
   del_dim_button("_Delete dimension", true),
   add_dim_button("_Add dimension", true),
@@ -53,7 +50,7 @@ spreadsheet::spreadsheet() :
 
   // Set title and size of the SuperSpreadSheet main window
   set_title("The Super SpreadSheet, The S³");
-  set_default_size(800,500);
+//  set_default_size(800,500);
 
   // Add outer box to the window since it may only contain a single widget 
   add(main_box);
@@ -100,19 +97,23 @@ spreadsheet::spreadsheet() :
 
 
   // Begin second table
-  dimensions_sheet = Gtk::manage(new display_dims(
-    ((*h_radius) * 2 + 1 ),
-    ((*v_radius) * 2 + 1 ),
-    ( tuples[(*h_dim)] - (*h_radius) ),
-    ( tuples[(*v_dim)] - (*v_radius) ),
-    1,
-    tuples, h_dim, v_dim, traductor, expression ));
+  display_dims(((*h_radius) * 2 + 1 ),
+               ((*v_radius) * 2 + 1 ),
+               ( tuples[(*h_dim)] - (*h_radius) ),
+               ( tuples[(*v_dim)] - (*v_radius) ));
 
-    drawn_h_dim = (*h_dim);
-    drawn_v_dim = (*v_dim);
+//  dimensions_sheet = Gtk::manage(new display_dims(
+//    ((*h_radius) * 2 + 1 ),
+//    ((*v_radius) * 2 + 1 ),
+//    ( tuples[(*h_dim)] - (*h_radius) ),
+//    ( tuples[(*v_dim)] - (*v_radius) ),
+//    1,
+//    tuples, h_dim, v_dim, traductor, expression ));
 
+  drawn_h_dim = (*h_dim);
+  drawn_v_dim = (*v_dim);
   content_frame.set_shadow_type(Gtk::SHADOW_IN);
-  content_frame.add(*dimensions_sheet);
+  content_frame.add(*display_dims_SW);
   // void Gtk::Paned::pack2 (Widget& child, bool resize, bool shrink )
   hpaned_content.pack2(content_frame,true,false);
   // End second table
@@ -318,34 +319,34 @@ spreadsheet::on_cancel_edit(Glib::ustring msg)
 void
 spreadsheet::on_redraw_clicked(Glib::ustring msg)
 {
-  std::cout << msg << std::endl;
   content_frame.remove();
 
+  std::cout << msg << std::endl;
   drawn_h_dim = (*h_dim);
   drawn_v_dim = (*v_dim);
 
-  if (( (*h_dim) == "") && ((*v_dim) == "")) {
-    dimensions_sheet = Gtk::manage(new display_dims());
-  } else if ( (*h_dim) == "" ) {
-  dimensions_sheet = Gtk::manage(new display_dims(
-    1, ( (*v_radius) * 2 + 1 ), 0, ( tuples[(*v_dim)] - (*v_radius) ), 2,
-    tuples, h_dim, v_dim, traductor, expression ));
-  } else if ( (*v_dim) == "" ) {
-  dimensions_sheet = Gtk::manage(new display_dims(
-    ( (*h_radius) * 2 + 1 ), 1 , ( tuples[(*h_dim)] - (*h_radius) ), 0 , 3,
-      tuples, h_dim, v_dim, traductor, expression));
-  } else {
-  dimensions_sheet = Gtk::manage(new display_dims(
-    ( (*h_radius) * 2 + 1 ),
-    ( (*v_radius) * 2 + 1 ),
-    ( tuples[(*h_dim)] - (*h_radius) ),
-    ( tuples[(*v_dim)] - (*v_radius) ),
-    1,
-    tuples, h_dim, v_dim, traductor, expression ));
+  if (( (*h_dim) == "") && ((*v_dim) == ""))
+  {
+    display_dims();
+  } else if ( (*h_dim) == "" )
+  {
+    display_dims(
+      1, ( (*v_radius) * 2 + 1 ), 0, ( tuples[(*v_dim)] - (*v_radius) ));
+  } else if ( (*v_dim) == "" )
+  {
+    display_dims(
+      ( (*h_radius) * 2 + 1 ), 1 , ( tuples[(*h_dim)] - (*h_radius) ), 0 );
+  } else
+  {
+    display_dims(
+      ( (*h_radius) * 2 + 1 ),
+      ( (*v_radius) * 2 + 1 ),
+      ( tuples[(*h_dim)] - (*h_radius) ),
+      ( tuples[(*v_dim)] - (*v_radius) ) );
   }
 
-  content_frame.add(*dimensions_sheet);
-  (*dimensions_sheet).show();
+  content_frame.add(*display_dims_SW);
+  (*display_dims_SW).show_all_children();
   status_bar.push("Redrawing the spreadsheet.");
 }
 
@@ -466,6 +467,8 @@ spreadsheet::~spreadsheet()
 }
 
 
+// DISPLAY_INFO
+
 void
 spreadsheet::display_info()
 {
@@ -489,7 +492,8 @@ spreadsheet::display_info()
   v_spread_spin->set_alignment(1);
 
 // Begin table
-  display_info_SW = Gtk::manage(new Gtk::ScrolledWindow);
+  display_info_SW = Gtk::manage(new Gtk::Frame);
+//  display_info_SW = Gtk::manage(new Gtk::ScrolledWindow);
   table = Gtk::manage(new Gtk::Table(((tuples).size()+2), 4, false));
 
   (*table).set_col_spacings(10);
@@ -578,7 +582,7 @@ spreadsheet::display_info()
     std::stringstream out;
     out << (*it).second ;
     s = out.str();
-//    (*values).set_size_request(50, -1);
+    (*values).set_size_request(50, -1);
     (*values).set_text(s);
     (*table).attach((*values),3,4,i+2,ii,Gtk::FILL,Gtk::FILL);
 //    values->signal_activate().connect( sigc::bind (
@@ -669,5 +673,125 @@ spreadsheet::on_h_toggled(Gtk::RadioButton * h_radio,
       std::cout << dim << " chosen for horizontal display."<< std::endl;
     }
   } // When a dim is released
+}
+
+// DISPLAY_DIMS
+
+void 
+spreadsheet::display_dims(int row_range, int col_range, int h_min, int v_min)
+{
+//  display_dims_SW = Gtk::manage(new Gtk::ScrolledWindow);
+//  (*display_dims_SW).set_policy(Gtk::POLICY_AUTOMATIC,Gtk::POLICY_AUTOMATIC);
+  display_dims_SW = Gtk::manage(new Gtk::Frame);
+  table = Gtk::manage(new Gtk::Table(row_range + 1, col_range + 1, false));
+  (*table).set_col_spacings(10);
+  (*table).set_row_spacings(10);
+  (*display_dims_SW).add(*table);
+
+  label = Gtk::manage(new Gtk::Label);
+  (*label).set_label("  Dim\nIndices");
+  (*table).attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::FILL);
+  if (h_min != 0) {   // Not a row-only table
+    //  Drawing horizontal index 
+    for (int i = 0 ; i != row_range ; ++i)
+    {
+      std::string s;
+      std::stringstream out;
+      out << h_min + i ;
+      s = out.str();
+      label = Gtk::manage(new Gtk::Label);
+      Glib::ustring cell = s;
+      (*label).set_label(cell);
+      (*table).attach(*label, i+1, i+2, 0, 1, Gtk::FILL, Gtk::FILL);
+    }
+  }
+
+  if (v_min != 0) {   // Not a column-only table
+    //  Drawing vertical index 
+    for (int i = 0 ; i < col_range ; ++i)
+    {
+      std::string s;
+      std::stringstream out;
+      out << v_min + i ;
+      s = out.str();
+      label = Gtk::manage(new Gtk::Label);
+      Glib::ustring cell = s;
+      (*label).set_label(cell);
+      (*table).attach(*label, 0, 1, i+1, i+2, Gtk::FILL, Gtk::FILL);
+    }
+  }
+
+  // Drawing content
+  for (int i = 0 ; i != row_range  ; ++i)
+  {
+     for (int j = 0 ; j != col_range ; ++j)
+     {
+       std::string s;
+       std::stringstream out;
+       out << (i+h_min) << " " << (j+v_min);
+       s = out.str();
+
+       label = Gtk::manage(new Gtk::Label);
+       frame = Gtk::manage(new Gtk::Frame);
+       Glib::ustring cell = s;
+       (*label).set_label(cell);
+       (*frame).add(*label);
+       (*table).attach(*frame, i+1, i+2, j+1, j+2, Gtk::FILL, Gtk::FILL);
+//       std::cout << "expression = " << expression << std::endl;
+//       std::stringstream newout;
+//       newout << expression;
+//       newout << " @ [";
+//       newout << *h_dim << ":" << (i+h_min) << ", ";
+//       newout << *v_dim << ":" << (j+v_min);
+//       for (std::map<Glib::ustring,int>::iterator mit = tuples.begin();
+//            mit != tuples.end(); ++mit)
+//       {
+//         if (mit->first != *h_dim && mit->first != *v_dim)
+//         {
+//         newout << ", " << mit->first << ":" << mit->second;
+//         }
+//       }
+//       newout << "]";
+//       std::cout << newout.str() << std::endl;
+//       std::u32string tuple32;
+//       for (std::string::iterator it = newout.str().begin();
+//            it != newout.str().end(); ++it)
+//       {
+//         int i = *it;
+//         char32_t c = i;
+//         tuple32.push_back(c);
+//       }
+//       tuple32.push_back(0);
+//       TL::HD* cellContext = traductor.translate_expr(tuple32);
+       //std::cout << newout.str() << std::endl;
+     }
+  }
+  (*display_dims_SW).show();
+}
+
+void
+spreadsheet::display_dims()  // single cell
+{
+
+//  display_dims_SW = Gtk::manage(new Gtk::ScrolledWindow);
+  display_dims_SW = Gtk::manage(new Gtk::Frame);
+  table = Gtk::manage(new Gtk::Table( 2, 2, false));
+  (*display_dims_SW).add(*table);
+
+  label = Gtk::manage(new Gtk::Label);
+  (*label).set_label("  Dim\nIndices");
+  (*table).attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::FILL, 0,0);
+
+  std::string s;
+  std::stringstream out;
+  out << 0 << " " << 0;
+  s = out.str();
+  label = Gtk::manage(new Gtk::Label);
+  frame = Gtk::manage(new Gtk::Frame);
+  Glib::ustring cell = s;
+  (*label).set_label(cell);
+  (*frame).add(*label);
+  (*table).attach(*frame, 1, 2, 1, 2, Gtk::FILL, Gtk::FILL);
+  (*display_dims_SW).show();
 }
 
