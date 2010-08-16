@@ -32,7 +32,7 @@ spreadsheet::spreadsheet() :
   // Initializing dims info for display
   (h_radius) = new int(3);
   (v_radius) = new int(3);
-//TODO: does not make any sense unless these are part of an equation
+//TODO: dimensions do not make any sense unless these are part of an equation
   tuples["x"] = 5;
   tuples["y"] = 7;
   tuples["w"] = 11;
@@ -43,10 +43,13 @@ spreadsheet::spreadsheet() :
   (h_dim) = new Glib::ustring((*(it++)).first);
   (v_dim) = new Glib::ustring((*it).first);
 
-//  expression = "0";
+  expression.clear();
+  expression += '0';
 
   // Connecting to TL code
-//  create_equations();
+  std::cout << "Calling create_equations()" << std::endl;
+  create_equations();
+  std::cout << "Called create_equations()" << std::endl;
 
   // Set title and size of the SuperSpreadSheet main window
   set_title("The Super SpreadSheet, The S³");
@@ -75,8 +78,7 @@ spreadsheet::spreadsheet() :
 
 // Begin hbox_exprs 
   //  exprs_entry.set_max_length(50);
-  exprs_entry.set_text("Enter your expression");
-  exprs_entry.set_text(exprs_entry.get_text() + " and press Enter.");
+  exprs_entry.set_text(expression);
   exprs_entry.set_icon_from_stock(Gtk::Stock::INDEX );
   exprs_entry.signal_icon_press().connect( sigc::mem_fun(*this,
              &spreadsheet::on_icon_pressed_exprs) );
@@ -102,14 +104,6 @@ spreadsheet::spreadsheet() :
                ( tuples[(*h_dim)] - (*h_radius) ),
                ( tuples[(*v_dim)] - (*v_radius) ));
 
-//  dimensions_sheet = Gtk::manage(new display_dims(
-//    ((*h_radius) * 2 + 1 ),
-//    ((*v_radius) * 2 + 1 ),
-//    ( tuples[(*h_dim)] - (*h_radius) ),
-//    ( tuples[(*v_dim)] - (*v_radius) ),
-//    1,
-//    tuples, h_dim, v_dim, traductor, expression ));
-
   drawn_h_dim = (*h_dim);
   drawn_v_dim = (*v_dim);
   content_frame.set_shadow_type(Gtk::SHADOW_IN);
@@ -122,10 +116,10 @@ spreadsheet::spreadsheet() :
 // Begin frame_edit_dim
   frame_edit_dim.add(hbox_edit_dim);
   hbox_edit_dim.set_border_width(5);
-//  hbox_edit_dim.pack_start(add_dim_button, Gtk::FILL, 2 );
-//  hbox_edit_dim.pack_start(del_dim_button, Gtk::FILL, 2 );
   hbox_edit_dim.pack_start(add_dim_button, true, false, 0 );
   hbox_edit_dim.pack_start(del_dim_button, true, false, 0 );
+//  hbox_edit_dim.pack_start(add_dim_button, Gtk::FILL, 2 );
+//  hbox_edit_dim.pack_start(del_dim_button, Gtk::FILL, 2 );
 //hbox_edit_dim.pack_start(add_dim_button);
 //hbox_edit_dim.pack_start(del_dim_button);
 
@@ -275,7 +269,7 @@ spreadsheet::on_del_dimension(Glib::ustring msg)
   (*button).signal_clicked().connect(
     sigc::bind (
       sigc::mem_fun( *this, &spreadsheet::on_cancel_edit),
-                     "Cancelling deleting dimensions..." ) );
+                     "Cancelling delete dimensions..." ) );
 
   frame_edit_dim.remove();
   frame_edit_dim.add(*hbox_del_dim);
@@ -356,18 +350,6 @@ spreadsheet::on_get_exprs()
   expression = exprs_entry.get_text();
   status_bar.push("Expression \"" + expression + "\" entered.");
   std::cout << "Expression \"" + expression + "\" entered." << std::endl;
-  std::u32string expr32;
-  for (Glib::ustring::iterator it = expression.begin();
-       it != expression.end(); ++it)
-  {
-    int i = *it;
-    char32_t c = i;
-    expr32.push_back(c);
-  }
-  TL::HD *h = traductor.translate_expr(expr32);
-  TL::TaggedConstant v = (*h)(TL::Tuple());
-  mpz_class ival = v.first.value<TL::Intmp>().value();
-  std::cout << "Result = \"" << ival << "\"." << std::endl;
 }
 
 void
@@ -422,11 +404,10 @@ spreadsheet::on_infobar_status(int)
   infoBar_status.hide();
 }
 
+
 void
 spreadsheet::create_equations ()
 {
-  // TL::Translator traductor;
-  // traductor.loadLibrary(U"int");
   traductor.parse_header (
     U"dimension ustring<n>;;"
     U"infixl ustring<-> ustring<operator-> 5;;"
@@ -439,16 +420,9 @@ spreadsheet::create_equations ()
     U"dimension ustring<y>;;"
     U"dimension ustring<z>;;"
   );
-  traductor.translate_and_add_equation_set (
-    U"fact | [n:0] = 1;;"
-    U"fact = #n * (fact @ [n:#n-1]);;"
-  );
-  TL::HD* e = traductor.translate_expr(U"fact @ [n:5]");
-  TL::TaggedConstant result = (*e)(TL::Tuple());
-  std::cout << "fact(5) = "
-            << result.first.value<TL::Intmp>().value() << std::endl;
-  delete e;
 }
+
+
 
 void
 spreadsheet::on_closebutton_clicked()
@@ -726,10 +700,42 @@ spreadsheet::display_dims(int row_range, int col_range, int h_min, int v_min)
   {
      for (int j = 0 ; j != col_range ; ++j)
      {
+
+       std::cout << "expression = " << expression << std::endl;
+       std::stringstream newout;
+       newout << "(";
+       newout << expression;
+       newout << ")";
+       newout << " @ [";
+       newout << *h_dim << ":" << (i+h_min) << ", ";
+       newout << *v_dim << ":" << (j+v_min);
+       for (std::map<Glib::ustring,int>::iterator mit = tuples.begin();
+            mit != tuples.end(); ++mit)
+       {
+         if (mit->first != *h_dim && mit->first != *v_dim)
+         {
+           newout << ", " << mit->first << ":" << mit->second;
+         }
+       }
+       newout << "]";
+       std::string newout_str = newout.str();
+       std::cout << newout_str << std::endl;
+       std::u32string tuple32 (newout_str.begin(), newout_str.end());
+       TL::HD* cellContext = traductor.translate_expr(tuple32);
+       TL::TaggedConstant cellResult = (*cellContext)(TL::Tuple());
        std::string s;
-       std::stringstream out;
-       out << (i+h_min) << " " << (j+v_min);
-       s = out.str();
+       if (cellResult.first.index() == TL::TYPE_INDEX_INTMP)
+       {
+         std::stringstream sout;
+         sout << cellResult.first.value<TL::Intmp>().value();
+         s = sout.str();
+         std::cout << "Answer is " << s << std::endl;
+       }
+       else
+       {
+         s.clear();
+         std::cout << "Answer is of wrong type" << std::endl;
+       }
 
        label = Gtk::manage(new Gtk::Label);
        frame = Gtk::manage(new Gtk::Frame);
@@ -737,33 +743,6 @@ spreadsheet::display_dims(int row_range, int col_range, int h_min, int v_min)
        (*label).set_label(cell);
        (*frame).add(*label);
        (*table).attach(*frame, i+1, i+2, j+1, j+2, Gtk::FILL, Gtk::FILL);
-//       std::cout << "expression = " << expression << std::endl;
-//       std::stringstream newout;
-//       newout << expression;
-//       newout << " @ [";
-//       newout << *h_dim << ":" << (i+h_min) << ", ";
-//       newout << *v_dim << ":" << (j+v_min);
-//       for (std::map<Glib::ustring,int>::iterator mit = tuples.begin();
-//            mit != tuples.end(); ++mit)
-//       {
-//         if (mit->first != *h_dim && mit->first != *v_dim)
-//         {
-//         newout << ", " << mit->first << ":" << mit->second;
-//         }
-//       }
-//       newout << "]";
-//       std::cout << newout.str() << std::endl;
-//       std::u32string tuple32;
-//       for (std::string::iterator it = newout.str().begin();
-//            it != newout.str().end(); ++it)
-//       {
-//         int i = *it;
-//         char32_t c = i;
-//         tuple32.push_back(c);
-//       }
-//       tuple32.push_back(0);
-//       TL::HD* cellContext = traductor.translate_expr(tuple32);
-       //std::cout << newout.str() << std::endl;
      }
   }
   (*display_dims_SW).show();
