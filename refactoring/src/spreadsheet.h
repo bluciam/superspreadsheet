@@ -78,7 +78,8 @@ protected:
   Gtk::Frame * display_info_SW;
 
   // DIMS CONTENT INTERFACE: methods for displaying
-  void display_dims(int row_range, int col_range, int h_min, int v_min);
+  void display_dims();
+  void display_dims_all(int row_range, int col_range, int h_min, int v_min);
   void display_dims_row(int row_range, int h_min);
   void display_dims_col(int col_range, int v_min);
   void display_dims_cell();

@@ -76,12 +76,9 @@ spreadsheet::spreadsheet() :
   // End first table
 
   // Begin second table
-  display_dims(((pivot.h_radius) * 2 + 1 ),
-               ((pivot.v_radius) * 2 + 1 ),
-               ( pivot.ords[(pivot.h_dim)] - (pivot.h_radius) ),
-               ( pivot.ords[(pivot.v_dim)] - (pivot.v_radius) ));
-  drawn_h_dim = (pivot.h_dim);
-  drawn_v_dim = (pivot.v_dim);
+  display_dims();
+  drawn_h_dim = pivot.h_dim;
+  drawn_v_dim = pivot.v_dim;
   content_frame.set_shadow_type(Gtk::SHADOW_IN);
   content_frame.add(*display_dims_SW);
   // void Gtk::Paned::pack2 (Widget& child, bool resize, bool shrink )
@@ -270,10 +267,10 @@ spreadsheet::on_which_dimension(Glib::ustring dim)
 
   (pivot.ords).erase (dim);
   if (dim == (pivot.h_dim)) {
-    (pivot.h_dim) = "";
+    (pivot.h_dim.clear() ) ;
     (*hnodisplay).toggled();
   } else if (dim == (pivot.v_dim)) {
-    (pivot.v_dim) = "";
+    (pivot.v_dim.clear() )  ;
     (*vnodisplay).toggled();
   } 
 
@@ -296,24 +293,9 @@ spreadsheet::on_cancel_edit(Glib::ustring msg)
 void
 spreadsheet::on_redraw_clicked(Glib::ustring msg)
 {
+  display_dims();
   drawn_h_dim = (pivot.h_dim);
   drawn_v_dim = (pivot.v_dim);
-  if (( (pivot.h_dim) == "") && ((pivot.v_dim) == "")) { // draw just 1 cell
-    display_dims_cell();
-  } else if ( (pivot.h_dim) == "" ) { // draw just a column
-    display_dims_col(
-      ( (pivot.v_radius) * 2 + 1 ), ( pivot.ords[(pivot.v_dim)] - (pivot.v_radius) ) );
-  } else if ( (pivot.v_dim) == "" ) { // draw just a row
-    display_dims_row(
-      ( (pivot.h_radius) * 2 + 1 ), ( pivot.ords[(pivot.h_dim)] - (pivot.h_radius) ) );
-  } else { // draw a 2D table
-    display_dims(
-      ( (pivot.h_radius) * 2 + 1 ),
-      ( (pivot.v_radius) * 2 + 1 ),
-      ( pivot.ords[(pivot.h_dim)] - (pivot.h_radius) ),
-      ( pivot.ords[(pivot.v_dim)] - (pivot.v_radius) ) );
-  }
-
   content_frame.remove();
   content_frame.add(*display_dims_SW);
   (*display_dims_SW).show_all_children();
@@ -570,7 +552,7 @@ spreadsheet::on_h_nodim_toggled()
 {
   if ((*hnodisplay).get_active()) {
     std::cout << "No dimension chosen for horizontal display."<< std::endl;
-    (pivot.h_dim) = "";
+    pivot.h_dim.clear() ;
     std::cout << "h_dim = " << (pivot.h_dim) << std::endl;
   }
 }
@@ -580,7 +562,7 @@ spreadsheet::on_v_nodim_toggled()
 {
   if ((*vnodisplay).get_active()) {
     std::cout << "No dimension chosen for vertical display." << std::endl;
-    (pivot.v_dim) = "";
+    pivot.v_dim.clear() ;
     std::cout << "v_dim = " << (pivot.v_dim) << std::endl;
   }
 }
@@ -616,8 +598,38 @@ spreadsheet::on_h_toggled(Gtk::RadioButton * h_radio, Glib::ustring dim)
 }
 
 // DISPLAY_DIMS
+void
+spreadsheet::display_dims()
+{
+  int row_range = pivot.h_radius * 2 + 1 ;
+  int col_range = pivot.v_radius * 2 + 1 ;
+
+  if ( pivot.isOneCell() )
+  {
+    display_dims_cell();
+  }
+  else if ( pivot.isOneRow() )
+  {
+    int h_min     = pivot.ords[(pivot.h_dim)] - pivot.h_radius ;
+    display_dims_row(row_range, h_min);
+  }
+  else if ( pivot.isOneCol() )
+  {
+    int v_min     = pivot.ords[(pivot.v_dim)] - pivot.v_radius ;
+    display_dims_col(col_range, v_min);
+  }
+  else
+  {
+    int h_min     = pivot.ords[(pivot.h_dim)] - pivot.h_radius ;
+    int v_min     = pivot.ords[(pivot.v_dim)] - pivot.v_radius ;
+    display_dims_all(row_range, col_range, h_min, v_min);
+  }
+}
+
+
 void 
-spreadsheet::display_dims(int row_range, int col_range, int h_min, int v_min)
+spreadsheet::display_dims_all(int row_range, int col_range,
+                              int h_min, int v_min)
 {
 //  display_dims_SW = Gtk::manage(new Gtk::ScrolledWindow);
 //  (*display_dims_SW).set_policy(Gtk::POLICY_AUTOMATIC,Gtk::POLICY_AUTOMATIC);
@@ -631,32 +643,28 @@ spreadsheet::display_dims(int row_range, int col_range, int h_min, int v_min)
   (*label).set_label("  Dim\nIndices");
   (*table).attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::FILL);
 
-  if (h_min != 0) {   // Not a row-only table
-    //  Drawing horizontal index 
-    for (int i = 0 ; i != row_range ; ++i) {
-      std::string s;
-      std::stringstream out;
-      out << h_min + i ;
-      s = out.str();
-      label = Gtk::manage(new Gtk::Label);
-      Glib::ustring cell = s;
-      (*label).set_label(cell);
-      (*table).attach(*label, i+1, i+2, 0, 1, Gtk::FILL, Gtk::FILL);
-    }
+  //  Drawing horizontal index 
+  for (int i = 0 ; i != row_range ; ++i) {
+    std::string s;
+    std::stringstream out;
+    out << h_min + i ;
+    s = out.str();
+    label = Gtk::manage(new Gtk::Label);
+    Glib::ustring cell = s;
+    (*label).set_label(cell);
+    (*table).attach(*label, i+1, i+2, 0, 1, Gtk::FILL, Gtk::FILL);
   }
 
-  if (v_min != 0) {   // Not a column-only table
-    //  Drawing vertical index 
-    for (int i = 0 ; i < col_range ; ++i) {
-      std::string s;
-      std::stringstream out;
-      out << v_min + i ;
-      s = out.str();
-      label = Gtk::manage(new Gtk::Label);
-      Glib::ustring cell = s;
-      (*label).set_label(cell);
-      (*table).attach(*label, 0, 1, i+1, i+2, Gtk::FILL, Gtk::FILL);
-    }
+  //  Drawing vertical index 
+  for (int i = 0 ; i < col_range ; ++i) {
+    std::string s;
+    std::stringstream out;
+    out << v_min + i ;
+    s = out.str();
+    label = Gtk::manage(new Gtk::Label);
+    Glib::ustring cell = s;
+    (*label).set_label(cell);
+    (*table).attach(*label, 0, 1, i+1, i+2, Gtk::FILL, Gtk::FILL);
   }
 
   // Drawing content
@@ -861,7 +869,9 @@ spreadsheet::display_dims_cell()  // single cell
   newout << " @ [";
   std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
   newout << mit->first << ":" << mit->second;
-  ++mit;
+  std::cout << "(" << mit->first << ")  (" << mit->second << ")" << " is the first element " << std::endl;
+//  ++mit;
+  mit++;
   for (mit; mit != pivot.ords.end(); ++mit)
   {
     newout << "," << mit->first << ":" << mit->second;
