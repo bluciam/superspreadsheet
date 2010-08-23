@@ -50,8 +50,7 @@ protected:
   Gtk::HPaned hpaned_content;
   Gtk::VBox * box;  // For packing label and spin buttons in info
 
-  Gtk::Button quit_button,
-              status_button,
+  Gtk::Button status_button,
               cancel_button,
               redraw_button,
               close_button;
@@ -93,7 +92,7 @@ protected:
   void on_v_toggled(Gtk::RadioButton * v_radio, Glib::ustring dim);
   void on_h_spread_spin();
   void on_v_spread_spin();
-  void on_dimension_pivot_changed(Glib::ustring dim);
+  void on_dimension_pivot_changed(Glib::ustring dim, Gtk::Entry * values);
   void on_dimension_delete(Glib::ustring dim);
 
   // DIMS INFO INTERFACE: entites

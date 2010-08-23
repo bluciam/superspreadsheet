@@ -9,23 +9,20 @@ spreadsheet::spreadsheet() :
   hbox_exprs (false, 10),
   hbox_last (false, 10),
   hbox_edit_dim(false, 10),
-
   window_header("The S³ is displaying these dimensions ..."),
 
   // Gtk::Adjustment(
   //   initial_value, lower, upper, step_increment, page_increment, page_size);
   h_spread_limits(0.0, 0.0, 20.0, 1.0, 3.0, 0.0),
   v_spread_limits(0.0, 0.0, 20.0, 1.0, 3.0, 0.0),
-
   // last_button is Gtk::HButtonBox for equal spacing (30) between buttons.
-  last_box(Gtk::BUTTONBOX_END, 30),
   del_dim_button("_Delete dimension", true),
   add_dim_button("_Add dimension", true),
 
+  last_box(Gtk::BUTTONBOX_END, 30),
   cancel_button("_Cancel",true),
   status_button(" _Show Status ",true), 
   redraw_button(" _Redraw SpreadSheet  ",true), 
-  quit_button(Gtk::Stock::QUIT),
   close_button("_Quit", true)       // to use alt-C to close app
 
 {
@@ -43,21 +40,15 @@ spreadsheet::spreadsheet() :
   (h_dim) = new Glib::ustring((*(it++)).first);
   (v_dim) = new Glib::ustring((*it).first);
 
+  // Connecting to TL code
   expression.clear();
   expression += '0';
-
-  // Connecting to TL code
-  std::cout << "Calling create_equations()" << std::endl;
   create_equations();
-  std::cout << "Called create_equations()" << std::endl;
 
   // Set title and size of the SuperSpreadSheet main window
   set_title("The Super SpreadSheet, The S³");
-//  set_default_size(800,500);
-
   // Add outer box to the window since it may only contain a single widget 
   add(main_box);
-
   //Put the inner boxes in the outer box:
   main_box.pack_start(hbox_title, false, false, 0);
   main_box.pack_start(hbox_exprs, false, false, 0);
@@ -80,10 +71,10 @@ spreadsheet::spreadsheet() :
   //  exprs_entry.set_max_length(50);
   exprs_entry.set_text(expression);
   exprs_entry.set_icon_from_stock(Gtk::Stock::INDEX );
-  exprs_entry.signal_icon_press().connect( sigc::mem_fun(*this,
-             &spreadsheet::on_icon_pressed_exprs) );
-  exprs_entry.signal_activate().connect( sigc::mem_fun(*this,
-             &spreadsheet::on_get_exprs) );
+  exprs_entry.signal_icon_press().connect(
+    sigc::mem_fun(*this, &spreadsheet::on_icon_pressed_exprs) );
+  exprs_entry.signal_activate().connect(
+    sigc::mem_fun(*this, &spreadsheet::on_get_exprs) );
   hbox_exprs.pack_start(exprs_entry);
 // End hbox_exprs 
 
@@ -97,13 +88,11 @@ spreadsheet::spreadsheet() :
   hpaned_content.pack1(info_frame,true,false);
   // End first table
 
-
   // Begin second table
   display_dims(((*h_radius) * 2 + 1 ),
                ((*v_radius) * 2 + 1 ),
                ( tuples[(*h_dim)] - (*h_radius) ),
                ( tuples[(*v_dim)] - (*v_radius) ));
-
   drawn_h_dim = (*h_dim);
   drawn_v_dim = (*v_dim);
   content_frame.set_shadow_type(Gtk::SHADOW_IN);
@@ -113,26 +102,33 @@ spreadsheet::spreadsheet() :
   // End second table
 // End hpaned_content 
 
+
 // Begin frame_edit_dim
+  /* In this frame there can be tree different frames:
+  /  hbox_edit_dim, hbox_add_dim and hbox_del_dim.
+  /  The first one contains two buttons: to add or del dimensions.
+  /  When the add button is pressed, hbox_edit_dim is replaced by 
+  /  hbox_add_dim which is constant and can be created just one, following.
+  /  When the del buttin is pressed, hbox_edit_dim is replaced by 
+  /  hbox_del_dim, which needs to be generating at each time depending on
+  /  how many dimensions exists. This box is crated at each go in the
+  /  call back  function, on_del_dimension()
+ */
   frame_edit_dim.add(hbox_edit_dim);
   hbox_edit_dim.set_border_width(5);
+
   hbox_edit_dim.pack_start(add_dim_button, true, false, 0 );
-  hbox_edit_dim.pack_start(del_dim_button, true, false, 0 );
-//  hbox_edit_dim.pack_start(add_dim_button, Gtk::FILL, 2 );
-//  hbox_edit_dim.pack_start(del_dim_button, Gtk::FILL, 2 );
-//hbox_edit_dim.pack_start(add_dim_button);
-//hbox_edit_dim.pack_start(del_dim_button);
-
-  del_dim_button.signal_clicked().connect(
-    sigc::bind (
-      sigc::mem_fun( *this, &spreadsheet::on_del_dimension),
-                     "Deleting dimension. Click on the chosen dimension.") );
-
   add_dim_button.signal_clicked().connect(
     sigc::bind (
       sigc::mem_fun( *this, &spreadsheet::on_add_dimension),
                      "Adding dimension. Enter the appropriate values.") );
 
+  hbox_edit_dim.pack_start(del_dim_button, true, false, 0 );
+  del_dim_button.signal_clicked().connect(
+    sigc::bind (
+      sigc::mem_fun( *this, &spreadsheet::on_del_dimension),
+                     "Deleting dimension. Click on the chosen dimension.") );
+  // hbox_add_dim
   hbox_add_dim.set_border_width(5);
   label = Gtk::manage(new Gtk::Label("Add new dimension:     "));
   hbox_add_dim.pack_start(*label);
@@ -153,14 +149,13 @@ spreadsheet::spreadsheet() :
   hbox_add_dim.pack_start(*button);
   (*button).signal_clicked().connect(
     sigc::bind (
-      sigc::mem_fun( *this, &spreadsheet::on_add_OK),
-                     "New values entered...") );
+      sigc::mem_fun(*this, &spreadsheet::on_add_OK), "New values entered...") );
 
   hbox_add_dim.pack_start(cancel_button);
   (cancel_button).signal_clicked().connect(
     sigc::bind (
-      sigc::mem_fun( *this, &spreadsheet::on_cancel_edit),
-                     "Cancelling adding dimensions..." ) );
+      sigc::mem_fun(*this, &spreadsheet::on_cancel_edit),
+                    "Cancelling adding dimensions..." ) );
 // End frame_edit_dim
 
 // Begin hbox_last 
@@ -176,27 +171,26 @@ spreadsheet::spreadsheet() :
   hbox_last.pack_start(infoBar_status, Gtk::PACK_SHRINK);
 
   last_box.add(status_button);
-  last_box.add(redraw_button);
-  last_box.add(close_button);
-  hbox_last.pack_start(last_box);
-
-  // Make the button the default widget. No idea what this 
-  // does, as the explanation does not match the functionality.
-  close_button.set_can_default();
-  close_button.grab_default();
-
-  // Connecting the signal to the corresponding handlers.
-  redraw_button.signal_clicked().connect(
-    sigc::bind<Glib::ustring> (
-      sigc::mem_fun( *this, &spreadsheet::on_redraw_clicked),"Redrawing...") );
   status_button.signal_clicked().connect(
     sigc::bind<Glib::ustring> (
       sigc::mem_fun(
         *this, &spreadsheet::on_status_clicked), "Showing current status") );
+
+  last_box.add(redraw_button);
+  redraw_button.signal_clicked().connect(
+    sigc::bind<Glib::ustring> (
+      sigc::mem_fun( *this, &spreadsheet::on_redraw_clicked),
+                     "Redrawing the spreadsheet") );
+
+  last_box.add(close_button);
   close_button.signal_clicked().connect (
     sigc::mem_fun( *this, &spreadsheet::on_closebutton_clicked) );
-  quit_button.signal_clicked().connect(
-    sigc::ptr_fun( &Gtk::Main::quit));
+
+  hbox_last.pack_start(last_box);
+  // Make the button the default widget. No idea what this 
+  // does, as the explanation does not match the functionality.
+  close_button.set_can_default();
+  close_button.grab_default();
 // End hbox_last 
 
   show_all_children();
@@ -283,8 +277,9 @@ spreadsheet::on_which_dimension(Glib::ustring dim)
 {
   frame_edit_dim.remove();
   frame_edit_dim.add(hbox_edit_dim);
-  (tuples).erase (dim);
+  frame_edit_dim.show_all_children();
 
+  (tuples).erase (dim);
   if (dim == (*h_dim)) {
     (*h_dim) = "";
     (*hnodisplay).toggled();
@@ -297,7 +292,6 @@ spreadsheet::on_which_dimension(Glib::ustring dim)
   display_info();
   info_frame.add(*display_info_SW);
   (*display_info_SW).show_all_children();
-  frame_edit_dim.show_all_children();
   status_bar.push("Deleting dimension " + dim);
 }
 
@@ -313,12 +307,8 @@ spreadsheet::on_cancel_edit(Glib::ustring msg)
 void
 spreadsheet::on_redraw_clicked(Glib::ustring msg)
 {
-  content_frame.remove();
-
-  std::cout << msg << std::endl;
   drawn_h_dim = (*h_dim);
   drawn_v_dim = (*v_dim);
-
   if (( (*h_dim) == "") && ((*v_dim) == ""))
   {
     display_dims();
@@ -339,9 +329,10 @@ spreadsheet::on_redraw_clicked(Glib::ustring msg)
       ( tuples[(*v_dim)] - (*v_radius) ) );
   }
 
+  content_frame.remove();
   content_frame.add(*display_dims_SW);
   (*display_dims_SW).show_all_children();
-  status_bar.push("Redrawing the spreadsheet.");
+  status_bar.push(msg);
 }
 
 void
@@ -390,11 +381,11 @@ spreadsheet::on_status_clicked(Glib::ustring msg)
     dvd = "\nDrawn vertical dimension is " + (drawn_v_dim) + ".";
   Glib::ustring text = hd + vd + exp + dhd + dvd;
   label_status.set_text(text);
-  infoBar_status.show(); // To show the message when status is clicked.
-  /* http://library.gnome.org/devel/gtkmm-tutorial/unstable/sec-progressbar.html.en
+  infoBar_status.show(); // To show the widget when status is clicked.
+  /* http://library.gnome.org/devel/gtkmm-tutorial/unstable/
+   * sec-progressbar.html.en
    * to introduce progress bar instead of the Ok button.
    */
-//  std::cout <<  msg << std::endl;
   status_bar.push(msg);
 }
 
@@ -403,7 +394,6 @@ spreadsheet::on_infobar_status(int)
 {
   infoBar_status.hide();
 }
-
 
 void
 spreadsheet::create_equations ()
@@ -422,8 +412,6 @@ spreadsheet::create_equations ()
   );
 }
 
-
-
 void
 spreadsheet::on_closebutton_clicked()
 {
@@ -440,13 +428,10 @@ spreadsheet::~spreadsheet()
 //  Glib::wrap_register_cleanup();
 }
 
-
 // DISPLAY_INFO
-
 void
 spreadsheet::display_info()
 {
-
   hnodisplay = Gtk::manage(new Gtk::RadioButton);
   vnodisplay = Gtk::manage(new Gtk::RadioButton);
 
@@ -469,7 +454,6 @@ spreadsheet::display_info()
   display_info_SW = Gtk::manage(new Gtk::Frame);
 //  display_info_SW = Gtk::manage(new Gtk::ScrolledWindow);
   table = Gtk::manage(new Gtk::Table(((tuples).size()+2), 4, false));
-
   (*table).set_col_spacings(10);
 
   // Column titles
@@ -483,7 +467,6 @@ spreadsheet::display_info()
   (*box).add(*h_spread_spin);
   (*label).set_label("H dim\nradius");
   (*table).attach((*box),1,2,0,1,Gtk::FILL,Gtk::FILL);
-
   h_spread_spin->signal_value_changed().connect(
     sigc::mem_fun( *this, &spreadsheet::on_h_spread_spin ) );
 
@@ -493,7 +476,6 @@ spreadsheet::display_info()
   (*box).add(*v_spread_spin);
   (*label).set_label("V dim\nradius");
   (*table).attach((*box),2,3,0,1,Gtk::FILL,Gtk::FILL);
-
   v_spread_spin->signal_value_changed().connect(
     sigc::mem_fun( *this, &spreadsheet::on_v_spread_spin ) );
 
@@ -523,7 +505,6 @@ spreadsheet::display_info()
   for ( it=(tuples).begin(); it != (tuples).end(); ++it, ++i )
   {
     int ii = i+3;
-
 
     label = Gtk::manage(new Gtk::Label);
     Glib::ustring dim = (*it).first;
@@ -562,13 +543,12 @@ spreadsheet::display_info()
 //    values->signal_activate().connect( sigc::bind (
     values->signal_changed().connect(
       sigc::bind (
-        sigc::mem_fun (*this, &spreadsheet::on_dimension_pivot_changed), dim) );
+        sigc::mem_fun (*this, &spreadsheet::on_dimension_pivot_changed),
+                       dim, values ) );
   }
-
 // End table
   (*display_info_SW).add(*table);
   (*display_info_SW).show();
-
 }
 
 void
@@ -576,6 +556,7 @@ spreadsheet::on_h_spread_spin()
 {
   (*h_radius) = h_spread_spin->get_value();
   std::cout << (*h_radius) << std::endl;
+//  status_bar.push(*h_radius);
   h_spread_limits.set_value(*h_radius);
 }
 
@@ -584,15 +565,16 @@ spreadsheet::on_v_spread_spin()
 {
   (*v_radius) = v_spread_spin->get_value();
   std::cout << (*v_radius) << std::endl;
+//  status_bar.push(*v_radius);
   v_spread_limits.set_value(*v_radius);
 }
 
-
 void
-spreadsheet::on_dimension_pivot_changed(Glib::ustring dim)
+spreadsheet::on_dimension_pivot_changed(Glib::ustring dim, Gtk::Entry * values)
 {
   Glib::ustring s_pivot = values->get_text ();
   std::cout << s_pivot << std::endl;
+  status_bar.push("Pivot is " + s_pivot);
   int pivot =  atoi(s_pivot.c_str());
   tuples[dim] = pivot;
 }
@@ -617,7 +599,6 @@ spreadsheet::on_v_nodim_toggled()
   }
 }
 
-
 void
 spreadsheet::on_v_toggled(Gtk::RadioButton * v_radio, Glib::ustring dim)
 {
@@ -634,8 +615,7 @@ spreadsheet::on_v_toggled(Gtk::RadioButton * v_radio, Glib::ustring dim)
 }
 
 void
-spreadsheet::on_h_toggled(Gtk::RadioButton * h_radio,
-                           Glib::ustring dim)
+spreadsheet::on_h_toggled(Gtk::RadioButton * h_radio, Glib::ustring dim)
 {
   if ((*h_radio).get_active()) { // When a dim is chosen
     if ((*v_dim) == dim) {
@@ -650,7 +630,6 @@ spreadsheet::on_h_toggled(Gtk::RadioButton * h_radio,
 }
 
 // DISPLAY_DIMS
-
 void 
 spreadsheet::display_dims(int row_range, int col_range, int h_min, int v_min)
 {
@@ -665,6 +644,7 @@ spreadsheet::display_dims(int row_range, int col_range, int h_min, int v_min)
   label = Gtk::manage(new Gtk::Label);
   (*label).set_label("  Dim\nIndices");
   (*table).attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::FILL);
+
   if (h_min != 0) {   // Not a row-only table
     //  Drawing horizontal index 
     for (int i = 0 ; i != row_range ; ++i)
@@ -703,6 +683,7 @@ spreadsheet::display_dims(int row_range, int col_range, int h_min, int v_min)
 
        std::cout << "expression = " << expression << std::endl;
        std::stringstream newout;
+
        newout << "(";
        newout << expression;
        newout << ")";
@@ -751,7 +732,6 @@ spreadsheet::display_dims(int row_range, int col_range, int h_min, int v_min)
 void
 spreadsheet::display_dims()  // single cell
 {
-
 //  display_dims_SW = Gtk::manage(new Gtk::ScrolledWindow);
   display_dims_SW = Gtk::manage(new Gtk::Frame);
   table = Gtk::manage(new Gtk::Table( 2, 2, false));
@@ -761,10 +741,41 @@ spreadsheet::display_dims()  // single cell
   (*label).set_label("  Dim\nIndices");
   (*table).attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::FILL, 0,0);
 
-  std::string s;
-  std::stringstream out;
-  out << 0 << " " << 0;
-  s = out.str();
+
+       std::stringstream newout;
+       newout << "(";
+       newout << expression;
+       newout << ")";
+       newout << " @ [";
+       std::map<Glib::ustring,int>::iterator mit = tuples.begin();
+       newout << mit->first << ":" << mit->second;
+       ++mit;
+       for (mit; mit != tuples.end(); ++mit)
+       {
+         {
+           newout << "," << mit->first << ":" << mit->second;
+         }
+       }
+       newout << "]";
+       std::string newout_str = newout.str();
+       std::cout << newout_str << std::endl;
+       std::u32string tuple32 (newout_str.begin(), newout_str.end());
+       TL::HD* cellContext = traductor.translate_expr(tuple32);
+       TL::TaggedConstant cellResult = (*cellContext)(TL::Tuple());
+       std::string s;
+       if (cellResult.first.index() == TL::TYPE_INDEX_INTMP)
+       {
+         std::stringstream sout;
+         sout << cellResult.first.value<TL::Intmp>().value();
+         s = sout.str();
+         std::cout << "Answer is " << s << std::endl;
+       }
+       else
+       {
+         s.clear();
+         std::cout << "Answer is of wrong type" << std::endl;
+       }
+
   label = Gtk::manage(new Gtk::Label);
   frame = Gtk::manage(new Gtk::Frame);
   Glib::ustring cell = s;
