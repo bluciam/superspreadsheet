@@ -3,13 +3,11 @@
 #include <gtkmm/box.h>
 #include <iostream>
 #include <gtkmm.h> 
-#include <display_dims.h>
-#include <display_info.h>
-
+#include <map>
+#include <Pivot.h>
 #include <tl/translator.hpp>
 #include <tl/utility.hpp>
 #include <tl/parser_util.hpp>
-#include <map>
 
 namespace TL = TransLucid;
 
@@ -80,8 +78,12 @@ protected:
   Gtk::Frame * display_info_SW;
 
   // DIMS CONTENT INTERFACE: methods for displaying
-  void display_dims();
   void display_dims(int row_range, int col_range, int h_min, int v_min);
+  void display_dims_row(int row_range, int h_min);
+  void display_dims_col(int col_range, int v_min);
+  void display_dims_cell();
+
+
   Gtk::Frame * display_dims_SW;
 //  Gtk::ScrolledWindow * display_dims_SW;
 
@@ -119,14 +121,15 @@ protected:
   TL::Translator traductor;
   Glib::ustring expression;
 
-  std::map<Glib::ustring,int> tuples; // List of dimensions and ordinates
-  std::map<Glib::ustring,int>::iterator it;
+  Pivot pivot;
+//  std::map<Glib::ustring,int> tuples; // List of dimensions and ordinates
+//  std::map<Glib::ustring,int>::iterator it;
 
 // TODO: verify if they really need to be pointers
-  Glib::ustring * v_dim ; // vertical dim to display
-  Glib::ustring * h_dim ; // horizontal dim to display
-  int           * h_radius ;     // horizontal radius of display
-  int           * v_radius ;     // vertical radius of display
+//  Glib::ustring * v_dim ; // vertical dim to display
+//  Glib::ustring * h_dim ; // horizontal dim to display
+//  int           * h_radius ;     // horizontal radius of display
+//  int           * v_radius ;     // vertical radius of display
 
   // Varaibles
   Glib::ustring drawn_v_dim;

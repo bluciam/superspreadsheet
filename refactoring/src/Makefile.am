@@ -1,12 +1,13 @@
 ## The Cartesian SpreadSheet
 
+##                      tuple_info.h  tuple_info.cc \
 
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
 bin_PROGRAMS = spreadsheet
 
 spreadsheet_SOURCES = spreadsheet.h spreadsheet.cc \
-                      tuple_info.h  tuple_info.cc \
+                      Pivot.h Pivot.cc \
                       main.cc 
 spreadsheet_LDFLAGS = -ltlsystem
 AM_CXXFLAGS = -std=gnu++0x -DBOOST_SPIRIT_UNICODE

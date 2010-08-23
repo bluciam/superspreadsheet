@@ -26,19 +26,6 @@ spreadsheet::spreadsheet() :
   close_button("_Quit", true)       // to use alt-C to close app
 
 {
-  // Initializing dims info for display
-  (h_radius) = new int(3);
-  (v_radius) = new int(3);
-//TODO: dimensions do not make any sense unless these are part of an equation
-  tuples["x"] = 5;
-  tuples["y"] = 7;
-  tuples["w"] = 11;
-  tuples["z"] = 42;
-  tuples["t"] = 8;
-  // Initial dimensions chosen for display by the programmer
-  it=(tuples).begin();
-  (h_dim) = new Glib::ustring((*(it++)).first);
-  (v_dim) = new Glib::ustring((*it).first);
 
   // Connecting to TL code
   expression.clear();
@@ -89,12 +76,12 @@ spreadsheet::spreadsheet() :
   // End first table
 
   // Begin second table
-  display_dims(((*h_radius) * 2 + 1 ),
-               ((*v_radius) * 2 + 1 ),
-               ( tuples[(*h_dim)] - (*h_radius) ),
-               ( tuples[(*v_dim)] - (*v_radius) ));
-  drawn_h_dim = (*h_dim);
-  drawn_v_dim = (*v_dim);
+  display_dims(((pivot.h_radius) * 2 + 1 ),
+               ((pivot.v_radius) * 2 + 1 ),
+               ( pivot.ords[(pivot.h_dim)] - (pivot.h_radius) ),
+               ( pivot.ords[(pivot.v_dim)] - (pivot.v_radius) ));
+  drawn_h_dim = (pivot.h_dim);
+  drawn_v_dim = (pivot.v_dim);
   content_frame.set_shadow_type(Gtk::SHADOW_IN);
   content_frame.add(*display_dims_SW);
   // void Gtk::Paned::pack2 (Widget& child, bool resize, bool shrink )
@@ -228,8 +215,8 @@ spreadsheet::on_add_OK(Glib::ustring msg)
   new_dim_entry.set_text("");
   new_pivot_entry.set_text("");
 
-  int pivot =  atoi(dimpivot.c_str());
-  tuples[dimname] = pivot; 
+  int piv =  atoi(dimpivot.c_str());
+  (pivot.ords)[dimname] = piv; 
 
   info_frame.remove();
   display_info();
@@ -247,10 +234,12 @@ spreadsheet::on_add_OK(Glib::ustring msg)
 void
 spreadsheet::on_del_dimension(Glib::ustring msg)
 {
+
+  std::map<Glib::ustring,int>::iterator it;
   label = Gtk::manage(new Gtk::Label("Delete which dimension?"));
   hbox_del_dim = Gtk::manage(new Gtk::HBox());
   (*hbox_del_dim).pack_start(*label);
-  for ( it=tuples.begin() ; it != tuples.end(); it++ ) {
+  for ( it=pivot.ords.begin() ; it != pivot.ords.end(); it++ ) {
     button = Gtk::manage(new Gtk::Button((*it).first));
     (*hbox_del_dim).pack_start(*button,Gtk::FILL,2);
 
@@ -279,12 +268,12 @@ spreadsheet::on_which_dimension(Glib::ustring dim)
   frame_edit_dim.add(hbox_edit_dim);
   frame_edit_dim.show_all_children();
 
-  (tuples).erase (dim);
-  if (dim == (*h_dim)) {
-    (*h_dim) = "";
+  (pivot.ords).erase (dim);
+  if (dim == (pivot.h_dim)) {
+    (pivot.h_dim) = "";
     (*hnodisplay).toggled();
-  } else if (dim == (*v_dim)) {
-    (*v_dim) = "";
+  } else if (dim == (pivot.v_dim)) {
+    (pivot.v_dim) = "";
     (*vnodisplay).toggled();
   } 
 
@@ -307,26 +296,22 @@ spreadsheet::on_cancel_edit(Glib::ustring msg)
 void
 spreadsheet::on_redraw_clicked(Glib::ustring msg)
 {
-  drawn_h_dim = (*h_dim);
-  drawn_v_dim = (*v_dim);
-  if (( (*h_dim) == "") && ((*v_dim) == ""))
-  {
-    display_dims();
-  } else if ( (*h_dim) == "" )
-  {
+  drawn_h_dim = (pivot.h_dim);
+  drawn_v_dim = (pivot.v_dim);
+  if (( (pivot.h_dim) == "") && ((pivot.v_dim) == "")) { // draw just 1 cell
+    display_dims_cell();
+  } else if ( (pivot.h_dim) == "" ) { // draw just a column
+    display_dims_col(
+      ( (pivot.v_radius) * 2 + 1 ), ( pivot.ords[(pivot.v_dim)] - (pivot.v_radius) ) );
+  } else if ( (pivot.v_dim) == "" ) { // draw just a row
+    display_dims_row(
+      ( (pivot.h_radius) * 2 + 1 ), ( pivot.ords[(pivot.h_dim)] - (pivot.h_radius) ) );
+  } else { // draw a 2D table
     display_dims(
-      1, ( (*v_radius) * 2 + 1 ), 0, ( tuples[(*v_dim)] - (*v_radius) ));
-  } else if ( (*v_dim) == "" )
-  {
-    display_dims(
-      ( (*h_radius) * 2 + 1 ), 1 , ( tuples[(*h_dim)] - (*h_radius) ), 0 );
-  } else
-  {
-    display_dims(
-      ( (*h_radius) * 2 + 1 ),
-      ( (*v_radius) * 2 + 1 ),
-      ( tuples[(*h_dim)] - (*h_radius) ),
-      ( tuples[(*v_dim)] - (*v_radius) ) );
+      ( (pivot.h_radius) * 2 + 1 ),
+      ( (pivot.v_radius) * 2 + 1 ),
+      ( pivot.ords[(pivot.h_dim)] - (pivot.h_radius) ),
+      ( pivot.ords[(pivot.v_dim)] - (pivot.v_radius) ) );
   }
 
   content_frame.remove();
@@ -359,14 +344,14 @@ void
 spreadsheet::on_status_clicked(Glib::ustring msg)
 {
   Glib::ustring hd, vd, exp, dhd, dvd;
-  if ((*h_dim) == "")
+  if ((pivot.h_dim) == "")
     hd = "No horizontal dimension chosen.";
   else
-    hd = "The horizontal dimension is " + (*h_dim) + ".";
-  if ((*v_dim) == "")
+    hd = "The horizontal dimension is " + (pivot.h_dim) + ".";
+  if ((pivot.v_dim) == "")
     vd = "\nNo vertical dimension chosen.";
   else
-    vd = "\nThe vertical dimension is " + (*v_dim) + ".";
+    vd = "\nThe vertical dimension is " + (pivot.v_dim) + ".";
   if (expression == "")
     exp = "\nThere is no expression.";
   else
@@ -438,13 +423,13 @@ spreadsheet::display_info()
   h_spread_spin = Gtk::manage(new Gtk::SpinButton);
   v_spread_spin = Gtk::manage(new Gtk::SpinButton);
 
-  h_spread_limits.set_value(*h_radius);
+  h_spread_limits.set_value(pivot.h_radius);
   h_spread_spin->set_adjustment(h_spread_limits);
   h_spread_spin->set_size_request(50, -1);
   h_spread_spin->set_numeric(true);
   h_spread_spin->set_alignment(1);
 
-  v_spread_limits.set_value(*v_radius);
+  v_spread_limits.set_value(pivot.v_radius);
   v_spread_spin->set_adjustment(v_spread_limits);
   v_spread_spin->set_size_request(50, -1);
   v_spread_spin->set_numeric(true);
@@ -453,7 +438,7 @@ spreadsheet::display_info()
 // Begin table
   display_info_SW = Gtk::manage(new Gtk::Frame);
 //  display_info_SW = Gtk::manage(new Gtk::ScrolledWindow);
-  table = Gtk::manage(new Gtk::Table(((tuples).size()+2), 4, false));
+  table = Gtk::manage(new Gtk::Table(((pivot.ords).size()+2), 4, false));
   (*table).set_col_spacings(10);
 
   // Column titles
@@ -502,7 +487,8 @@ spreadsheet::display_info()
       H and V and the pivot value.
   */
   int i = 0; // Can't put this in the for loop, it explodes. 
-  for ( it=(tuples).begin(); it != (tuples).end(); ++it, ++i )
+  std::map<Glib::ustring,int>::iterator it;
+  for ( it=(pivot.ords).begin(); it != (pivot.ords).end(); ++it, ++i )
   {
     int ii = i+3;
 
@@ -525,9 +511,9 @@ spreadsheet::display_info()
        sigc::bind(
          sigc::mem_fun(*this, &spreadsheet::on_v_toggled), vdisplay, dim ) );
 
-    if ((*h_dim) == dim) {
+    if ((pivot.h_dim) == dim) {
       (*hdisplay).set_active();
-    } else if ((*v_dim) == dim) {
+    } else if ((pivot.v_dim) == dim) {
       (*vdisplay).set_active();
     }
 
@@ -554,19 +540,19 @@ spreadsheet::display_info()
 void
 spreadsheet::on_h_spread_spin()
 {
-  (*h_radius) = h_spread_spin->get_value();
-  std::cout << (*h_radius) << std::endl;
+  (pivot.h_radius) = h_spread_spin->get_value();
+  std::cout << (pivot.h_radius) << std::endl;
 //  status_bar.push(*h_radius);
-  h_spread_limits.set_value(*h_radius);
+  h_spread_limits.set_value(pivot.h_radius);
 }
 
 void
 spreadsheet::on_v_spread_spin()
 {
-  (*v_radius) = v_spread_spin->get_value();
-  std::cout << (*v_radius) << std::endl;
+  (pivot.v_radius) = v_spread_spin->get_value();
+  std::cout << (pivot.v_radius) << std::endl;
 //  status_bar.push(*v_radius);
-  v_spread_limits.set_value(*v_radius);
+  v_spread_limits.set_value(pivot.v_radius);
 }
 
 void
@@ -575,8 +561,8 @@ spreadsheet::on_dimension_pivot_changed(Glib::ustring dim, Gtk::Entry * values)
   Glib::ustring s_pivot = values->get_text ();
   std::cout << s_pivot << std::endl;
   status_bar.push("Pivot is " + s_pivot);
-  int pivot =  atoi(s_pivot.c_str());
-  tuples[dim] = pivot;
+  int piv =  atoi(s_pivot.c_str());
+  pivot.ords[dim] = piv;
 }
 
 void
@@ -584,8 +570,8 @@ spreadsheet::on_h_nodim_toggled()
 {
   if ((*hnodisplay).get_active()) {
     std::cout << "No dimension chosen for horizontal display."<< std::endl;
-    (*h_dim) = "";
-    std::cout << "h_dim = " << (*h_dim) << std::endl;
+    (pivot.h_dim) = "";
+    std::cout << "h_dim = " << (pivot.h_dim) << std::endl;
   }
 }
 
@@ -594,8 +580,8 @@ spreadsheet::on_v_nodim_toggled()
 {
   if ((*vnodisplay).get_active()) {
     std::cout << "No dimension chosen for vertical display." << std::endl;
-    (*v_dim) = "";
-    std::cout << "v_dim = " << (*v_dim) << std::endl;
+    (pivot.v_dim) = "";
+    std::cout << "v_dim = " << (pivot.v_dim) << std::endl;
   }
 }
 
@@ -603,12 +589,12 @@ void
 spreadsheet::on_v_toggled(Gtk::RadioButton * v_radio, Glib::ustring dim)
 {
   if ((*v_radio).get_active()) { // When a dim is chosen
-    if ((*h_dim) == dim) {
+    if ((pivot.h_dim) == dim) {
       std::cout << "Cannot display the same dimension in both directions."
                 << std::endl;
       (*vnodisplay).set_active();
     } else {
-      (*v_dim) = dim;
+      (pivot.v_dim) = dim;
       std::cout << dim << " chosen for vertical display."<< std::endl;
     }
   } // When a dim is released
@@ -618,12 +604,12 @@ void
 spreadsheet::on_h_toggled(Gtk::RadioButton * h_radio, Glib::ustring dim)
 {
   if ((*h_radio).get_active()) { // When a dim is chosen
-    if ((*v_dim) == dim) {
+    if ((pivot.v_dim) == dim) {
       std::cout << "Cannot display the same dimension in both directions."
                 << std::endl;
       (*hnodisplay).set_active();
     } else {
-      (*h_dim) = dim;
+      (pivot.h_dim) = dim;
       std::cout << dim << " chosen for horizontal display."<< std::endl;
     }
   } // When a dim is released
@@ -647,8 +633,7 @@ spreadsheet::display_dims(int row_range, int col_range, int h_min, int v_min)
 
   if (h_min != 0) {   // Not a row-only table
     //  Drawing horizontal index 
-    for (int i = 0 ; i != row_range ; ++i)
-    {
+    for (int i = 0 ; i != row_range ; ++i) {
       std::string s;
       std::stringstream out;
       out << h_min + i ;
@@ -662,8 +647,7 @@ spreadsheet::display_dims(int row_range, int col_range, int h_min, int v_min)
 
   if (v_min != 0) {   // Not a column-only table
     //  Drawing vertical index 
-    for (int i = 0 ; i < col_range ; ++i)
-    {
+    for (int i = 0 ; i < col_range ; ++i) {
       std::string s;
       std::stringstream out;
       out << v_min + i ;
@@ -676,61 +660,190 @@ spreadsheet::display_dims(int row_range, int col_range, int h_min, int v_min)
   }
 
   // Drawing content
-  for (int i = 0 ; i != row_range  ; ++i)
-  {
-     for (int j = 0 ; j != col_range ; ++j)
-     {
+  for (int i = 0 ; i != row_range ; ++i) {
+    for (int j = 0 ; j != col_range ; ++j) {
 
-       std::cout << "expression = " << expression << std::endl;
-       std::stringstream newout;
+      std::cout << "expression = " << expression << std::endl;
+      std::stringstream newout;
 
-       newout << "(";
-       newout << expression;
-       newout << ")";
-       newout << " @ [";
-       newout << *h_dim << ":" << (i+h_min) << ", ";
-       newout << *v_dim << ":" << (j+v_min);
-       for (std::map<Glib::ustring,int>::iterator mit = tuples.begin();
-            mit != tuples.end(); ++mit)
-       {
-         if (mit->first != *h_dim && mit->first != *v_dim)
-         {
+      newout << "(";
+      newout << expression;
+      newout << ")";
+      newout << " @ [";
+      newout << pivot.h_dim << ":" << (i+h_min) << ", ";
+      newout << pivot.v_dim << ":" << (j+v_min);
+      for (std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
+           mit != pivot.ords.end(); ++mit) {
+         if (mit->first != pivot.h_dim && mit->first != pivot.v_dim) {
            newout << ", " << mit->first << ":" << mit->second;
          }
-       }
-       newout << "]";
-       std::string newout_str = newout.str();
-       std::cout << newout_str << std::endl;
-       std::u32string tuple32 (newout_str.begin(), newout_str.end());
-       TL::HD* cellContext = traductor.translate_expr(tuple32);
-       TL::TaggedConstant cellResult = (*cellContext)(TL::Tuple());
-       std::string s;
-       if (cellResult.first.index() == TL::TYPE_INDEX_INTMP)
-       {
-         std::stringstream sout;
-         sout << cellResult.first.value<TL::Intmp>().value();
-         s = sout.str();
-         std::cout << "Answer is " << s << std::endl;
-       }
-       else
-       {
-         s.clear();
-         std::cout << "Answer is of wrong type" << std::endl;
-       }
+      }
+      newout << "]";
+      std::string newout_str = newout.str();
+      std::cout << newout_str << std::endl;
+      std::u32string tuple32 (newout_str.begin(), newout_str.end());
+      TL::HD* cellContext = traductor.translate_expr(tuple32);
+      TL::TaggedConstant cellResult = (*cellContext)(TL::Tuple());
+      std::string s;
+      if (cellResult.first.index() == TL::TYPE_INDEX_INTMP) {
+        std::stringstream sout;
+        sout << cellResult.first.value<TL::Intmp>().value();
+        s = sout.str();
+        std::cout << "Answer is " << s << std::endl;
+      } else {
+        s.clear();
+        std::cout << "Answer is of wrong type" << std::endl;
+      }
 
-       label = Gtk::manage(new Gtk::Label);
-       frame = Gtk::manage(new Gtk::Frame);
-       Glib::ustring cell = s;
-       (*label).set_label(cell);
-       (*frame).add(*label);
-       (*table).attach(*frame, i+1, i+2, j+1, j+2, Gtk::FILL, Gtk::FILL);
-     }
+      label = Gtk::manage(new Gtk::Label);
+      frame = Gtk::manage(new Gtk::Frame);
+      Glib::ustring cell = s;
+      (*label).set_label(cell);
+      (*frame).add(*label);
+      (*table).attach(*frame, i+1, i+2, j+1, j+2, Gtk::FILL, Gtk::FILL);
+    }
+  }
+  (*display_dims_SW).show();
+}
+
+void 
+spreadsheet::display_dims_row(int row_range, int h_min)
+{
+//  display_dims_SW = Gtk::manage(new Gtk::ScrolledWindow);
+//  (*display_dims_SW).set_policy(Gtk::POLICY_AUTOMATIC,Gtk::POLICY_AUTOMATIC);
+  display_dims_SW = Gtk::manage(new Gtk::Frame);
+  table = Gtk::manage(new Gtk::Table(row_range + 1, 2, false));
+  (*table).set_col_spacings(10);
+  (*table).set_row_spacings(10);
+  (*display_dims_SW).add(*table);
+
+  label = Gtk::manage(new Gtk::Label);
+  (*label).set_label("  Dim\nIndices");
+  (*table).attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::FILL);
+
+  for (int i = 0 ; i != row_range ; ++i) {
+    //  Drawing horizontal index 
+    std::string s;
+    std::stringstream out;
+    out << h_min + i ;
+    s = out.str();
+    label = Gtk::manage(new Gtk::Label);
+    Glib::ustring cell = s;
+    (*label).set_label(cell);
+    (*table).attach(*label, i+1, i+2, 0, 1, Gtk::FILL, Gtk::FILL);
+
+    // Drawing content
+    std::cout << "expression = " << expression << std::endl;
+    std::stringstream newout;
+    newout << "(";
+    newout << expression;
+    newout << ")";
+    newout << " @ [";
+    newout << pivot.h_dim << ":" << (i+h_min) ;
+    for (std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
+         mit != pivot.ords.end(); ++mit) {
+      if (mit->first != pivot.h_dim) {
+        newout << ", " << mit->first << ":" << mit->second;
+      }
+    }
+    newout << "]";
+    std::string newout_str = newout.str();
+    std::cout << newout_str << std::endl;
+    std::u32string tuple32 (newout_str.begin(), newout_str.end());
+    TL::HD* cellContext = traductor.translate_expr(tuple32);
+    TL::TaggedConstant cellResult = (*cellContext)(TL::Tuple());
+    if (cellResult.first.index() == TL::TYPE_INDEX_INTMP) {
+      std::stringstream sout;
+      sout << cellResult.first.value<TL::Intmp>().value();
+      s = sout.str();
+      std::cout << "Answer is " << s << std::endl;
+    } else {
+      s.clear();
+      std::cout << "Answer is of wrong type" << std::endl;
+    }
+
+    label = Gtk::manage(new Gtk::Label);
+    frame = Gtk::manage(new Gtk::Frame);
+    cell = s;
+    (*label).set_label(cell);
+    (*frame).add(*label);
+    (*table).attach(*frame, i+1, i+2, 1, 2, Gtk::FILL, Gtk::FILL);
+  }
+  (*display_dims_SW).show();
+}
+
+void 
+spreadsheet::display_dims_col(int col_range, int v_min)
+{
+//  display_dims_SW = Gtk::manage(new Gtk::ScrolledWindow);
+//  (*display_dims_SW).set_policy(Gtk::POLICY_AUTOMATIC,Gtk::POLICY_AUTOMATIC);
+  display_dims_SW = Gtk::manage(new Gtk::Frame);
+  table = Gtk::manage(new Gtk::Table(2, col_range + 1, false));
+  (*table).set_col_spacings(10);
+  (*table).set_row_spacings(10);
+  (*display_dims_SW).add(*table);
+
+  label = Gtk::manage(new Gtk::Label);
+  (*label).set_label("  Dim\nIndices");
+  (*table).attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::FILL);
+
+  for (int j = 0 ; j != col_range ; ++j)
+  {
+    //  Drawing horizontal index 
+    std::string s;
+    std::stringstream out;
+    out << v_min + j ;
+    s = out.str();
+    label = Gtk::manage(new Gtk::Label);
+    Glib::ustring cell = s;
+    (*label).set_label(cell);
+    (*table).attach(*label, 0, 1, j+1, j+2, Gtk::FILL, Gtk::FILL);
+
+    // Drawing content
+    std::cout << "expression = " << expression << std::endl;
+    std::stringstream newout;
+    newout << "(";
+    newout << expression;
+    newout << ")";
+    newout << " @ [";
+    newout << pivot.v_dim << ":" << (j+v_min) ;
+    for (std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
+         mit != pivot.ords.end(); ++mit)
+    {
+      if (mit->first != pivot.v_dim)
+      {
+        newout << ", " << mit->first << ":" << mit->second;
+      }
+    }
+    newout << "]";
+    std::string newout_str = newout.str();
+    std::cout << newout_str << std::endl;
+    std::u32string tuple32 (newout_str.begin(), newout_str.end());
+    TL::HD* cellContext = traductor.translate_expr(tuple32);
+    TL::TaggedConstant cellResult = (*cellContext)(TL::Tuple());
+    if (cellResult.first.index() == TL::TYPE_INDEX_INTMP) {
+      std::stringstream sout;
+      sout << cellResult.first.value<TL::Intmp>().value();
+      s = sout.str();
+      std::cout << "Answer is " << s << std::endl;
+    }
+    else {
+      s.clear();
+      std::cout << "Answer is of wrong type" << std::endl;
+    }
+
+    label = Gtk::manage(new Gtk::Label);
+    frame = Gtk::manage(new Gtk::Frame);
+    cell = s;
+    (*label).set_label(cell);
+    (*frame).add(*label);
+    (*table).attach(*frame, 1, 2, j+1, j+2, Gtk::FILL, Gtk::FILL);
   }
   (*display_dims_SW).show();
 }
 
 void
-spreadsheet::display_dims()  // single cell
+spreadsheet::display_dims_cell()  // single cell
 {
 //  display_dims_SW = Gtk::manage(new Gtk::ScrolledWindow);
   display_dims_SW = Gtk::manage(new Gtk::Frame);
@@ -741,40 +854,34 @@ spreadsheet::display_dims()  // single cell
   (*label).set_label("  Dim\nIndices");
   (*table).attach(*label, 0, 1, 0, 1, Gtk::FILL, Gtk::FILL, 0,0);
 
-
-       std::stringstream newout;
-       newout << "(";
-       newout << expression;
-       newout << ")";
-       newout << " @ [";
-       std::map<Glib::ustring,int>::iterator mit = tuples.begin();
-       newout << mit->first << ":" << mit->second;
-       ++mit;
-       for (mit; mit != tuples.end(); ++mit)
-       {
-         {
-           newout << "," << mit->first << ":" << mit->second;
-         }
-       }
-       newout << "]";
-       std::string newout_str = newout.str();
-       std::cout << newout_str << std::endl;
-       std::u32string tuple32 (newout_str.begin(), newout_str.end());
-       TL::HD* cellContext = traductor.translate_expr(tuple32);
-       TL::TaggedConstant cellResult = (*cellContext)(TL::Tuple());
-       std::string s;
-       if (cellResult.first.index() == TL::TYPE_INDEX_INTMP)
-       {
-         std::stringstream sout;
-         sout << cellResult.first.value<TL::Intmp>().value();
-         s = sout.str();
-         std::cout << "Answer is " << s << std::endl;
-       }
-       else
-       {
-         s.clear();
-         std::cout << "Answer is of wrong type" << std::endl;
-       }
+  std::stringstream newout;
+  newout << "(";
+  newout << expression;
+  newout << ")";
+  newout << " @ [";
+  std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
+  newout << mit->first << ":" << mit->second;
+  ++mit;
+  for (mit; mit != pivot.ords.end(); ++mit)
+  {
+    newout << "," << mit->first << ":" << mit->second;
+  }
+  newout << "]";
+  std::string newout_str = newout.str();
+  std::cout << newout_str << std::endl;
+  std::u32string tuple32 (newout_str.begin(), newout_str.end());
+  TL::HD* cellContext = traductor.translate_expr(tuple32);
+  TL::TaggedConstant cellResult = (*cellContext)(TL::Tuple());
+  std::string s;
+  if (cellResult.first.index() == TL::TYPE_INDEX_INTMP) {
+    std::stringstream sout;
+    sout << cellResult.first.value<TL::Intmp>().value();
+    s = sout.str();
+    std::cout << "Answer is " << s << std::endl;
+  } else {
+    s.clear();
+    std::cout << "Answer is of wrong type" << std::endl;
+  }
 
   label = Gtk::manage(new Gtk::Label);
   frame = Gtk::manage(new Gtk::Frame);
