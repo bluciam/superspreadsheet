@@ -1,4 +1,6 @@
 #include <cstdio>
+#include <iostream>
+#include <fstream>
 #include "spreadsheet.h"
 
 spreadsheet::spreadsheet() :
@@ -9,7 +11,7 @@ spreadsheet::spreadsheet() :
   hbox_exprs (false, 10),
   hbox_last (false, 10),
   hbox_edit_dim(false, 10),
-  window_header("The S³ is displaying these dimensions ..."),
+  window_header("The TransLucid objects browser" ),
 
   // Gtk::Adjustment(
   //   initial_value, lower, upper, step_increment, page_increment, page_size);
@@ -27,18 +29,14 @@ spreadsheet::spreadsheet() :
 
 {
 
-  // Connecting to TL code
-  expression.clear();
-  expression += '0';
-  create_equations();
-
   // Set title and size of the SuperSpreadSheet main window
   set_title("The Super SpreadSheet, The S³");
   // Add outer box to the window since it may only contain a single widget 
   add(main_box);
   //Put the inner boxes in the outer box:
   main_box.pack_start(hbox_title, false, false, 0);
-  main_box.pack_start(hbox_exprs, false, false, 0);
+  main_box.pack_start(hbox_exprs );
+//  main_box.pack_start(hbox_exprs, false, false, 0);
   main_box.pack_start(hpaned_content,true, true, 0);
   main_box.pack_start(frame_edit_dim, false, false, 0);
   main_box.pack_start(hbox_last, false, false, 0);
@@ -56,13 +54,27 @@ spreadsheet::spreadsheet() :
 
 // Begin hbox_exprs 
   //  exprs_entry.set_max_length(50);
-  exprs_entry.set_text(expression);
+  label = Gtk::manage(new Gtk::Label("Enter an expression"));
+  hbox_exprs.pack_start(*label);
+
+
+  exprs_entry.set_text(TLstuff.expression);
   exprs_entry.set_icon_from_stock(Gtk::Stock::INDEX );
   exprs_entry.signal_icon_press().connect(
     sigc::mem_fun(*this, &spreadsheet::on_icon_pressed_exprs) );
   exprs_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_get_exprs) );
   hbox_exprs.pack_start(exprs_entry);
+
+  label = Gtk::manage(new Gtk::Label("    Or enter a file to load"));
+  hbox_exprs.pack_start(*label);
+  hbox_exprs.pack_start(file_name);
+  file_name.signal_activate().connect(
+    sigc::mem_fun(*this, &spreadsheet::on_file_name) );
+
+  button = Gtk::manage(new Gtk::Button("or browse"));
+  hbox_exprs.pack_start(*button);
+  
 // End hbox_exprs 
 
 
@@ -303,11 +315,28 @@ spreadsheet::on_redraw_clicked(Glib::ustring msg)
 }
 
 void
+spreadsheet::on_file_name()
+{
+  std::ifstream expr_file (file_name.get_text());
+  Glib::ustring msg;
+  if (expr_file.is_open() ) 
+  {
+    msg = ("File " + file_name.get_text() + " is open.");
+  }
+  else msg = ("Unable to open file " + file_name.get_text() );
+  std::cout << msg << std::endl;
+  status_bar.push(msg);
+  
+  expr_file.close();
+
+}
+
+void
 spreadsheet::on_get_exprs()
 {
-  expression = exprs_entry.get_text();
-  status_bar.push("Expression \"" + expression + "\" entered.");
-  std::cout << "Expression \"" + expression + "\" entered." << std::endl;
+  TLstuff.expression = exprs_entry.get_text();
+  status_bar.push("Expression \"" + TLstuff.expression + "\" entered.");
+  std::cout << "Expression \"" + TLstuff.expression + "\" entered." << std::endl;
 }
 
 void
@@ -334,10 +363,10 @@ spreadsheet::on_status_clicked(Glib::ustring msg)
     vd = "\nNo vertical dimension chosen.";
   else
     vd = "\nThe vertical dimension is " + (pivot.v_dim) + ".";
-  if (expression == "")
+  if (TLstuff.expression == "")
     exp = "\nThere is no expression.";
   else
-    exp = "\nExpression is " + expression + "." ;
+    exp = "\nExpression is " + TLstuff.expression + "." ;
   if (drawn_h_dim == "")
     dhd = "\nNo horizontal dimension drawn.";
   else
@@ -360,23 +389,6 @@ void
 spreadsheet::on_infobar_status(int)
 {
   infoBar_status.hide();
-}
-
-void
-spreadsheet::create_equations ()
-{
-  traductor.parse_header (
-    U"dimension ustring<n>;;"
-    U"infixl ustring<-> ustring<operator-> 5;;"
-    U"infixl ustring<+> ustring<operator+> 5;;"
-    U"infixl ustring<*> ustring<operator*> 10;;"
-    U"library ustring<int>;;"
-    U"dimension ustring<t>;;"
-    U"dimension ustring<w>;;"
-    U"dimension ustring<x>;;"
-    U"dimension ustring<y>;;"
-    U"dimension ustring<z>;;"
-  );
 }
 
 void
@@ -671,11 +683,11 @@ spreadsheet::display_dims_all(int row_range, int col_range,
   for (int i = 0 ; i != row_range ; ++i) {
     for (int j = 0 ; j != col_range ; ++j) {
 
-      std::cout << "expression = " << expression << std::endl;
+      std::cout << "expression = " << TLstuff.expression << std::endl;
       std::stringstream newout;
 
       newout << "(";
-      newout << expression;
+      newout << TLstuff.expression;
       newout << ")";
       newout << " @ [";
       newout << pivot.h_dim << ":" << (i+h_min) << ", ";
@@ -690,22 +702,10 @@ spreadsheet::display_dims_all(int row_range, int col_range,
       std::string newout_str = newout.str();
       std::cout << newout_str << std::endl;
       std::u32string tuple32 (newout_str.begin(), newout_str.end());
-      TL::HD* cellContext = traductor.translate_expr(tuple32);
-      TL::TaggedConstant cellResult = (*cellContext)(TL::Tuple());
-      std::string s;
-      if (cellResult.first.index() == TL::TYPE_INDEX_INTMP) {
-        std::stringstream sout;
-        sout << cellResult.first.value<TL::Intmp>().value();
-        s = sout.str();
-        std::cout << "Answer is " << s << std::endl;
-      } else {
-        s.clear();
-        std::cout << "Answer is of wrong type" << std::endl;
-      }
 
+      Glib::ustring cell = TLstuff.calculate_expr(tuple32);
       label = Gtk::manage(new Gtk::Label);
       frame = Gtk::manage(new Gtk::Frame);
-      Glib::ustring cell = s;
       (*label).set_label(cell);
       (*frame).add(*label);
       (*table).attach(*frame, i+1, i+2, j+1, j+2, Gtk::FILL, Gtk::FILL);
@@ -741,10 +741,10 @@ spreadsheet::display_dims_row(int row_range, int h_min)
     (*table).attach(*label, i+1, i+2, 0, 1, Gtk::FILL, Gtk::FILL);
 
     // Drawing content
-    std::cout << "expression = " << expression << std::endl;
+    std::cout << "expression = " << TLstuff.expression << std::endl;
     std::stringstream newout;
     newout << "(";
-    newout << expression;
+    newout << TLstuff.expression;
     newout << ")";
     newout << " @ [";
     newout << pivot.h_dim << ":" << (i+h_min) ;
@@ -758,21 +758,10 @@ spreadsheet::display_dims_row(int row_range, int h_min)
     std::string newout_str = newout.str();
     std::cout << newout_str << std::endl;
     std::u32string tuple32 (newout_str.begin(), newout_str.end());
-    TL::HD* cellContext = traductor.translate_expr(tuple32);
-    TL::TaggedConstant cellResult = (*cellContext)(TL::Tuple());
-    if (cellResult.first.index() == TL::TYPE_INDEX_INTMP) {
-      std::stringstream sout;
-      sout << cellResult.first.value<TL::Intmp>().value();
-      s = sout.str();
-      std::cout << "Answer is " << s << std::endl;
-    } else {
-      s.clear();
-      std::cout << "Answer is of wrong type" << std::endl;
-    }
 
+    cell = TLstuff.calculate_expr(tuple32);
     label = Gtk::manage(new Gtk::Label);
     frame = Gtk::manage(new Gtk::Frame);
-    cell = s;
     (*label).set_label(cell);
     (*frame).add(*label);
     (*table).attach(*frame, i+1, i+2, 1, 2, Gtk::FILL, Gtk::FILL);
@@ -808,10 +797,10 @@ spreadsheet::display_dims_col(int col_range, int v_min)
     (*table).attach(*label, 0, 1, j+1, j+2, Gtk::FILL, Gtk::FILL);
 
     // Drawing content
-    std::cout << "expression = " << expression << std::endl;
+    std::cout << "expression = " << TLstuff.expression << std::endl;
     std::stringstream newout;
     newout << "(";
-    newout << expression;
+    newout << TLstuff.expression;
     newout << ")";
     newout << " @ [";
     newout << pivot.v_dim << ":" << (j+v_min) ;
@@ -827,22 +816,10 @@ spreadsheet::display_dims_col(int col_range, int v_min)
     std::string newout_str = newout.str();
     std::cout << newout_str << std::endl;
     std::u32string tuple32 (newout_str.begin(), newout_str.end());
-    TL::HD* cellContext = traductor.translate_expr(tuple32);
-    TL::TaggedConstant cellResult = (*cellContext)(TL::Tuple());
-    if (cellResult.first.index() == TL::TYPE_INDEX_INTMP) {
-      std::stringstream sout;
-      sout << cellResult.first.value<TL::Intmp>().value();
-      s = sout.str();
-      std::cout << "Answer is " << s << std::endl;
-    }
-    else {
-      s.clear();
-      std::cout << "Answer is of wrong type" << std::endl;
-    }
+    cell = TLstuff.calculate_expr(tuple32);
 
     label = Gtk::manage(new Gtk::Label);
     frame = Gtk::manage(new Gtk::Frame);
-    cell = s;
     (*label).set_label(cell);
     (*frame).add(*label);
     (*table).attach(*frame, 1, 2, j+1, j+2, Gtk::FILL, Gtk::FILL);
@@ -864,7 +841,7 @@ spreadsheet::display_dims_cell()  // single cell
 
   std::stringstream newout;
   newout << "(";
-  newout << expression;
+  newout << TLstuff.expression;
   newout << ")";
   newout << " @ [";
   std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
@@ -880,22 +857,10 @@ spreadsheet::display_dims_cell()  // single cell
   std::string newout_str = newout.str();
   std::cout << newout_str << std::endl;
   std::u32string tuple32 (newout_str.begin(), newout_str.end());
-  TL::HD* cellContext = traductor.translate_expr(tuple32);
-  TL::TaggedConstant cellResult = (*cellContext)(TL::Tuple());
-  std::string s;
-  if (cellResult.first.index() == TL::TYPE_INDEX_INTMP) {
-    std::stringstream sout;
-    sout << cellResult.first.value<TL::Intmp>().value();
-    s = sout.str();
-    std::cout << "Answer is " << s << std::endl;
-  } else {
-    s.clear();
-    std::cout << "Answer is of wrong type" << std::endl;
-  }
+  Glib::ustring cell = TLstuff.calculate_expr(tuple32);
 
   label = Gtk::manage(new Gtk::Label);
   frame = Gtk::manage(new Gtk::Frame);
-  Glib::ustring cell = s;
   (*label).set_label(cell);
   (*frame).add(*label);
   (*table).attach(*frame, 1, 2, 1, 2, Gtk::FILL, Gtk::FILL);

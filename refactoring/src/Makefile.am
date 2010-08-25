@@ -1,12 +1,11 @@
 ## The Cartesian SpreadSheet
 
-##                      tuple_info.h  tuple_info.cc \
-
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
 bin_PROGRAMS = spreadsheet
 
 spreadsheet_SOURCES = spreadsheet.h spreadsheet.cc \
+                      TLobjects.h TLobjects.cc \
                       Pivot.h Pivot.cc \
                       main.cc 
 spreadsheet_LDFLAGS = -ltlsystem

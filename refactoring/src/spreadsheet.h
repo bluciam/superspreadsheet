@@ -5,6 +5,7 @@
 #include <gtkmm.h> 
 #include <map>
 #include <Pivot.h>
+#include <TLobjects.h>
 #include <tl/translator.hpp>
 #include <tl/utility.hpp>
 #include <tl/parser_util.hpp>
@@ -25,15 +26,13 @@ protected:
   void on_del_dimension(Glib::ustring msg);
   void on_which_dimension(Glib::ustring dim);
   void on_cancel_edit(Glib::ustring msg);
-
   void on_icon_pressed_exprs(Gtk::EntryIconPosition icon_pos, 
                             const GdkEventButton* event);
   void on_status_clicked(Glib::ustring msg);
   void on_infobar_status(int status);
-
   void on_redraw_clicked(Glib::ustring msg);
   void on_get_exprs();
-
+  void on_file_name();
   void on_closebutton_clicked();
 
 
@@ -56,7 +55,7 @@ protected:
               add_dim_button,
               * button;
 
-  Gtk::Entry  exprs_entry;
+  Gtk::Entry  exprs_entry, file_name;
   Gtk::Entry  new_dim_entry, new_pivot_entry;
 
   Gtk::InfoBar infoBar_status;
@@ -106,31 +105,22 @@ protected:
                    * hdisplay,
                    * vdisplay;
 
-// Local to the method?
   Gtk::SpinButton * h_spread_spin,
                   * v_spread_spin;
   Gtk::Adjustment h_spread_limits,
                   v_spread_limits;
-// end: local
-
 
 
   // INTERACTION WITH TL: methods
-  void create_equations ();
+//  void create_equations ();
 
   // INTERACTION WITH TL: entities
-  TL::Translator traductor;
-  Glib::ustring expression;
+//  TL::Translator traductor;
+//  Glib::ustring expression;
+
+  TLobjects TLstuff;
 
   Pivot pivot;
-//  std::map<Glib::ustring,int> tuples; // List of dimensions and ordinates
-//  std::map<Glib::ustring,int>::iterator it;
-
-// TODO: verify if they really need to be pointers
-//  Glib::ustring * v_dim ; // vertical dim to display
-//  Glib::ustring * h_dim ; // horizontal dim to display
-//  int           * h_radius ;     // horizontal radius of display
-//  int           * v_radius ;     // vertical radius of display
 
   // Varaibles
   Glib::ustring drawn_v_dim;
