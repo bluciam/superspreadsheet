@@ -21,20 +21,23 @@ public:
 
 protected:
   //MAIN INTERFACE: Signal handlers:
-  void on_add_dimension(Glib::ustring msg);
-  void on_add_OK(Glib::ustring msg);
-  void on_del_dimension(Glib::ustring msg);
   void on_del_dim(Glib::ustring dim);
-  void on_which_dimension(Glib::ustring dim);
-  void on_cancel_edit(Glib::ustring msg);
-  void on_icon_pressed_exprs(Gtk::EntryIconPosition icon_pos, 
-                            const GdkEventButton* event);
-  void on_status_clicked(Glib::ustring msg);
-  void on_infobar_status(int status);
+  void on_add_dim();
   void on_redraw_clicked(Glib::ustring msg);
   void on_get_exprs();
   void on_file_name();
   void on_closebutton_clicked();
+
+  void on_add_dimension(Glib::ustring msg);
+  void on_add_OK(Glib::ustring msg);
+  void on_del_dimension(Glib::ustring msg);
+  void on_which_dimension(Glib::ustring dim);
+  void on_cancel_edit(Glib::ustring msg);
+
+  void on_icon_pressed_exprs(Gtk::EntryIconPosition icon_pos, 
+                            const GdkEventButton* event);
+  void on_status_clicked(Glib::ustring msg);
+  void on_infobar_status(int status);
 
 
   //MAIN INTERFACE: Child widgets:
@@ -45,6 +48,11 @@ protected:
             * hbox_del_dim,
             hbox_add_dim,
             hbox_last;
+
+  Gtk::HBox hbox_pivot_comp;
+  Gtk::VBox vbox_new_dim;
+  Gtk::VBox vbox_pivot;
+
   Gtk::HPaned hpaned_content;
   Gtk::VBox * box;  // For packing label and spin buttons in info
 
@@ -84,7 +92,6 @@ protected:
   void display_comp_col(int col_range, int v_min);
   void display_comp_cell();
 
-
   Gtk::Frame * display_comp_SW;
 //  Gtk::ScrolledWindow * display_comp_SW;
 
@@ -96,12 +103,10 @@ protected:
   void on_h_spread_spin();
   void on_v_spread_spin();
   void on_dim_pivot_changed(Glib::ustring dim, Gtk::SpinButton * pivot_spin);
-//  void on_dim_pivot_changed(Glib::ustring dim, Gtk::Entry * values);
   void on_dimension_delete(Glib::ustring dim);
 
-  // DIMS INFO INTERFACE: entites
-  Gtk::Entry  * values;
-  Gtk::Table  *  table,
+  // DIMS INFO INTERFACE: entities
+  Gtk::Table  *  table_comp,
               *  table_pivot;
   Gtk::RadioButton * hnodisplay,
                    * vnodisplay,
@@ -116,19 +121,10 @@ protected:
   Gtk::SpinButton * pivot_spin;
   Gtk::Adjustment * pivot_limits;
 
-
-  // INTERACTION WITH TL: methods
-//  void create_equations ();
-
-  // INTERACTION WITH TL: entities
-//  TL::Translator traductor;
-//  Glib::ustring expression;
-
   TLobjects TLstuff;
-
   Pivot pivot;
 
-  // Varaibles
+  // Variables
   Glib::ustring drawn_v_dim;
   Glib::ustring drawn_h_dim;
 
