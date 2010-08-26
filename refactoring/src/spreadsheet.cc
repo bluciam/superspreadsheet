@@ -10,19 +10,16 @@ spreadsheet::spreadsheet() :
   hbox_title(false, 10),
   hbox_exprs (false, 10),
   hbox_last (false, 10),
-  hbox_edit_dim(false, 10),
   window_header("The TransLucid objects browser" ),
 
   // Gtk::Adjustment(
   //   initial_value, lower, upper, step_increment, page_increment, page_size);
   h_spread_limits(0.0, 0.0, 20.0, 1.0, 3.0, 0.0),
   v_spread_limits(0.0, 0.0, 20.0, 1.0, 3.0, 0.0),
-  // last_button is Gtk::HButtonBox for equal spacing (30) between buttons.
-  del_dim_button("_Delete dimension", true),
-  add_dim_button("_Add dimension", true),
 
+  // last_button is Gtk::HButtonBox for equal spacing (30) between buttons.
   last_box(Gtk::BUTTONBOX_END, 30),
-  cancel_button("_Cancel",true),
+
   status_button(" _Show Status ",true), 
   redraw_button(" _Redraw SpreadSheet  ",true), 
   close_button("_Quit", true)       // to use alt-C to close app
@@ -37,8 +34,6 @@ spreadsheet::spreadsheet() :
   main_box.pack_start(hbox_title, false, false, 0);
   main_box.pack_start(hbox_exprs, false, false, 0);
   main_box.pack_start(hbox_pivot_comp,true, true, 0);
-//  main_box.pack_start(hpaned_content,true, true, 0);
-//  main_box.pack_start(frame_edit_dim, false, false, 0);
   main_box.pack_start(hbox_last, false, false, 0);
   main_box.pack_start(status_bar, false, false, 0);
 
@@ -78,63 +73,14 @@ spreadsheet::spreadsheet() :
 // End hbox_exprs 
 
 
-// Begin hpaned_content 
+// Begin hbox_pivot_comp
   // Begin first table
   display_pivot();
   info_frame.set_shadow_type(Gtk::SHADOW_IN);
-//  info_frame.add(*display_pivot_SW);
   info_frame.add(((vbox_pivot)));
-  // void Gtk::Paned::pack1 (Widget& child, bool resize, bool shrink )
-//  hpaned_content.pack1(info_frame,true,false);
   hbox_pivot_comp.pack_start(info_frame,false,true,0);
-  // End first table
 
-  // Begin second table
-  display_comp();
-  drawn_h_dim = pivot.h_dim;
-  drawn_v_dim = pivot.v_dim;
-  content_frame.set_shadow_type(Gtk::SHADOW_IN);
-  content_frame.add(*display_comp_SW);
-  // void Gtk::Paned::pack2 (Widget& child, bool resize, bool shrink )
-  hbox_pivot_comp.pack_start(content_frame,false,false);
-  //hpaned_content.pack2(content_frame,true,false);
-  // End second table
-// End hpaned_content 
-
-
-// Begin frame_edit_dim
-  /* In this frame there can be tree different frames:
-  /  hbox_edit_dim, hbox_add_dim and hbox_del_dim.
-  /  The first one contains two buttons: to add or del dimensions.
-  /  When the add button is pressed, hbox_edit_dim is replaced by 
-  /  hbox_add_dim which is constant and can be created just one, following.
-  /  When the del buttin is pressed, hbox_edit_dim is replaced by 
-  /  hbox_del_dim, which needs to be generating at each time depending on
-  /  how many dimensions exists. This box is crated at each go in the
-  /  call back  function, on_del_dimension()
- */
-  frame_edit_dim.add(hbox_edit_dim);
-  hbox_edit_dim.set_border_width(5);
-
-  hbox_edit_dim.pack_start(add_dim_button, true, false, 0 );
-  add_dim_button.signal_clicked().connect(
-    sigc::bind (
-      sigc::mem_fun( *this, &spreadsheet::on_add_dimension),
-                     "Adding dimension. Enter the appropriate values.") );
-
-  hbox_edit_dim.pack_start(del_dim_button, true, false, 0 );
-  del_dim_button.signal_clicked().connect(
-    sigc::bind (
-      sigc::mem_fun( *this, &spreadsheet::on_del_dimension),
-                     "Deleting dimension. Click on the chosen dimension.") );
-  // hbox_add_dim
-  hbox_add_dim.set_border_width(5);
-  label = Gtk::manage(new Gtk::Label("Add new dimension:     "));
-  hbox_add_dim.pack_start(*label);
-
-
-
-//  Gtk::VBox vbox_new_dim  = Gtk::manage(new Gtk::VBox);
+  // Begin vbox_new_dim
   Gtk::HBox * hbox = Gtk::manage(new Gtk::HBox);
   label = Gtk::manage(new Gtk::Label("Dim Name "));
   (*hbox).pack_start(*label); 
@@ -153,32 +99,21 @@ spreadsheet::spreadsheet() :
     sigc::mem_fun(*this, &spreadsheet::on_add_dim) );
 
   (vbox_pivot).pack_end(vbox_new_dim, false, false, 0);
+  // End vbox_new_dim
+
+  // End first table
+
+  // Begin second table
+  display_comp();
+  drawn_h_dim = pivot.h_dim;
+  drawn_v_dim = pivot.v_dim;
+  content_frame.set_shadow_type(Gtk::SHADOW_IN);
+  content_frame.add(*display_comp_SW);
+  hbox_pivot_comp.pack_start(content_frame,false,false);
+  // End second table
+// End hbox_pivot_comp
 
 
-//  Gtk::HBox * hbox = Gtk::manage(new Gtk::HBox);
-//  label = Gtk::manage(new Gtk::Label("Name "));
-//  (*hbox).pack_start(*label); 
-//  (*hbox).pack_start(new_dim_entry); 
-//  hbox_add_dim.pack_start(*hbox);
-
-  hbox = Gtk::manage(new Gtk::HBox);
-  label = Gtk::manage(new Gtk::Label("Pivot "));
-  (*hbox).pack_start(*label); 
-  (*hbox).pack_start(new_pivot_entry); 
-  hbox_add_dim.pack_start(*hbox);
-
-  button = Gtk::manage(new Gtk::Button("_OK",true));
-  hbox_add_dim.pack_start(*button);
-  (*button).signal_clicked().connect(
-    sigc::bind (
-      sigc::mem_fun(*this, &spreadsheet::on_add_OK), "New values entered...") );
-
-  hbox_add_dim.pack_start(cancel_button);
-  (cancel_button).signal_clicked().connect(
-    sigc::bind (
-      sigc::mem_fun(*this, &spreadsheet::on_cancel_edit),
-                    "Cancelling adding dimensions..." ) );
-// End frame_edit_dim
 
 // Begin hbox_last 
   // InfoBar is taken from example, not fully understood.
@@ -186,7 +121,6 @@ spreadsheet::spreadsheet() :
     dynamic_cast<Gtk::Container*>(infoBar_status.get_content_area());
   if (infoBarContainer) infoBarContainer->add(label_status);
   infoBar_status.add_button(Gtk::Stock::OK, 0);
-//  label_status.set_text("Status is ");
   infoBar_status.set_message_type(Gtk::MESSAGE_INFO);
   infoBar_status.signal_response().connect(
     sigc::mem_fun(*this, &spreadsheet::on_infobar_status ) );
@@ -220,85 +154,6 @@ spreadsheet::spreadsheet() :
 } // End spreadsheet::spreadsheet()
 
 
-void
-spreadsheet::on_add_dimension(Glib::ustring msg)
-{
-  frame_edit_dim.remove();
-  frame_edit_dim.add(hbox_add_dim);
-  frame_edit_dim.show_all_children();
-  std::cout << msg << std::endl;
-  status_bar.push(msg);
-}
-
-void
-spreadsheet::on_add_OK(Glib::ustring msg)
-{
-  std::cout << msg << std::endl;
-  Glib::ustring dimname  = new_dim_entry.get_text();
-  Glib::ustring dimpivot = new_pivot_entry.get_text();
-  std::cout << "  Name: "  << dimname << std::endl;
-  std::cout << "  Pivot: " << dimpivot << std::endl;
-// TODO need to check that pivot is a number
-//      if dimname exist already as a key
-  if (dimname == "" && dimpivot == "") {        // empty fields
-    cancel_button.clicked();
-  } else if (dimname == "" || dimpivot == "") { // only one is empty
-    new_dim_entry.set_text("");
-    new_pivot_entry.set_text("");
-    add_dim_button.clicked(); // for it to show, I need to clear the text...
-  } else {
-  new_dim_entry.set_text("");
-  new_pivot_entry.set_text("");
-
-  int piv =  atoi(dimpivot.c_str());
-  (pivot.ords)[dimname] = piv; 
-
-  (vbox_pivot).remove(*table_pivot);
-//  info_frame.remove();
-  display_pivot();
-//  info_frame.add(vbox_pivot);
-//  info_frame.add(*display_pivot_SW);
-//  vbox_pivot.pack_start(*table_pivot);
-//  (*table_pivot).show_all_children();
-//  (*display_pivot_SW).show_all_children();
-
-  status_bar.push("Adding dimension name = \"" + dimname + 
-                  "\" and pivot = \"" + dimpivot + "\"");
-  frame_edit_dim.remove();
-  frame_edit_dim.add(hbox_edit_dim);
-  frame_edit_dim.show_all_children();
-  }
-}
-
-void
-spreadsheet::on_del_dimension(Glib::ustring msg)
-{
-
-  std::map<Glib::ustring,int>::iterator it;
-  label = Gtk::manage(new Gtk::Label("Delete which dimension?"));
-  hbox_del_dim = Gtk::manage(new Gtk::HBox());
-  (*hbox_del_dim).pack_start(*label);
-  for ( it=pivot.ords.begin() ; it != pivot.ords.end(); it++ ) {
-    button = Gtk::manage(new Gtk::Button((*it).first));
-    (*hbox_del_dim).pack_start(*button,Gtk::FILL,2);
-
-    button->signal_clicked().connect( sigc::bind (
-      sigc::mem_fun (
-        *this, &spreadsheet::on_which_dimension ), ((*it).first) ) ) ;
-  }
-  button = Gtk::manage(new Gtk::Button("_Cancel",true));
-  (*hbox_del_dim).pack_start(*button);
-  (*button).signal_clicked().connect(
-    sigc::bind (
-      sigc::mem_fun( *this, &spreadsheet::on_cancel_edit),
-                     "Cancelling delete dimensions..." ) );
-
-  frame_edit_dim.remove();
-  frame_edit_dim.add(*hbox_del_dim);
-  frame_edit_dim.show_all_children();
-  std::cout << msg << std::endl;
-  status_bar.push(msg);
-}
 
 void
 spreadsheet::on_add_dim()
@@ -351,55 +206,13 @@ spreadsheet::on_del_dim(Glib::ustring dim)
 
   (vbox_pivot).remove(*table_pivot);
   display_pivot();
-//  (*vbox_pivot).pack_start(*table_pivot);
   (vbox_pivot).show_all_children();
   (vbox_pivot).show();
-
-/*
-  info_frame.remove();
-  display_pivot();
-  info_frame.add(*display_pivot_SW);
-  (*display_pivot_SW).show_all_children();
-*/
-
-  status_bar.push("Deleted dimension " + dim);
 
   status_bar.push("Deleted dimension " + dim);
   std::cout << "Deleted dimension " << dim << std::endl;
 //TODO: do I have to redraw?
 
-}
-
-void
-spreadsheet::on_which_dimension(Glib::ustring dim)
-{
-  frame_edit_dim.remove();
-  frame_edit_dim.add(hbox_edit_dim);
-  frame_edit_dim.show_all_children();
-
-  (pivot.ords).erase (dim);
-  if (dim == (pivot.h_dim)) {
-    (pivot.h_dim.clear() ) ;
-    (*hnodisplay).toggled();
-  } else if (dim == (pivot.v_dim)) {
-    (pivot.v_dim.clear() )  ;
-    (*vnodisplay).toggled();
-  } 
-
-  info_frame.remove();
-  display_pivot();
-  info_frame.add(*display_pivot_SW);
-  (*display_pivot_SW).show_all_children();
-  status_bar.push("Deleting dimension " + dim);
-}
-
-void
-spreadsheet::on_cancel_edit(Glib::ustring msg)
-{
-  frame_edit_dim.remove();
-  frame_edit_dim.add(hbox_edit_dim);
-  std::cout << msg << std::endl;
-  status_bar.push("Canceling the editing of dimensions.");
 }
 
 void
@@ -509,7 +322,6 @@ spreadsheet::~spreadsheet()
 //  Glib::wrap_register_cleanup();
 }
 
-// DISPLAY_INFO
 void
 spreadsheet::display_pivot()
 {
@@ -532,9 +344,6 @@ spreadsheet::display_pivot()
   v_spread_spin->set_alignment(1);
 
 // Begin table_pivot
-  display_pivot_SW = Gtk::manage(new Gtk::Frame);
-//  display_pivot_SW = Gtk::manage(new Gtk::ScrolledWindow);
-//  vbox_pivot = Gtk::manage(new Gtk::VBox);
   table_pivot = Gtk::manage(new Gtk::Table(((pivot.ords).size()+2), 6, false));
   (*table_pivot).set_col_spacings(10);
 
@@ -638,9 +447,7 @@ spreadsheet::display_pivot()
          sigc::mem_fun(*this, &spreadsheet::on_del_dim), dim ) );
   }
 // End table_pivot
-//  (*display_pivot_SW).add(*table_pivot);
   (vbox_pivot).pack_start(*table_pivot);
-//  (*display_pivot_SW).show();
   (vbox_pivot).show();
 }
 
@@ -734,7 +541,6 @@ spreadsheet::on_h_toggled(Gtk::RadioButton * h_radio, Glib::ustring dim)
   redraw_button.clicked();
 }
 
-// DISPLAY_DIMS
 void
 spreadsheet::display_comp()
 {
