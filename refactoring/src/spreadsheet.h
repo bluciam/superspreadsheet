@@ -24,6 +24,7 @@ protected:
   void on_add_dimension(Glib::ustring msg);
   void on_add_OK(Glib::ustring msg);
   void on_del_dimension(Glib::ustring msg);
+  void on_del_dim(Glib::ustring dim);
   void on_which_dimension(Glib::ustring dim);
   void on_cancel_edit(Glib::ustring msg);
   void on_icon_pressed_exprs(Gtk::EntryIconPosition icon_pos, 
@@ -72,20 +73,20 @@ protected:
   Gtk::Statusbar status_bar;
 
   // DIMS INFO INTERFACE: methods for displaying
-  void display_info();
+  void display_pivot();
 //  Gtk::ScrolledWindow * display_info_SW;
-  Gtk::Frame * display_info_SW;
+  Gtk::Frame * display_pivot_SW;
 
   // DIMS CONTENT INTERFACE: methods for displaying
-  void display_dims();
-  void display_dims_all(int row_range, int col_range, int h_min, int v_min);
-  void display_dims_row(int row_range, int h_min);
-  void display_dims_col(int col_range, int v_min);
-  void display_dims_cell();
+  void display_comp();
+  void display_comp_all(int row_range, int col_range, int h_min, int v_min);
+  void display_comp_row(int row_range, int h_min);
+  void display_comp_col(int col_range, int v_min);
+  void display_comp_cell();
 
 
-  Gtk::Frame * display_dims_SW;
-//  Gtk::ScrolledWindow * display_dims_SW;
+  Gtk::Frame * display_comp_SW;
+//  Gtk::ScrolledWindow * display_comp_SW;
 
   // DIMS INFO INTERFACE: Signal handlers
   void on_h_nodim_toggled();
@@ -94,12 +95,14 @@ protected:
   void on_v_toggled(Gtk::RadioButton * v_radio, Glib::ustring dim);
   void on_h_spread_spin();
   void on_v_spread_spin();
-  void on_dimension_pivot_changed(Glib::ustring dim, Gtk::Entry * values);
+  void on_dim_pivot_changed(Glib::ustring dim, Gtk::SpinButton * pivot_spin);
+//  void on_dim_pivot_changed(Glib::ustring dim, Gtk::Entry * values);
   void on_dimension_delete(Glib::ustring dim);
 
   // DIMS INFO INTERFACE: entites
   Gtk::Entry  * values;
-  Gtk::Table  *  table;
+  Gtk::Table  *  table,
+              *  table_pivot;
   Gtk::RadioButton * hnodisplay,
                    * vnodisplay,
                    * hdisplay,
@@ -109,6 +112,9 @@ protected:
                   * v_spread_spin;
   Gtk::Adjustment h_spread_limits,
                   v_spread_limits;
+
+  Gtk::SpinButton * pivot_spin;
+  Gtk::Adjustment * pivot_limits;
 
 
   // INTERACTION WITH TL: methods

@@ -42,7 +42,7 @@ TLobjects::calculate_expr (std::u32string tuple32)
     s = sout.str();
     std::cout << "Answer is " << s << std::endl;
   } else {
-    s.clear();
+    s.clear(); s += "???";
     std::cout << "Answer is of wrong type" << std::endl;
   }
   return s;

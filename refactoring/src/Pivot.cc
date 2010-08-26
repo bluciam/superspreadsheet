@@ -7,7 +7,7 @@ Pivot::Pivot()
   ords["w"] = 11;
   ords["z"] = 42;
   ords["t"] = 8;
-  ords["DIM_TIME"] = 0;
+//  ords["DIM_TIME"] = 0;
   v_dim = "x";
   h_dim = "y";
   h_radius = 6;
