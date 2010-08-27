@@ -451,6 +451,7 @@ spreadsheet::display_pivot()
 // End table_pivot
   (vbox_pivot).pack_start(*table_pivot);
   (vbox_pivot).show();
+  redraw_button.clicked();
 }
 
 void
@@ -593,7 +594,7 @@ spreadsheet::display_comp_all(int row_range, int col_range,
   label = Gtk::manage(new Gtk::Label);
   (*label).set_label( pivot.v_dim + " \\ " + pivot.h_dim );
 //  (*label).set_size_request(10,10);
-//  (*label).set_width_chars(10);
+  (*label).set_width_chars(10);
   (*label).set_line_wrap(true);
 //  (*table_comp).attach(*label, 0, 1, 0, 1,
 //                       Gtk::FILL|Gtk::EXPAND, Gtk::FILL|Gtk::EXPAND);
