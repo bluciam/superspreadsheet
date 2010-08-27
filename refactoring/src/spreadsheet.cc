@@ -128,13 +128,13 @@ spreadsheet::spreadsheet() :
     sigc::mem_fun(*this, &spreadsheet::on_infobar_status ) );
   hbox_last.pack_start(infoBar_status, Gtk::PACK_SHRINK);
 
-  last_box.add(status_button);
+//  last_box.add(status_button);
   status_button.signal_clicked().connect(
     sigc::bind<Glib::ustring> (
       sigc::mem_fun(
         *this, &spreadsheet::on_status_clicked), "Showing current status") );
 
-  last_box.add(redraw_button);
+//  last_box.add(redraw_button);
   redraw_button.signal_clicked().connect(
     sigc::bind<Glib::ustring> (
       sigc::mem_fun( *this, &spreadsheet::on_redraw_clicked),
@@ -572,6 +572,7 @@ spreadsheet::display_comp()
     int v_min = pivot.ords[(pivot.v_dim)] - pivot.v_radius ;
     display_comp_all(row_range, col_range, h_min, v_min);
   }
+  (*display_comp_SW).show();
 }
 
 
@@ -612,15 +613,15 @@ spreadsheet::display_comp_all(int row_range, int col_range,
   }
 
   //  Drawing vertical index 
-  for (int i = 0 ; i < col_range ; ++i) {
+  for (int j = 0 ; j < col_range ; ++j) {
     std::string s;
     std::stringstream out;
-    out << v_min + i ;
+    out << v_min + j ;
     s = out.str();
     label = Gtk::manage(new Gtk::Label);
     Glib::ustring cell = s;
     (*label).set_label(cell);
-    (*table_comp).attach(*label, 0, 1, i+1, i+2, Gtk::SHRINK, Gtk::SHRINK);
+    (*table_comp).attach(*label, 0, 1, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK);
   }
 
   // Drawing content
@@ -655,7 +656,7 @@ spreadsheet::display_comp_all(int row_range, int col_range,
     }
   }
 
-  (*display_comp_SW).show();
+//  (*display_comp_SW).show();
 }
 
 void 
@@ -717,7 +718,7 @@ spreadsheet::display_comp_row(int row_range, int h_min)
     (*frame).add(*label);
     (*table_comp).attach(*frame, i+1, i+2, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
   }
-  (*display_comp_SW).show();
+//  (*display_comp_SW).show();
 }
 
 void 
@@ -743,7 +744,7 @@ spreadsheet::display_comp_col(int col_range, int v_min)
 
   for (int j = 0 ; j != col_range ; ++j)
   {
-    //  Drawing horizontal index 
+    //  Drawing vertical index 
     std::string s;
     std::stringstream out;
     out << v_min + j ;
@@ -782,7 +783,7 @@ spreadsheet::display_comp_col(int col_range, int v_min)
     (*frame).add(*label);
     (*table_comp).attach(*frame, 1, 2, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK);
   }
-  (*display_comp_SW).show();
+//  (*display_comp_SW).show();
 }
 
 void
@@ -828,6 +829,6 @@ spreadsheet::display_comp_cell()  // single cell
   (*label).set_label(cell);
   (*frame).add(*label);
   (*table_comp).attach(*frame, 1, 2, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
-  (*display_comp_SW).show();
+//  (*display_comp_SW).show();
 }
 
