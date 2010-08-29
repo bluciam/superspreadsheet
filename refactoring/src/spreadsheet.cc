@@ -7,10 +7,13 @@ spreadsheet::spreadsheet() :
   // false: child widgets don't have the same width
   //    10: distance in pixels between widgets
   main_box  (false, 10),
-  hbox_title(false, 10),
+  hbox_title (false, 10),
   hbox_exprs (false, 10),
+  hbox_eqns (false, 10),
   hbox_last (false, 10),
   window_header("The TransLucid objects browser" ),
+
+  table_system (3,3,false),
 
   // Gtk::Adjustment(
   //   initial_value, lower, upper, step_increment, page_increment, page_size);
@@ -30,9 +33,12 @@ spreadsheet::spreadsheet() :
   set_title("The Super SpreadSheet, The S³");
   // Add outer box to the window since it may only contain a single widget 
   add(main_box);
+  main_box.set_size_request(800,600);
   //Put the inner boxes in the outer box:
   main_box.pack_start(hbox_title, false, false, 0);
-  main_box.pack_start(hbox_exprs, false, false, 0);
+//  main_box.pack_start(hbox_exprs, false, false, 0);
+//  main_box.pack_start(hbox_eqns, false, false, 0);
+  main_box.pack_start(table_system,false,false,0);
   main_box.pack_start(hbox_pivot_comp,true, true, 0);
   main_box.pack_start(hbox_last, false, false, 0);
   main_box.pack_start(status_bar, false, false, 0);
@@ -40,6 +46,7 @@ spreadsheet::spreadsheet() :
   // Set the boxes' spacing around the outside of the container to 5 pixels
   hbox_title.set_border_width(5); 
   hbox_exprs.set_border_width(5);
+  hbox_eqns.set_border_width(5);
   hbox_last.set_border_width(5);
 
 // Begin hbox_title 
@@ -50,9 +57,10 @@ spreadsheet::spreadsheet() :
 
 // Begin hbox_exprs 
   //  exprs_entry.set_max_length(50);
-  label = Gtk::manage(new Gtk::Label("Enter an expression"));
-  hbox_exprs.pack_start(*label);
+  label = Gtk::manage(new Gtk::Label("Expression"));
+//  hbox_exprs.pack_start(*label);
 
+(table_system).attach((*label),0,1,0,1,Gtk::FILL,Gtk::FILL);
 
   exprs_entry.set_text(TLstuff.expression);
   exprs_entry.set_icon_from_stock(Gtk::Stock::INDEX );
@@ -60,18 +68,43 @@ spreadsheet::spreadsheet() :
     sigc::mem_fun(*this, &spreadsheet::on_icon_pressed_exprs) );
   exprs_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_get_exprs) );
-  hbox_exprs.pack_start(exprs_entry);
+//  hbox_exprs.pack_start(exprs_entry);
 
-  label = Gtk::manage(new Gtk::Label("    Or enter a file to load"));
+(table_system).attach((exprs_entry),1,2,0,1,Gtk::FILL,Gtk::FILL);
+
+
+  label = Gtk::manage(new Gtk::Label("  Or enter an expression file to load"));
   hbox_exprs.pack_start(*label);
-  hbox_exprs.pack_start(file_name_entry);
-  file_name_entry.signal_activate().connect(
+  hbox_exprs.pack_start(filename_expr_entry);
+  filename_expr_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_file_name) );
 
   button = Gtk::manage(new Gtk::Button("Or browse"));
   hbox_exprs.pack_start(*button);
 // End hbox_exprs 
 
+// Begin hbox_eqns 
+  label = Gtk::manage(new Gtk::Label("Header file "));
+(table_system).attach((*label),0,1,1,2,Gtk::FILL,Gtk::FILL);
+
+//  hbox_eqns.pack_start(*label);
+//  hbox_eqns.pack_start(filename_header_entry);
+(table_system).attach((filename_header_entry),1,2,1,2,Gtk::FILL,Gtk::FILL);
+
+  filename_header_entry.signal_activate().connect(
+    sigc::mem_fun(*this, &spreadsheet::on_filename_header) );
+
+  label = Gtk::manage(new Gtk::Label("Equations file "));
+(table_system).attach((*label),0,1,2,3,Gtk::FILL,Gtk::FILL);
+//  hbox_eqns.pack_start(*label);
+//  hbox_eqns.pack_start(filename_eqns_entry);
+(table_system).attach((filename_eqns_entry),1,2,2,3,Gtk::FILL,Gtk::FILL);
+  filename_eqns_entry.signal_activate().connect(
+    sigc::mem_fun(*this, &spreadsheet::on_filename_eqns) );
+
+
+
+// End hbox_eqns 
 
 // Begin hbox_pivot_comp
   // Begin pivot_frame, vbox_pivot
@@ -230,20 +263,58 @@ spreadsheet::on_redraw_clicked(Glib::ustring msg)
 }
 
 void
+spreadsheet::on_filename_header()
+{
+//  std::ifstream header_file (filename_header_entry.get_text());
+
+Glib::ustring header_name_8  = filename_header_entry.get_text();
+std::string header_name_raw  = Glib::filename_from_utf8(header_name_8);
+
+std::string header_raw   = Glib::file_get_contents(header_name_raw);
+Glib::ustring header_8   = Glib::locale_to_utf8(header_raw);
+std::u32string header_32 (header_8.begin(), header_8.end());
+
+//  Glib::ustring msg;
+//  if (header_file.is_open() ) 
+//  {
+//    msg = ("Header file " + filename_header_entry.get_text() + " is open.");
+//  }
+//  else msg = ("Unable to open header file " + filename_header_entry.get_text() );
+  std::cout << header_8 << std::endl;
+  std::cout << header_32 << std::endl;
+//  status_bar.push(msg);
+  status_bar.push(header_8);
+//  header_file.close();
+}
+
+void
+spreadsheet::on_filename_eqns()
+{
+  std::ifstream eqns_file (filename_eqns_entry.get_text());
+  Glib::ustring msg;
+  if (eqns_file.is_open() ) 
+  {
+    msg = ("Equations file " + filename_eqns_entry.get_text() + " is open.");
+  }
+  else msg = ("Unable to open equations file " + filename_eqns_entry.get_text() );
+  std::cout << msg << std::endl;
+  status_bar.push(msg);
+  eqns_file.close();
+}
+
+void
 spreadsheet::on_file_name()
 {
-  std::ifstream expr_file (file_name_entry.get_text());
+  std::ifstream expr_file (filename_expr_entry.get_text());
   Glib::ustring msg;
   if (expr_file.is_open() ) 
   {
-    msg = ("File " + file_name_entry.get_text() + " is open.");
+    msg = ("File " + filename_expr_entry.get_text() + " is open.");
   }
-  else msg = ("Unable to open file " + file_name_entry.get_text() );
+  else msg = ("Unable to open file " + filename_expr_entry.get_text() );
   std::cout << msg << std::endl;
   status_bar.push(msg);
-  
   expr_file.close();
-
 }
 
 void

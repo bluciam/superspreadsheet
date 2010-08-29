@@ -21,6 +21,7 @@ protected:
   Gtk::VBox main_box;
   Gtk::HBox hbox_title,
             hbox_exprs,
+            hbox_eqns,
             hbox_pivot_comp,
             hbox_last;
   Gtk::Statusbar status_bar;
@@ -33,7 +34,8 @@ protected:
   Gtk::HButtonBox last_box;
 
   Gtk::Table * table_comp,
-             * table_pivot;
+             * table_pivot,
+               table_system;
 
   Gtk::RadioButton * hnodisplay,
                    * vnodisplay,
@@ -51,8 +53,14 @@ protected:
               redraw_button,
               close_button;
 
-  Gtk::Entry  exprs_entry, file_name_entry;
-  Gtk::Entry  new_dim_entry, new_pivot_entry;
+  Gtk::Entry  exprs_entry,
+              eqns_entry,
+              filename_eqns_entry,
+              filename_header_entry,
+              filename_expr_entry;
+
+  Gtk::Entry  new_dim_entry,
+              new_pivot_entry;
 
   Gtk::Label   label_status,
                * label,
@@ -70,6 +78,8 @@ protected:
   // Signal handlers:
   void on_get_exprs();
   void on_file_name();
+  void on_filename_header();
+  void on_filename_eqns();
   void on_icon_pressed_exprs(Gtk::EntryIconPosition icon_pos, 
                             const GdkEventButton* event);
 
