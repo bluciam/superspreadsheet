@@ -20,6 +20,7 @@ protected:
   //Child widgets:
   Gtk::VBox main_box;
   Gtk::HBox hbox_title,
+            hbox_system,
             hbox_exprs,
             hbox_eqns,
             hbox_pivot_comp,
@@ -76,6 +77,7 @@ protected:
   Gtk::VRuler vrule;
 
   // Signal handlers:
+  void on_reset_system();
   void on_get_exprs();
   void on_file_name();
   void on_filename_header();
@@ -109,8 +111,10 @@ protected:
   void display_comp_cell();
 
   // Data Structures and TL communications objects
-  TLobjects TLstuff;
+  TLobjects * TLstuff;
   Pivot pivot;
+  std::u32string header_32;
+  std::u32string eqns_32;
 
   // Variables
   Glib::ustring drawn_v_dim;

@@ -38,7 +38,8 @@ spreadsheet::spreadsheet() :
   main_box.pack_start(hbox_title, false, false, 0);
 //  main_box.pack_start(hbox_exprs, false, false, 0);
 //  main_box.pack_start(hbox_eqns, false, false, 0);
-  main_box.pack_start(table_system,false,false,0);
+//  main_box.pack_start(table_system,false,false,0);
+  main_box.pack_start(hbox_system,false,false,0);
   main_box.pack_start(hbox_pivot_comp,true, true, 0);
   main_box.pack_start(hbox_last, false, false, 0);
   main_box.pack_start(status_bar, false, false, 0);
@@ -56,13 +57,15 @@ spreadsheet::spreadsheet() :
 
 
 // Begin hbox_exprs 
+
+  TLstuff = new TLobjects();
   //  exprs_entry.set_max_length(50);
   label = Gtk::manage(new Gtk::Label("Expression"));
 //  hbox_exprs.pack_start(*label);
 
 (table_system).attach((*label),0,1,0,1,Gtk::FILL,Gtk::FILL);
 
-  exprs_entry.set_text(TLstuff.expression);
+  exprs_entry.set_text((*TLstuff).expression);
   exprs_entry.set_icon_from_stock(Gtk::Stock::INDEX );
   exprs_entry.signal_icon_press().connect(
     sigc::mem_fun(*this, &spreadsheet::on_icon_pressed_exprs) );
@@ -84,6 +87,8 @@ spreadsheet::spreadsheet() :
 // End hbox_exprs 
 
 // Begin hbox_eqns 
+
+hbox_system.pack_start(table_system);
   label = Gtk::manage(new Gtk::Label("Header file "));
 (table_system).attach((*label),0,1,1,2,Gtk::FILL,Gtk::FILL);
 
@@ -101,6 +106,12 @@ spreadsheet::spreadsheet() :
 (table_system).attach((filename_eqns_entry),1,2,2,3,Gtk::FILL,Gtk::FILL);
   filename_eqns_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_filename_eqns) );
+
+button = Gtk::manage(new Gtk::Button("Reset system"));
+//(table_system).attach((*button),2,3,2,3,Gtk::FILL,Gtk::FILL);
+hbox_system.pack_end(*button);
+  (*button).signal_clicked().connect(
+    sigc::mem_fun(*this, &spreadsheet::on_reset_system) );
 
 
 
@@ -263,33 +274,57 @@ spreadsheet::on_redraw_clicked(Glib::ustring msg)
 }
 
 void
+spreadsheet::on_reset_system()
+{
+// TLstuff->reset(header, eqns);
+ std::cout << "header : \""
+           << std::string(header_32.begin(), header_32.end())
+           << "\"" << std::endl;
+ std::cout << "eqns : \""
+           << std::string(eqns_32.begin(), eqns_32.end())
+           << "\"" << std::endl;
+ delete(TLstuff);
+ try {
+ TLstuff = new TLobjects(header_32, eqns_32);
+ std::cout << "Something went right" << std::endl;
+ }
+ catch (...) {
+ std::cout << "Something went wrong" << std::endl;
+ }
+
+}
+
+void
 spreadsheet::on_filename_header()
 {
-//  std::ifstream header_file (filename_header_entry.get_text());
 
-Glib::ustring header_name_8  = filename_header_entry.get_text();
-std::string header_name_raw  = Glib::filename_from_utf8(header_name_8);
+  Glib::ustring header_name_8  = filename_header_entry.get_text();
+  std::string header_name_raw  = Glib::filename_from_utf8(header_name_8);
 
-std::string header_raw   = Glib::file_get_contents(header_name_raw);
-Glib::ustring header_8   = Glib::locale_to_utf8(header_raw);
-std::u32string header_32 (header_8.begin(), header_8.end());
-
-//  Glib::ustring msg;
-//  if (header_file.is_open() ) 
-//  {
-//    msg = ("Header file " + filename_header_entry.get_text() + " is open.");
-//  }
-//  else msg = ("Unable to open header file " + filename_header_entry.get_text() );
+  std::string header_raw   = Glib::file_get_contents(header_name_raw);
+  Glib::ustring header_8   = Glib::locale_to_utf8(header_raw);
+  header_32 = std::u32string (header_8.begin(), header_8.end());
   std::cout << header_8 << std::endl;
-  std::cout << header_32 << std::endl;
-//  status_bar.push(msg);
   status_bar.push(header_8);
-//  header_file.close();
+
 }
 
 void
 spreadsheet::on_filename_eqns()
 {
+
+
+Glib::ustring eqns_name_8  = filename_eqns_entry.get_text();
+std::string eqns_name_raw  = Glib::filename_from_utf8(eqns_name_8);
+
+std::string eqns_raw   = Glib::file_get_contents(eqns_name_raw);
+Glib::ustring eqns_8   = Glib::locale_to_utf8(eqns_raw);
+eqns_32 = std::u32string (eqns_8.begin(), eqns_8.end());
+// eqns_32 (eqns_8.begin(), eqns_8.end());
+  status_bar.push(eqns_8);
+  std::cout << eqns_8 << std::endl;
+
+/*
   std::ifstream eqns_file (filename_eqns_entry.get_text());
   Glib::ustring msg;
   if (eqns_file.is_open() ) 
@@ -300,6 +335,8 @@ spreadsheet::on_filename_eqns()
   std::cout << msg << std::endl;
   status_bar.push(msg);
   eqns_file.close();
+*/
+
 }
 
 void
@@ -320,9 +357,9 @@ spreadsheet::on_file_name()
 void
 spreadsheet::on_get_exprs()
 {
-  TLstuff.expression = exprs_entry.get_text();
-  status_bar.push("Expression \"" + TLstuff.expression + "\" entered.");
-  std::cout << "Expression \"" + TLstuff.expression + "\" entered."
+  (*TLstuff).expression = exprs_entry.get_text();
+  status_bar.push("Expression \"" + (*TLstuff).expression + "\" entered.");
+  std::cout << "Expression \"" + (*TLstuff).expression + "\" entered."
             << std::endl;
   redraw_button.clicked();
 }
@@ -351,10 +388,10 @@ spreadsheet::on_status_clicked(Glib::ustring msg)
     vd = "\nNo vertical dimension chosen.";
   else
     vd = "\nThe vertical dimension is " + (pivot.v_dim) + ".";
-  if (TLstuff.expression == "")
+  if ((*TLstuff).expression == "")
     exp = "\nThere is no expression.";
   else
-    exp = "\nExpression is " + TLstuff.expression + "." ;
+    exp = "\nExpression is " + (*TLstuff).expression + "." ;
   if (drawn_h_dim == "")
     dhd = "\nNo horizontal dimension drawn.";
   else
@@ -700,12 +737,12 @@ spreadsheet::display_comp_all(int row_range, int col_range,
   for (int i = 0 ; i != row_range ; ++i) {
     for (int j = 0 ; j != col_range ; ++j) {
     // Creating a string with expressions and context, calling TL for evaluation
-      std::cout << "expression = " << TLstuff.expression << std::endl;
+      std::cout << "expression = " << (*TLstuff).expression << std::endl;
       std::stringstream newout;
       newout << "(";
-      newout << TLstuff.expression;
+      newout << (*TLstuff).expression;
       newout << ")";
-      newout << " @ [";
+      newout << " @ [DIM_TIME:0, ";
       newout << pivot.h_dim << ":" << (i+h_min) << ", ";
       newout << pivot.v_dim << ":" << (j+v_min);
       for (std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
@@ -718,7 +755,7 @@ spreadsheet::display_comp_all(int row_range, int col_range,
       std::string newout_str = newout.str();
       std::cout << newout_str << std::endl;
       std::u32string tuple32 (newout_str.begin(), newout_str.end());
-      Glib::ustring cell = TLstuff.calculate_expr(tuple32);
+      Glib::ustring cell = (*TLstuff).calculate_expr(tuple32);
 
       label = Gtk::manage(new Gtk::Label);
       frame = Gtk::manage(new Gtk::Frame);
@@ -765,12 +802,12 @@ spreadsheet::display_comp_row(int row_range, int h_min)
 
     // Drawing content
     // Creating a string with expressions and context, calling TL for evaluation
-    std::cout << "expression = " << TLstuff.expression << std::endl;
+    std::cout << "expression = " << (*TLstuff).expression << std::endl;
     std::stringstream newout;
     newout << "(";
-    newout << TLstuff.expression;
+    newout << (*TLstuff).expression;
     newout << ")";
-    newout << " @ [";
+    newout << " @ [DIM_TIME:0, ";
     newout << pivot.h_dim << ":" << (i+h_min) ;
     for (std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
          mit != pivot.ords.end(); ++mit) {
@@ -782,7 +819,7 @@ spreadsheet::display_comp_row(int row_range, int h_min)
     std::string newout_str = newout.str();
     std::cout << newout_str << std::endl;
     std::u32string tuple32 (newout_str.begin(), newout_str.end());
-    cell = TLstuff.calculate_expr(tuple32);
+    cell = (*TLstuff).calculate_expr(tuple32);
 
     label = Gtk::manage(new Gtk::Label);
     frame = Gtk::manage(new Gtk::Frame);
@@ -828,12 +865,12 @@ spreadsheet::display_comp_col(int col_range, int v_min)
 
     // Drawing content
     // Creating a string with expressions and context, calling TL for evaluation
-    std::cout << "expression = " << TLstuff.expression << std::endl;
+    std::cout << "expression = " << (*TLstuff).expression << std::endl;
     std::stringstream newout;
     newout << "(";
-    newout << TLstuff.expression;
+    newout << (*TLstuff).expression;
     newout << ")";
-    newout << " @ [";
+    newout << " @ [DIM_TIME:0, ";
     newout << pivot.v_dim << ":" << (j+v_min) ;
     for (std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
          mit != pivot.ords.end(); ++mit)
@@ -847,7 +884,7 @@ spreadsheet::display_comp_col(int col_range, int v_min)
     std::string newout_str = newout.str();
     std::cout << newout_str << std::endl;
     std::u32string tuple32 (newout_str.begin(), newout_str.end());
-    cell = TLstuff.calculate_expr(tuple32);
+    cell = (*TLstuff).calculate_expr(tuple32);
 
     label = Gtk::manage(new Gtk::Label);
     frame = Gtk::manage(new Gtk::Frame);
@@ -880,9 +917,9 @@ spreadsheet::display_comp_cell()  // single cell
   // Creating a string with expressions and context, calling TL for evaluation
   std::stringstream newout;
   newout << "(";
-  newout << TLstuff.expression;
+  newout << (*TLstuff).expression;
   newout << ")";
-  newout << " @ [";
+  newout << " @ [DIM_TIME:0, ";
   std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
   newout << mit->first << ":" << mit->second;
   ++mit;
@@ -894,7 +931,7 @@ spreadsheet::display_comp_cell()  // single cell
   std::string newout_str = newout.str();
   std::cout << newout_str << std::endl;
   std::u32string tuple32 (newout_str.begin(), newout_str.end());
-  Glib::ustring cell = TLstuff.calculate_expr(tuple32);
+  Glib::ustring cell = (*TLstuff).calculate_expr(tuple32);
 
   label = Gtk::manage(new Gtk::Label);
   frame = Gtk::manage(new Gtk::Frame);

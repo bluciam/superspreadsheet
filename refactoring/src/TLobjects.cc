@@ -3,31 +3,18 @@
 TLobjects::TLobjects()
 {
   expression.clear();
-//  expression += '0';
-  expression.assign("#x * #y") ;
-  create_symbols();
+  expression += '0';
 }
 
+TLobjects::TLobjects ( std::u32string header, std::u32string eqns)
+{
+  traductor.parse_header ( header ) ;
+  TL::equation_v eqns_set = traductor.translate_equation_set ( eqns ) ;
+  std::cout << "Size of eqns vector = " << eqns_set.size() << std::endl;
+}
 
 TLobjects::~TLobjects()
 {
-}
-
-bool
-TLobjects::create_symbols()
-{
-  traductor.parse_header (
-    U"dimension ustring<n>;;"
-    U"infixl ustring<-> ustring<operator-> 5;;"
-    U"infixl ustring<+> ustring<operator+> 5;;"
-    U"infixl ustring<*> ustring<operator*> 10;;"
-    U"library ustring<int>;;"
-    U"dimension ustring<t>;;"
-    U"dimension ustring<w>;;"
-    U"dimension ustring<x>;;"
-    U"dimension ustring<y>;;"
-    U"dimension ustring<z>;;"
-  );
 }
 
 Glib::ustring
@@ -41,6 +28,11 @@ TLobjects::calculate_expr (std::u32string tuple32)
     sout << cellResult.first.value<TL::Intmp>().value();
     s = sout.str();
     std::cout << "Answer is " << s << std::endl;
+  } else if (cellResult.first.index() == TL::TYPE_INDEX_SPECIAL) {
+    s.clear(); s += "???";
+    std::cout << "Answer is of SPECIAL type: ";
+    cellResult.first.value<TL::Special>().print(std::cout);
+    std::cout << std::endl;
   } else {
     s.clear(); s += "???";
     std::cout << "Answer is of wrong type" << std::endl;
@@ -51,8 +43,4 @@ TLobjects::calculate_expr (std::u32string tuple32)
 int
 TLobjects::get_time() 
 {
-
-
-
-
 }

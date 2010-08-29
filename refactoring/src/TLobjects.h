@@ -12,17 +12,19 @@ class TLobjects
 public:
   // Constructor and Destructor
   TLobjects();
+  TLobjects(std::u32string header, std::u32string eqns);
   virtual ~TLobjects();
 
   // Members objects
   TL::Translator traductor;
   Glib::ustring expression;
+  TL::equation_v eqns_set;
 
 
   // Member methods
-  bool create_symbols ();
   Glib::ustring calculate_expr (std::u32string expr); 
   int get_time ();
+
 
 
 protected:
