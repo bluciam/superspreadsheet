@@ -21,8 +21,8 @@ protected:
   Gtk::VBox main_box;
   Gtk::HBox hbox_title,
             hbox_system,
-            hbox_exprs,
-            hbox_eqns,
+//            hbox_exprs,
+//            hbox_eqns,
             hbox_pivot_comp,
             hbox_last;
   Gtk::Statusbar status_bar;

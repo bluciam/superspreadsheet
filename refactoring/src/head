@@ -1,0 +1,5 @@
+library ustring<int>;;
+dimension ustring<n>;;
+infixl ustring<-> ustring<operator-> 5;;
+infixl ustring<+> ustring<operator+> 5;;
+infixl ustring<*> ustring<operator*> 10;;

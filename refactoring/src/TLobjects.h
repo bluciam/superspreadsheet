@@ -10,15 +10,15 @@ namespace TL = TransLucid;
 class TLobjects
 {
 public:
-  // Constructor and Destructor
+  // Constructors and Destructor
   TLobjects();
-  TLobjects(std::u32string header, std::u32string eqns);
+  TLobjects(std::u32string header_str, std::u32string eqns_str);
   virtual ~TLobjects();
 
   // Members objects
   TL::Translator traductor;
+  TL::Parser::Header * header;
   Glib::ustring expression;
-  TL::equation_v eqns_set;
 
 
   // Member methods

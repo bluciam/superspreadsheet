@@ -8,8 +8,8 @@ spreadsheet::spreadsheet() :
   //    10: distance in pixels between widgets
   main_box  (false, 10),
   hbox_title (false, 10),
-  hbox_exprs (false, 10),
-  hbox_eqns (false, 10),
+//  hbox_exprs (false, 10),
+//  hbox_eqns (false, 10),
   hbox_last (false, 10),
   window_header("The TransLucid objects browser" ),
 
@@ -29,6 +29,9 @@ spreadsheet::spreadsheet() :
 
 {
 
+//TODO: use delete for all of the pointers.
+//TODO: catch all the errors froms TransLucid
+
   // Set title and size of the SuperSpreadSheet main window
   set_title("The Super SpreadSheet, The S³");
   // Add outer box to the window since it may only contain a single widget 
@@ -36,9 +39,6 @@ spreadsheet::spreadsheet() :
   main_box.set_size_request(800,600);
   //Put the inner boxes in the outer box:
   main_box.pack_start(hbox_title, false, false, 0);
-//  main_box.pack_start(hbox_exprs, false, false, 0);
-//  main_box.pack_start(hbox_eqns, false, false, 0);
-//  main_box.pack_start(table_system,false,false,0);
   main_box.pack_start(hbox_system,false,false,0);
   main_box.pack_start(hbox_pivot_comp,true, true, 0);
   main_box.pack_start(hbox_last, false, false, 0);
@@ -46,8 +46,8 @@ spreadsheet::spreadsheet() :
 
   // Set the boxes' spacing around the outside of the container to 5 pixels
   hbox_title.set_border_width(5); 
-  hbox_exprs.set_border_width(5);
-  hbox_eqns.set_border_width(5);
+//  hbox_exprs.set_border_width(5);
+//  hbox_eqns.set_border_width(5);
   hbox_last.set_border_width(5);
 
 // Begin hbox_title 
@@ -56,66 +56,41 @@ spreadsheet::spreadsheet() :
 // End   hbox_title 
 
 
-// Begin hbox_exprs 
-
+// Begin hbox_system 
   TLstuff = new TLobjects();
-  //  exprs_entry.set_max_length(50);
+  // Begin table_system
+    // Expression
   label = Gtk::manage(new Gtk::Label("Expression"));
-//  hbox_exprs.pack_start(*label);
-
-(table_system).attach((*label),0,1,0,1,Gtk::FILL,Gtk::FILL);
-
+  (table_system).attach((*label),0,1,0,1,Gtk::FILL,Gtk::FILL);
   exprs_entry.set_text((*TLstuff).expression);
   exprs_entry.set_icon_from_stock(Gtk::Stock::INDEX );
+  exprs_entry.set_max_length(50);
   exprs_entry.signal_icon_press().connect(
     sigc::mem_fun(*this, &spreadsheet::on_icon_pressed_exprs) );
   exprs_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_get_exprs) );
-//  hbox_exprs.pack_start(exprs_entry);
-
-(table_system).attach((exprs_entry),1,2,0,1,Gtk::FILL,Gtk::FILL);
-
-
-  label = Gtk::manage(new Gtk::Label("  Or enter an expression file to load"));
-  hbox_exprs.pack_start(*label);
-  hbox_exprs.pack_start(filename_expr_entry);
-  filename_expr_entry.signal_activate().connect(
-    sigc::mem_fun(*this, &spreadsheet::on_file_name) );
-
-  button = Gtk::manage(new Gtk::Button("Or browse"));
-  hbox_exprs.pack_start(*button);
-// End hbox_exprs 
-
-// Begin hbox_eqns 
-
-hbox_system.pack_start(table_system);
+  (table_system).attach((exprs_entry),1,2,0,1,Gtk::FILL,Gtk::FILL);
+    // Header file
   label = Gtk::manage(new Gtk::Label("Header file "));
-(table_system).attach((*label),0,1,1,2,Gtk::FILL,Gtk::FILL);
-
-//  hbox_eqns.pack_start(*label);
-//  hbox_eqns.pack_start(filename_header_entry);
-(table_system).attach((filename_header_entry),1,2,1,2,Gtk::FILL,Gtk::FILL);
-
+  (table_system).attach((*label),0,1,1,2,Gtk::FILL,Gtk::FILL);
+  (table_system).attach((filename_header_entry),1,2,1,2,Gtk::FILL,Gtk::FILL);
   filename_header_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_filename_header) );
-
+    // Equations file
   label = Gtk::manage(new Gtk::Label("Equations file "));
-(table_system).attach((*label),0,1,2,3,Gtk::FILL,Gtk::FILL);
-//  hbox_eqns.pack_start(*label);
-//  hbox_eqns.pack_start(filename_eqns_entry);
-(table_system).attach((filename_eqns_entry),1,2,2,3,Gtk::FILL,Gtk::FILL);
+  (table_system).attach((*label),0,1,2,3,Gtk::FILL,Gtk::FILL);
+  (table_system).attach((filename_eqns_entry),1,2,2,3,Gtk::FILL,Gtk::FILL);
   filename_eqns_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_filename_eqns) );
+  // End table_system
 
-button = Gtk::manage(new Gtk::Button("Reset system"));
-//(table_system).attach((*button),2,3,2,3,Gtk::FILL,Gtk::FILL);
-hbox_system.pack_end(*button);
+  button = Gtk::manage(new Gtk::Button("Reset system"));
   (*button).signal_clicked().connect(
     sigc::mem_fun(*this, &spreadsheet::on_reset_system) );
 
-
-
-// End hbox_eqns 
+  hbox_system.pack_start(table_system);
+  hbox_system.pack_end(*button);
+// End hbox_system
 
 // Begin hbox_pivot_comp
   // Begin pivot_frame, vbox_pivot
@@ -227,7 +202,28 @@ spreadsheet::on_add_dim()
     int piv =  atoi(dimpivot.c_str());
     (pivot.ords)[dimname] = piv;
 
+    Glib::ustring dim_8 = ( "dimension ustring<" + dimname + ">;;" );
+    std::u32string dim_32 = std::u32string (dim_8.begin(), dim_8.end());
+    std::cout << "dim_32 is \"" << dim_32 << "\"" << std::endl;
+
+    Glib::ustring dim_a_8 = dimname ;
+    std::u32string dim_a_32 = std::u32string (dim_a_8.begin(), dim_a_8.end());
+    std::cout << "dim_a_32 is \"" << dim_a_32 << "\"" << std::endl;
+
+    try
+    {
+//TL::Parser::addDimensionSymbol((*TLstuff).traductor.header(), dim_a_32);
+      (*TLstuff).traductor.parse_header ( dim_32 ) ;
+      std::cout << "Adding to the header \"" << dim_32 << "\"." ;
+    }
+    catch (...)
+    {
+      std::cout << "Could not parse dim_32" << std::endl;
+    }
+
+
     (vbox_pivot).remove(*table_pivot);
+    delete(table_pivot);
     display_pivot();
     (vbox_pivot).show_all_children();
     (vbox_pivot).show();
@@ -239,7 +235,6 @@ spreadsheet::on_add_dim()
 void
 spreadsheet::on_del_dim(Glib::ustring dim)
 {
-
   (pivot.ords).erase (dim);
   if (dim == (pivot.h_dim)) {
     (pivot.h_dim.clear() ) ;
@@ -249,21 +244,22 @@ spreadsheet::on_del_dim(Glib::ustring dim)
     (*vnodisplay).toggled();
   } 
 
-
   (vbox_pivot).remove(*table_pivot);
+  delete(table_pivot);
   display_pivot();
   (vbox_pivot).show_all_children();
   (vbox_pivot).show();
 
   status_bar.push("Deleted dimension " + dim);
   std::cout << "Deleted dimension " << dim << std::endl;
-//TODO: do I have to redraw?
 
 }
 
 void
 spreadsheet::on_redraw_clicked(Glib::ustring msg)
 {
+//  delete(display_comp_SW);
+  delete(table_comp);
   display_comp();
   drawn_h_dim = (pivot.h_dim);
   drawn_v_dim = (pivot.v_dim);
@@ -277,68 +273,55 @@ void
 spreadsheet::on_reset_system()
 {
 // TLstuff->reset(header, eqns);
- std::cout << "header : \""
-           << std::string(header_32.begin(), header_32.end())
-           << "\"" << std::endl;
- std::cout << "eqns : \""
-           << std::string(eqns_32.begin(), eqns_32.end())
-           << "\"" << std::endl;
- delete(TLstuff);
- try {
- TLstuff = new TLobjects(header_32, eqns_32);
- std::cout << "Something went right" << std::endl;
- }
- catch (...) {
- std::cout << "Something went wrong" << std::endl;
- }
+  std::cout << "header : \""
+            << std::string(header_32.begin(), header_32.end())
+            << "\"" << std::endl;
+  std::cout << "eqns : \""
+            << std::string(eqns_32.begin(), eqns_32.end())
+            << "\"" << std::endl;
+  // Glib::ustring old_expr = (*TLstuff).expression;
+  // delete(TLstuff);
+  // try
+  // {
+  //   TLstuff = new TLobjects(header_32, eqns_32);
+  //   std::cout << "Something went right" << std::endl;
+  //   (*TLstuff).expression = old_expr;
+  // }
+  // catch (...)
+  // {
+  //   std::cout << "Something went wrong" << std::endl;
+  // }
+  (*TLstuff).traductor.parse_header ( header_32 ) ;
+  (*TLstuff).traductor.translate_and_add_equation_set ( eqns_32 ) ;
+
 
 }
 
 void
 spreadsheet::on_filename_header()
 {
-
-  Glib::ustring header_name_8  = filename_header_entry.get_text();
-  std::string header_name_raw  = Glib::filename_from_utf8(header_name_8);
-
-  std::string header_raw   = Glib::file_get_contents(header_name_raw);
-  Glib::ustring header_8   = Glib::locale_to_utf8(header_raw);
+  Glib::ustring header_name_8 = filename_header_entry.get_text();
+  std::string header_name_raw = Glib::filename_from_utf8(header_name_8);
+  std::string header_raw = Glib::file_get_contents(header_name_raw);
+  Glib::ustring header_8 = Glib::locale_to_utf8(header_raw);
   header_32 = std::u32string (header_8.begin(), header_8.end());
   std::cout << header_8 << std::endl;
   status_bar.push(header_8);
-
 }
 
 void
 spreadsheet::on_filename_eqns()
 {
-
-
-Glib::ustring eqns_name_8  = filename_eqns_entry.get_text();
-std::string eqns_name_raw  = Glib::filename_from_utf8(eqns_name_8);
-
-std::string eqns_raw   = Glib::file_get_contents(eqns_name_raw);
-Glib::ustring eqns_8   = Glib::locale_to_utf8(eqns_raw);
-eqns_32 = std::u32string (eqns_8.begin(), eqns_8.end());
-// eqns_32 (eqns_8.begin(), eqns_8.end());
+  Glib::ustring eqns_name_8 = filename_eqns_entry.get_text();
+  std::string eqns_name_raw = Glib::filename_from_utf8(eqns_name_8);
+  std::string eqns_raw = Glib::file_get_contents(eqns_name_raw);
+  Glib::ustring eqns_8 = Glib::locale_to_utf8(eqns_raw);
+  eqns_32 = std::u32string (eqns_8.begin(), eqns_8.end());
   status_bar.push(eqns_8);
   std::cout << eqns_8 << std::endl;
-
-/*
-  std::ifstream eqns_file (filename_eqns_entry.get_text());
-  Glib::ustring msg;
-  if (eqns_file.is_open() ) 
-  {
-    msg = ("Equations file " + filename_eqns_entry.get_text() + " is open.");
-  }
-  else msg = ("Unable to open equations file " + filename_eqns_entry.get_text() );
-  std::cout << msg << std::endl;
-  status_bar.push(msg);
-  eqns_file.close();
-*/
-
 }
 
+// Can be deleted 
 void
 spreadsheet::on_file_name()
 {
@@ -454,7 +437,14 @@ spreadsheet::display_pivot()
   v_spread_spin->set_alignment(1);
 
 // Begin table_pivot
-  table_pivot = Gtk::manage(new Gtk::Table(((pivot.ords).size()+2), 6, false));
+  // if ((pivot.ords).empty())
+  // {
+  //   table_pivot = Gtk::manage(new Gtk::Table(2,6,false));
+  // }
+  // else
+  // {
+    table_pivot = Gtk::manage(new Gtk::Table(((pivot.ords).size()+2),6,false));
+  // }
   (*table_pivot).set_col_spacings(10);
 
   // Column titles
@@ -506,56 +496,59 @@ spreadsheet::display_pivot()
   /* Following rows: dimension names and radio buttons in two groups:
       H and V and the pivot value.
   */
-  int i = 0; // Can't put this in the for loop, it explodes. 
-  std::map<Glib::ustring,int>::iterator it;
-  for ( it=(pivot.ords).begin(); it != (pivot.ords).end(); ++it, ++i )
-  {
-    int ii = i+3;
+  // if (!(pivot.ords).empty()) 
+  // {
+    int i = 0; // Can't put this in the for loop, it explodes. 
+    std::map<Glib::ustring,int>::iterator it;
+    for ( it=(pivot.ords).begin(); it != (pivot.ords).end(); ++it, ++i )
+    {
+      int ii = i+3;
 
-    label = Gtk::manage(new Gtk::Label);
-    Glib::ustring dim = (*it).first;
-    (*label).set_label(dim);
-    (*table_pivot).attach( (*label), 0, 1, i+2, ii,Gtk::FILL,Gtk::FILL);
+      label = Gtk::manage(new Gtk::Label);
+      Glib::ustring dim = (*it).first;
+      (*label).set_label(dim);
+      (*table_pivot).attach( (*label), 0, 1, i+2, ii,Gtk::FILL,Gtk::FILL);
 
-    vdisplay = Gtk::manage(new Gtk::RadioButton);
-    (*vdisplay).set_group(vgroup);
-    (*table_pivot).attach((*vdisplay), 1, 2, i+2, ii, Gtk::FILL,Gtk::FILL);
-    (*vdisplay).signal_toggled().connect(
-       sigc::bind(
-         sigc::mem_fun(*this, &spreadsheet::on_v_toggled), vdisplay, dim ) );
+      vdisplay = Gtk::manage(new Gtk::RadioButton);
+      (*vdisplay).set_group(vgroup);
+      (*table_pivot).attach((*vdisplay), 1, 2, i+2, ii, Gtk::FILL,Gtk::FILL);
+      (*vdisplay).signal_toggled().connect(
+         sigc::bind(
+           sigc::mem_fun(*this, &spreadsheet::on_v_toggled), vdisplay, dim ) );
 
-    hdisplay = Gtk::manage(new Gtk::RadioButton);
-    (*hdisplay).set_group(hgroup);
-    (*table_pivot).attach( (*hdisplay), 2, 3, i+2, ii, Gtk::FILL,Gtk::FILL);
-    (*hdisplay).signal_toggled().connect(
-       sigc::bind(
-         sigc::mem_fun(*this, &spreadsheet::on_h_toggled), hdisplay, dim ) );
+      hdisplay = Gtk::manage(new Gtk::RadioButton);
+      (*hdisplay).set_group(hgroup);
+      (*table_pivot).attach( (*hdisplay), 2, 3, i+2, ii, Gtk::FILL,Gtk::FILL);
+      (*hdisplay).signal_toggled().connect(
+         sigc::bind(
+           sigc::mem_fun(*this, &spreadsheet::on_h_toggled), hdisplay, dim ) );
 
-    if ((pivot.h_dim) == dim) {
-      (*hdisplay).set_active();
-    } else if ((pivot.v_dim) == dim) {
-      (*vdisplay).set_active();
+      if ((pivot.h_dim) == dim) {
+        (*hdisplay).set_active();
+      } else if ((pivot.v_dim) == dim) {
+        (*vdisplay).set_active();
+      }
+
+      pivot_spin = Gtk::manage(new Gtk::SpinButton);
+      pivot_limits = Gtk::manage(new Gtk::Adjustment(
+          (*it).second, -1000.0, 1000.0, 1.0, 3.0, 0.0) );
+      pivot_spin->set_adjustment(*pivot_limits);
+      pivot_spin->set_size_request(60, -1);
+      pivot_spin->set_numeric(true);
+      pivot_spin->set_alignment(1);
+      pivot_spin->signal_value_changed().connect(
+        sigc::bind (
+          sigc::mem_fun( *this, &spreadsheet::on_dim_pivot_changed),
+                         dim, pivot_spin ) );
+      (*table_pivot).attach((*pivot_spin),3,4,i+2,ii,Gtk::FILL,Gtk::FILL);
+
+      button = Gtk::manage(new Gtk::Button(dim));
+      (*table_pivot).attach((*button),4,5,i+2,ii,Gtk::FILL,Gtk::FILL);
+      button->signal_clicked().connect(
+        sigc::bind (
+           sigc::mem_fun(*this, &spreadsheet::on_del_dim), dim ) );
     }
-
-    pivot_spin = Gtk::manage(new Gtk::SpinButton);
-    pivot_limits = Gtk::manage(new Gtk::Adjustment(
-        (*it).second, -1000.0, 1000.0, 1.0, 3.0, 0.0) );
-    pivot_spin->set_adjustment(*pivot_limits);
-    pivot_spin->set_size_request(60, -1);
-    pivot_spin->set_numeric(true);
-    pivot_spin->set_alignment(1);
-    pivot_spin->signal_value_changed().connect(
-      sigc::bind (
-        sigc::mem_fun( *this, &spreadsheet::on_dim_pivot_changed),
-                       dim, pivot_spin ) );
-    (*table_pivot).attach((*pivot_spin),3,4,i+2,ii,Gtk::FILL,Gtk::FILL);
-
-    button = Gtk::manage(new Gtk::Button(dim));
-    (*table_pivot).attach((*button),4,5,i+2,ii,Gtk::FILL,Gtk::FILL);
-    button->signal_clicked().connect(
-      sigc::bind (
-         sigc::mem_fun(*this, &spreadsheet::on_del_dim), dim ) );
-  }
+  // }
 // End table_pivot
   (vbox_pivot).pack_start(*table_pivot);
   (vbox_pivot).show();
@@ -742,7 +735,8 @@ spreadsheet::display_comp_all(int row_range, int col_range,
       newout << "(";
       newout << (*TLstuff).expression;
       newout << ")";
-      newout << " @ [DIM_TIME:0, ";
+      // newout << " @ [ ";
+      newout << " @ [time:0, ";
       newout << pivot.h_dim << ":" << (i+h_min) << ", ";
       newout << pivot.v_dim << ":" << (j+v_min);
       for (std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
@@ -753,8 +747,9 @@ spreadsheet::display_comp_all(int row_range, int col_range,
       }
       newout << "]";
       std::string newout_str = newout.str();
-      std::cout << newout_str << std::endl;
+      // std::cout << newout_str << std::endl;
       std::u32string tuple32 (newout_str.begin(), newout_str.end());
+      std::cout << tuple32 << std::endl;
       Glib::ustring cell = (*TLstuff).calculate_expr(tuple32);
 
       label = Gtk::manage(new Gtk::Label);
@@ -764,8 +759,6 @@ spreadsheet::display_comp_all(int row_range, int col_range,
       (*table_comp).attach(*frame, i+1, i+2, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK);
     }
   }
-
-//  (*display_comp_SW).show();
 }
 
 void 
@@ -807,18 +800,24 @@ spreadsheet::display_comp_row(int row_range, int h_min)
     newout << "(";
     newout << (*TLstuff).expression;
     newout << ")";
-    newout << " @ [DIM_TIME:0, ";
+    newout << " @ [time:0, ";
     newout << pivot.h_dim << ":" << (i+h_min) ;
-    for (std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
-         mit != pivot.ords.end(); ++mit) {
-      if (mit->first != pivot.h_dim) {
-        newout << ", " << mit->first << ":" << mit->second;
+    // if (!(pivot.ords).empty())
+    // {
+      for (std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
+           mit != pivot.ords.end(); ++mit)
+      {
+        if (mit->first != pivot.h_dim)
+        {
+          newout << ", " << mit->first << ":" << mit->second;
+        }
       }
-    }
+    // }
     newout << "]";
     std::string newout_str = newout.str();
-    std::cout << newout_str << std::endl;
+    // std::cout << newout_str << std::endl;
     std::u32string tuple32 (newout_str.begin(), newout_str.end());
+    std::cout << tuple32 << std::endl;
     cell = (*TLstuff).calculate_expr(tuple32);
 
     label = Gtk::manage(new Gtk::Label);
@@ -827,7 +826,6 @@ spreadsheet::display_comp_row(int row_range, int h_min)
     (*frame).add(*label);
     (*table_comp).attach(*frame, i+1, i+2, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
   }
-//  (*display_comp_SW).show();
 }
 
 void 
@@ -870,20 +868,24 @@ spreadsheet::display_comp_col(int col_range, int v_min)
     newout << "(";
     newout << (*TLstuff).expression;
     newout << ")";
-    newout << " @ [DIM_TIME:0, ";
+    newout << " @ [time:0, ";
     newout << pivot.v_dim << ":" << (j+v_min) ;
-    for (std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
-         mit != pivot.ords.end(); ++mit)
-    {
-      if (mit->first != pivot.v_dim)
+    // if (!(pivot.ords).empty())
+    // {
+      for (std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
+           mit != pivot.ords.end(); ++mit)
       {
-        newout << ", " << mit->first << ":" << mit->second;
+        if (mit->first != pivot.v_dim)
+        {
+          newout << ", " << mit->first << ":" << mit->second;
+        }
       }
-    }
+    // }
     newout << "]";
     std::string newout_str = newout.str();
-    std::cout << newout_str << std::endl;
+    // std::cout << newout_str << std::endl;
     std::u32string tuple32 (newout_str.begin(), newout_str.end());
+    std::cout << tuple32 << std::endl;
     cell = (*TLstuff).calculate_expr(tuple32);
 
     label = Gtk::manage(new Gtk::Label);
@@ -892,7 +894,6 @@ spreadsheet::display_comp_col(int col_range, int v_min)
     (*frame).add(*label);
     (*table_comp).attach(*frame, 1, 2, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK);
   }
-//  (*display_comp_SW).show();
 }
 
 void
@@ -919,18 +920,22 @@ spreadsheet::display_comp_cell()  // single cell
   newout << "(";
   newout << (*TLstuff).expression;
   newout << ")";
-  newout << " @ [DIM_TIME:0, ";
-  std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
-  newout << mit->first << ":" << mit->second;
-  ++mit;
-  for (mit; mit != pivot.ords.end(); ++mit)
-  {
-    newout << "," << mit->first << ":" << mit->second;
-  }
+  newout << " @ [time:0";
+  // if (!(pivot.ords).empty())
+  // {
+    std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
+    newout << "," <<  mit->first << ":" << mit->second;
+    ++mit;
+    for (mit; mit != pivot.ords.end(); ++mit)
+    {
+      newout << "," << mit->first << ":" << mit->second;
+    }
+  // }
   newout << "]";
   std::string newout_str = newout.str();
-  std::cout << newout_str << std::endl;
+  // std::cout << newout_str << std::endl;
   std::u32string tuple32 (newout_str.begin(), newout_str.end());
+  std::cout << tuple32 << std::endl;
   Glib::ustring cell = (*TLstuff).calculate_expr(tuple32);
 
   label = Gtk::manage(new Gtk::Label);
@@ -938,6 +943,5 @@ spreadsheet::display_comp_cell()  // single cell
   (*label).set_label(cell);
   (*frame).add(*label);
   (*table_comp).attach(*frame, 1, 2, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
-//  (*display_comp_SW).show();
 }
 

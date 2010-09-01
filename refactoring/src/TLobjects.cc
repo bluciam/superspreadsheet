@@ -2,15 +2,19 @@
 
 TLobjects::TLobjects()
 {
+  header = & traductor.header ( ) ;
   expression.clear();
   expression += '0';
 }
 
-TLobjects::TLobjects ( std::u32string header, std::u32string eqns)
+TLobjects::TLobjects ( std::u32string header_str, std::u32string eqns_str )
 {
-  traductor.parse_header ( header ) ;
-  TL::equation_v eqns_set = traductor.translate_equation_set ( eqns ) ;
-  std::cout << "Size of eqns vector = " << eqns_set.size() << std::endl;
+  header = & traductor.header ( ) ;
+  traductor.parse_header ( header_str );
+  traductor.translate_and_add_equation_set ( eqns_str ) ;
+
+  // TODO: need to somehow add the dimension to the systems if ords.pivot
+  // is not empty
 }
 
 TLobjects::~TLobjects()
@@ -20,9 +24,21 @@ TLobjects::~TLobjects()
 Glib::ustring
 TLobjects::calculate_expr (std::u32string tuple32)
 {
-  TL::HD* cellContext = traductor.translate_expr(tuple32);
-  TL::TaggedConstant cellResult = (*cellContext)(TL::Tuple());
   std::string s;
+  TL::HD* cellContext;
+  TL::TaggedConstant cellResult;
+  try 
+  {
+    cellContext = traductor.translate_expr(tuple32);
+    cellResult = (*cellContext)(TL::Tuple());
+  } 
+  catch (...)
+  {
+    std::cout << "Did not translate expression or" << std::endl;
+    std::cout << "Could not get the tuple from TaageddConstant." << std::endl;
+    s.clear(); s += "???";
+    return s;
+  }
   if (cellResult.first.index() == TL::TYPE_INDEX_INTMP) {
     std::stringstream sout;
     sout << cellResult.first.value<TL::Intmp>().value();
