@@ -1,3 +1,7 @@
+/* TLobjects.cc
+ * This file is part of the SuperSpreadSheet project.
+ */
+
 #include "TLobjects.h"
 
 TLobjects::TLobjects()
@@ -35,7 +39,7 @@ TLobjects::calculate_expr (std::u32string tuple32)
   catch (...)
   {
     std::cout << "Did not translate expression or" << std::endl;
-    std::cout << "Could not get the tuple from TaageddConstant." << std::endl;
+    std::cout << "Could not get the tuple from TaggedConstant." << std::endl;
     s.clear(); s += "???";
     return s;
   }
@@ -46,7 +50,7 @@ TLobjects::calculate_expr (std::u32string tuple32)
     std::cout << "Answer is " << s << std::endl;
   } else if (cellResult.first.index() == TL::TYPE_INDEX_SPECIAL) {
     s.clear(); s += "???";
-    std::cout << "Answer is of SPECIAL type: ";
+    std::cout << "Answer is of SPECIAL type: " << std::endl; 
     cellResult.first.value<TL::Special>().print(std::cout);
     std::cout << std::endl;
   } else {

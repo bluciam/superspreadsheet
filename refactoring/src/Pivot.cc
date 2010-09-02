@@ -1,19 +1,18 @@
+/* Pivot.cc
+ * This file is part of the SuperSpreadSheet project.
+ */
+
 #include "Pivot.h"
 
 Pivot::Pivot()
 {
-  //ords["x"] = 5;
-  //ords["y"] = 7;
-  //ords["w"] = 11;
-  //ords["z"] = 42;
-  //ords["t"] = 8;
-  //ords["DIM_TIME"] = 0;
+  // TODO: ckeck if there are any dimensions in the header
+  // typedef qi::symbols< char_type, u32string > symbols_t
   v_dim.clear();
   h_dim.clear();
   ords["n"] = 6;
   h_radius = 6;
   v_radius = 6;
-
 }
 
 

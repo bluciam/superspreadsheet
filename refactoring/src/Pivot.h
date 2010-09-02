@@ -1,3 +1,7 @@
+/* Pivot.h
+ * This file is part of the SuperSpreadSheet project.
+ */
+
 #include <gtkmm.h> 
 #include <map>
 

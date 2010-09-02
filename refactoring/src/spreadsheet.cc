@@ -1,6 +1,11 @@
+/* spreadsheet.cc
+ * This file is part of the SuperSpreadSheet project.
+ */
+
 #include <cstdio>
 #include <iostream>
 #include <fstream>
+#include <tl/parser_header_util.hpp>
 #include "spreadsheet.h"
 
 spreadsheet::spreadsheet() :
@@ -8,11 +13,8 @@ spreadsheet::spreadsheet() :
   //    10: distance in pixels between widgets
   main_box  (false, 10),
   hbox_title (false, 10),
-//  hbox_exprs (false, 10),
-//  hbox_eqns (false, 10),
   hbox_last (false, 10),
-  window_header("The TransLucid objects browser" ),
-
+  window_header("The TransLucid browser" ),
   table_system (3,3,false),
 
   // Gtk::Adjustment(
@@ -22,9 +24,8 @@ spreadsheet::spreadsheet() :
 
   // last_button is Gtk::HButtonBox for equal spacing (30) between buttons.
   last_box(Gtk::BUTTONBOX_END, 30),
-
-  status_button(" _Show Status ",true), 
-  redraw_button(" _Redraw SpreadSheet  ",true), 
+  system_status_button(" _Show Status ",true), 
+  redraw_comp_button(" _Redraw SpreadSheet  ",true), 
   close_button("_Quit", true)       // to use alt-C to close app
 
 {
@@ -46,15 +47,13 @@ spreadsheet::spreadsheet() :
 
   // Set the boxes' spacing around the outside of the container to 5 pixels
   hbox_title.set_border_width(5); 
-//  hbox_exprs.set_border_width(5);
-//  hbox_eqns.set_border_width(5);
+  hbox_system.set_border_width(5);
+  hbox_pivot_comp.set_border_width(5);
   hbox_last.set_border_width(5);
 
 // Begin hbox_title 
-  // hbox_title.pack_start(rule);
   hbox_title.pack_start(window_header);
-// End   hbox_title 
-
+// End hbox_title 
 
 // Begin hbox_system 
   TLstuff = new TLobjects();
@@ -63,10 +62,10 @@ spreadsheet::spreadsheet() :
   label = Gtk::manage(new Gtk::Label("Expression"));
   (table_system).attach((*label),0,1,0,1,Gtk::FILL,Gtk::FILL);
   exprs_entry.set_text((*TLstuff).expression);
-  exprs_entry.set_icon_from_stock(Gtk::Stock::INDEX );
+//  exprs_entry.set_icon_from_stock(Gtk::Stock::INDEX );
   exprs_entry.set_max_length(50);
-  exprs_entry.signal_icon_press().connect(
-    sigc::mem_fun(*this, &spreadsheet::on_icon_pressed_exprs) );
+//  exprs_entry.signal_icon_press().connect(
+//    sigc::mem_fun(*this, &spreadsheet::on_icon_pressed_exprs) );
   exprs_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_get_exprs) );
   (table_system).attach((exprs_entry),1,2,0,1,Gtk::FILL,Gtk::FILL);
@@ -147,16 +146,16 @@ spreadsheet::spreadsheet() :
     sigc::mem_fun(*this, &spreadsheet::on_infobar_status ) );
   hbox_last.pack_start(infoBar_status, Gtk::PACK_SHRINK);
 
-//  last_box.add(status_button);
-  status_button.signal_clicked().connect(
+//  last_box.add(system_status_button);
+  system_status_button.signal_clicked().connect(
     sigc::bind<Glib::ustring> (
       sigc::mem_fun(
         *this, &spreadsheet::on_status_clicked), "Showing current status") );
 
-//  last_box.add(redraw_button);
-  redraw_button.signal_clicked().connect(
+//  last_box.add(redraw_comp_button);
+  redraw_comp_button.signal_clicked().connect(
     sigc::bind<Glib::ustring> (
-      sigc::mem_fun( *this, &spreadsheet::on_redraw_clicked),
+      sigc::mem_fun( *this, &spreadsheet::on_redraw_comp_clicked),
                      "Redrawing the spreadsheet") );
 
   last_box.add(close_button);
@@ -212,8 +211,12 @@ spreadsheet::on_add_dim()
 
     try
     {
-//TL::Parser::addDimensionSymbol((*TLstuff).traductor.header(), dim_a_32);
-      (*TLstuff).traductor.parse_header ( dim_32 ) ;
+    TL::Parser::addDimensionSymbol((*TLstuff).traductor.header(), dim_a_32);
+
+// TL::Parser::addDimensionSymbol
+//             (removeDimensionSymbol (Header &h, const u32string &name) )
+// 	Removes a dimension symbol from a header. 
+    // (*TLstuff).traductor.parse_header ( dim_32 ) ;
       std::cout << "Adding to the header \"" << dim_32 << "\"." ;
     }
     catch (...)
@@ -236,6 +239,9 @@ void
 spreadsheet::on_del_dim(Glib::ustring dim)
 {
   (pivot.ords).erase (dim);
+//  std::u32string dim_32 = std::u32string (dim_8.begin(), dim_8.end());
+  std::u32string dim_d_32 = std::u32string(dim.begin(), dim.end());
+  TL::Parser::removeDimensionSymbol((*TLstuff).traductor.header(), dim_d_32);
   if (dim == (pivot.h_dim)) {
     (pivot.h_dim.clear() ) ;
     (*hnodisplay).toggled();
@@ -256,7 +262,7 @@ spreadsheet::on_del_dim(Glib::ustring dim)
 }
 
 void
-spreadsheet::on_redraw_clicked(Glib::ustring msg)
+spreadsheet::on_redraw_comp_clicked(Glib::ustring msg)
 {
 //  delete(display_comp_SW);
   delete(table_comp);
@@ -344,20 +350,20 @@ spreadsheet::on_get_exprs()
   status_bar.push("Expression \"" + (*TLstuff).expression + "\" entered.");
   std::cout << "Expression \"" + (*TLstuff).expression + "\" entered."
             << std::endl;
-  redraw_button.clicked();
+  redraw_comp_button.clicked();
 }
 
-void
-spreadsheet::on_icon_pressed_exprs(Gtk::EntryIconPosition /* icon_pos */,
-                                  const GdkEventButton*  /* event */)
-{
+// void
+// spreadsheet::on_icon_pressed_exprs(Gtk::EntryIconPosition /* icon_pos */,
+//                                   const GdkEventButton*  /* event */)
+// {
 /* TODO: figure out how to produce a drop down list of existing equations
  * for now just selecting/highlighting text in it.
  * http://library.gnome.org/devel/gtkmm-tutorial/unstable/sec-text-entry.html.en#sec-text-entry-completion
  */
-  exprs_entry.select_region(0, exprs_entry.get_text_length());
-  std::cout << "Expression field clicked." << std::endl;
-}
+//   exprs_entry.select_region(0, exprs_entry.get_text_length());
+//   std::cout << "Expression field clicked." << std::endl;
+// }
 
 void
 spreadsheet::on_status_clicked(Glib::ustring msg)
@@ -552,7 +558,7 @@ spreadsheet::display_pivot()
 // End table_pivot
   (vbox_pivot).pack_start(*table_pivot);
   (vbox_pivot).show();
-  redraw_button.clicked();
+  redraw_comp_button.clicked();
 }
 
 void
@@ -564,7 +570,7 @@ spreadsheet::on_h_spread_spin()
   std::string s = sout.str();
   status_bar.push( "The new h_radius is " + s);
 //  h_spread_limits.set_value(pivot.h_radius);
-  redraw_button.clicked();
+  redraw_comp_button.clicked();
 }
 
 void
@@ -575,7 +581,7 @@ spreadsheet::on_v_spread_spin()
   sout << pivot.v_radius;
   std::string s = sout.str();
   status_bar.push( "The new v_radius is " + s);
-  redraw_button.clicked();
+  redraw_comp_button.clicked();
 }
 
 void
@@ -588,7 +594,7 @@ spreadsheet::on_dim_pivot_changed(Glib::ustring dim, Gtk::SpinButton * pivot_spi
 //std::cout << "New pivot for dim " << dim << " is " << new_pivot << std::endl;
   status_bar.push(msg);
   pivot.ords[dim] = new_pivot;
-  redraw_button.clicked();
+  redraw_comp_button.clicked();
 }
 
 void
@@ -598,7 +604,7 @@ spreadsheet::on_v_nodim_toggled()
     std::cout << "No dimension chosen for vertical display." << std::endl;
     pivot.v_dim.clear() ;
     std::cout << "v_dim = " << (pivot.v_dim) << std::endl;
-    redraw_button.clicked();
+    redraw_comp_button.clicked();
   }
 }
 
@@ -609,7 +615,7 @@ spreadsheet::on_h_nodim_toggled()
     std::cout << "No dimension chosen for horizontal display."<< std::endl;
     pivot.h_dim.clear() ;
     std::cout << "h_dim = " << (pivot.h_dim) << std::endl;
-    redraw_button.clicked();
+    redraw_comp_button.clicked();
   }
 }
 
@@ -626,7 +632,7 @@ spreadsheet::on_v_toggled(Gtk::RadioButton * v_radio, Glib::ustring dim)
       std::cout << dim << " chosen for vertical display."<< std::endl;
     }
   } // When a dim is released
-  redraw_button.clicked();
+  redraw_comp_button.clicked();
 }
 
 void
@@ -642,7 +648,7 @@ spreadsheet::on_h_toggled(Gtk::RadioButton * h_radio, Glib::ustring dim)
       std::cout << dim << " chosen for horizontal display."<< std::endl;
     }
   } // When a dim is released
-  redraw_button.clicked();
+  redraw_comp_button.clicked();
 }
 
 void

@@ -1,3 +1,7 @@
+/* spreadsheet.h
+ * This file is part of the SuperSpreadSheet project.
+ */
+
 #include <iostream>
 #include <gtkmm.h> 
 #include <map>
@@ -21,8 +25,6 @@ protected:
   Gtk::VBox main_box;
   Gtk::HBox hbox_title,
             hbox_system,
-//            hbox_exprs,
-//            hbox_eqns,
             hbox_pivot_comp,
             hbox_last;
   Gtk::Statusbar status_bar;
@@ -50,8 +52,8 @@ protected:
   Gtk::Adjustment * pivot_limits;
 
   Gtk::Button * button;
-  Gtk::Button status_button,
-              redraw_button,
+  Gtk::Button system_status_button,
+              redraw_comp_button,
               close_button;
 
   Gtk::Entry  exprs_entry,
@@ -82,8 +84,8 @@ protected:
   void on_file_name();
   void on_filename_header();
   void on_filename_eqns();
-  void on_icon_pressed_exprs(Gtk::EntryIconPosition icon_pos, 
-                            const GdkEventButton* event);
+//  void on_icon_pressed_exprs(Gtk::EntryIconPosition icon_pos, 
+//                            const GdkEventButton* event);
 
   void on_h_nodim_toggled();
   void on_v_nodim_toggled();
@@ -96,7 +98,7 @@ protected:
   void on_del_dim(Glib::ustring dim);
   void on_add_dim();
 
-  void on_redraw_clicked(Glib::ustring msg);
+  void on_redraw_comp_clicked(Glib::ustring msg);
   void on_closebutton_clicked();
   void on_status_clicked(Glib::ustring msg);
   void on_infobar_status(int status);

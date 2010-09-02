@@ -1,9 +1,12 @@
+/* TLobjects.h
+ * This file is part of the SuperSpreadSheet project.
+ */
+
 #include <gtkmm.h> 
 #include <map>
 #include <tl/translator.hpp>
 #include <tl/utility.hpp>
 #include <tl/parser_util.hpp>
-
 
 namespace TL = TransLucid;
 
@@ -20,12 +23,9 @@ public:
   TL::Parser::Header * header;
   Glib::ustring expression;
 
-
   // Member methods
   Glib::ustring calculate_expr (std::u32string expr); 
   int get_time ();
-
-
 
 protected:
 };
