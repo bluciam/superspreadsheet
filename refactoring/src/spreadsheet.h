@@ -33,7 +33,7 @@ protected:
   Gtk::ScrolledWindow * display_comp_SW;
  // Gtk::Frame * display_comp_SW;
   Gtk::VBox vbox_new_dim;
-  Gtk::VBox * box;  // For packing label and spin buttons in info
+  Gtk::VBox * vbox;  // For packing label and spin buttons in info
   Gtk::HButtonBox last_box;
 
   Gtk::Table * table_comp,
@@ -65,7 +65,7 @@ protected:
   Gtk::Entry  new_dim_entry,
               new_pivot_entry;
 
-  Gtk::Label   label_status,
+  Gtk::Label   label_system_status,
                * label,
                window_header;
 
@@ -73,19 +73,13 @@ protected:
                comp_frame,
                * frame ; // for each cell of the table_comp
 
-  Gtk::InfoBar infoBar_status;
-
-  Gtk::HRuler rule;
-  Gtk::VRuler vrule;
+  Gtk::InfoBar infoBar_system_status;
 
   // Signal handlers:
   void on_reset_system();
-  void on_get_exprs();
-  void on_file_name();
+  void on_get_expr();
   void on_filename_header();
   void on_filename_eqns();
-//  void on_icon_pressed_exprs(Gtk::EntryIconPosition icon_pos, 
-//                            const GdkEventButton* event);
 
   void on_h_nodim_toggled();
   void on_v_nodim_toggled();
@@ -98,10 +92,11 @@ protected:
   void on_del_dim(Glib::ustring dim);
   void on_add_dim();
 
-  void on_redraw_comp_clicked(Glib::ustring msg);
+  void on_redraw_comp_clicked();
+  // void on_redraw_comp_clicked(Glib::ustring msg);
   void on_closebutton_clicked();
-  void on_status_clicked(Glib::ustring msg);
-  void on_infobar_status(int status);
+  void on_system_status_clicked();
+  void on_infobar_system_status(int status);
 
 
   // Other Methods:
@@ -111,16 +106,13 @@ protected:
   void display_comp_row(int row_range, int h_min);
   void display_comp_col(int col_range, int v_min);
   void display_comp_cell();
+  void display_comp_cell_nodims();
 
   // Data Structures and TL communications objects
   TLobjects * TLstuff;
   Pivot pivot;
   std::u32string header_32;
   std::u32string eqns_32;
-
-  // Variables
-  Glib::ustring drawn_v_dim;
-  Glib::ustring drawn_h_dim;
 
 };
 

@@ -2,6 +2,9 @@
  * This file is part of the SuperSpreadSheet project.
  */
 
+#ifndef PIVOT_H
+#define PIVOT_H
+
 #include <gtkmm.h> 
 #include <map>
 
@@ -23,6 +26,9 @@ public:
   bool isOneCell();
   bool isOneRow();
   bool isOneCol();
+  bool isMember(std::u32string);
 
 protected:
 };
+
+#endif // PIVOT_H
