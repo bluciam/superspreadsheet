@@ -1,6 +1,10 @@
 /* UpdatePivotOrds.h
  * This file is part of the SuperSpreadSheet project.
  */
+
+#ifndef UPDATEPIVOTORDS_H
+#define UPDATEPIVOTORDS_H
+
 #include <tl/translator.hpp>
 #include <tl/utility.hpp>
 #include <tl/parser_util.hpp>
@@ -25,3 +29,5 @@ public:
 private:
   Pivot& pivot;
 };
+
+#endif // UPDATEPIVOTORDS_H

@@ -42,7 +42,8 @@ spreadsheet::spreadsheet() :
   // main_box.set_size_request(800,600);
   //Put the inner boxes in the outer box:
   main_box.pack_start(hbox_title, false, false, 0);
-  main_box.pack_start(hbox_system,false,false,0);
+  main_box.pack_start(system_frame,false,false,0);
+//  main_box.pack_start(hbox_system,false,false,0);
   main_box.pack_start(hbox_pivot_comp,true, true, 0);
   main_box.pack_start(hbox_last, false, false, 0);
   main_box.pack_start(status_bar, false, false, 0);
@@ -108,6 +109,9 @@ spreadsheet::spreadsheet() :
   hbox_system.pack_end(*button);
   hbox_system.pack_end(infoBar_system_status);
   hbox_system.pack_end(system_status_button);
+
+  system_frame.set_shadow_type(Gtk::SHADOW_IN);
+  system_frame.add(hbox_system);
 // End hbox_system
 
 // Begin hbox_pivot_comp
@@ -198,7 +202,7 @@ spreadsheet::on_filename_header()
   Glib::ustring header_8 = Glib::locale_to_utf8(header_raw);
   header_32 = std::u32string (header_8.begin(), header_8.end());
   std::cout << header_8 << std::endl;
-  status_bar.push(header_8);
+  status_bar.push("Header file read.");
 }
 
 void
@@ -209,7 +213,7 @@ spreadsheet::on_filename_eqns()
   std::string eqns_raw = Glib::file_get_contents(eqns_name_raw);
   Glib::ustring eqns_8 = Glib::locale_to_utf8(eqns_raw);
   eqns_32 = std::u32string (eqns_8.begin(), eqns_8.end());
-  status_bar.push(eqns_8);
+  status_bar.push("Equations file read.");
   std::cout << eqns_8 << std::endl;
 }
 
@@ -263,10 +267,16 @@ spreadsheet::on_reset_system()
   // }
   (*TLstuff).traductor.parse_header ( header_32 ) ;
   (*TLstuff).traductor.translate_and_add_equation_set ( eqns_32 ) ;
-
   (*TLstuff).traductor.header().dimension_symbols.
              for_each(UpdatePivotOrds(pivot)); 
+  //TODO redraw the pivot area
+  delete(table_pivot);
+  display_pivot();
+  (vbox_pivot).show_all_children();
+ 
 
+  filename_eqns_entry.set_text("");
+  filename_header_entry.set_text("");
 }
 
 void
@@ -326,6 +336,15 @@ void
 spreadsheet::on_del_dim(Glib::ustring dim)
 {
   (pivot.ords).erase (dim);
+  #if 0
+  // Only include when not allowing this to be added to system
+  if ( (dim == "time") || (dim == "id") || (dim == "all" ) )
+  {
+    std::cout << "User cannot handle this dimension: \"" << dim 
+              << "\"" << std::endl ;
+    return;
+  }
+  #endif
   std::u32string dim_d_32 = std::u32string(dim.begin(), dim.end());
   TL::Parser::removeDimensionSymbol((*TLstuff).traductor.header(), dim_d_32);
   if (dim == (pivot.h_dim))

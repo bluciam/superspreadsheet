@@ -2,6 +2,9 @@
  * This file is part of the SuperSpreadSheet project.
  */
 
+#ifndef TLOBJECTS_H
+#define TLOBJECTS_H
+
 #include <gtkmm.h> 
 #include <map>
 #include <tl/translator.hpp>
@@ -29,3 +32,5 @@ public:
 
 protected:
 };
+
+#endif // TLOBJECTS_H

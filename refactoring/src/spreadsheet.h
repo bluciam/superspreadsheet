@@ -2,6 +2,9 @@
  * This file is part of the SuperSpreadSheet project.
  */
 
+#ifndef SPREADSHEET_H
+#define SPREADSHEET_H
+
 #include <iostream>
 #include <gtkmm.h> 
 #include <map>
@@ -71,6 +74,7 @@ protected:
 
   Gtk::Frame   pivot_frame,
                comp_frame,
+               system_frame,
                * frame ; // for each cell of the table_comp
 
   Gtk::InfoBar infoBar_system_status;
@@ -116,3 +120,4 @@ protected:
 
 };
 
+#endif // SPREADSHEET_H

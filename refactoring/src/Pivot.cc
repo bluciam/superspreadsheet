@@ -42,6 +42,10 @@ Pivot::isOneCol()
 bool
 Pivot::isMember(std::u32string dimInHeader)
 {
+  if (ords.empty())
+  {
+    return false;
+  }
   for (std::map<Glib::ustring,int>::iterator mit=(ords).begin();
        mit != (ords).end();
        ++mit )

@@ -18,6 +18,8 @@ UpdatePivotOrds::operator()
     if (!(pivot.isMember(v)))
     {
       (pivot.ords)[v_8] = 0;
+       std::cout << "Adding dimension \"" << v_8 << "\" or \"" << v << "\"" 
+                 << std::endl;
     }
     else
     {

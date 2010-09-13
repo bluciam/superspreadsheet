@@ -31,18 +31,25 @@ TLobjects::calculate_expr (std::u32string tuple32)
   std::string s;
   TL::HD* cellContext;
   TL::TaggedConstant cellResult;
-  try 
-  {
+//  std::cout << "Before tuple32 is translated." << std::endl;
+//  try 
+//  {
     cellContext = traductor.translate_expr(tuple32);
+    if (cellContext == 0)
+    {
+      s.clear(); s += "???";
+      return s;
+    }
     cellResult = (*cellContext)(TL::Tuple());
-  } 
-  catch (...)
-  {
-    std::cout << "Did not translate expression or" << std::endl;
-    std::cout << "Could not get the tuple from TaggedConstant." << std::endl;
-    s.clear(); s += "???";
-    return s;
-  }
+//  } 
+//  catch (...)
+//  {
+//    std::cout << "Did not translate expression or" << std::endl;
+//    std::cout << "Could not get the tuple from TaggedConstant." << std::endl;
+//    s.clear(); s += "???";
+//    return s;
+//  }
+//  std::cout << "After tuple32 is translated." << std::endl;
   if (cellResult.first.index() == TL::TYPE_INDEX_INTMP) {
     std::stringstream sout;
     sout << cellResult.first.value<TL::Intmp>().value();
