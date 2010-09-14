@@ -80,7 +80,7 @@ protected:
   Gtk::InfoBar infoBar_system_status;
 
   // Signal handlers:
-  void on_reset_system();
+  void on_update_system();
   void on_get_expr();
   void on_filename_header();
   void on_filename_eqns();

@@ -3,6 +3,9 @@
  */
 
 #include "Pivot.h"
+#include <cstdio>
+#include <iostream>
+
 
 Pivot::Pivot()
 {
@@ -50,10 +53,15 @@ Pivot::isMember(std::u32string dimInHeader)
        mit != (ords).end();
        ++mit )
   {
-    Glib::ustring dimInOrd = ((*mit).first);
-    std::u32string dimInOrd32 = std::u32string (dimInOrd.begin(),
-                                                dimInOrd.end());
-    return (dimInHeader == dimInOrd32);
-  }
+    Glib::ustring dimInOrds = ((*mit).first);
+    std::u32string dimInOrds32 = std::u32string (dimInOrds.begin(),
+                                                dimInOrds.end());
+    std::cout << "dimInOrds is \"" << dimInOrds << "\"" << std::endl;
 
+    if (dimInHeader == dimInOrds32)
+    {
+      return true;
+    }
+  }
+  return false;
 }

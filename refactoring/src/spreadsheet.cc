@@ -101,9 +101,9 @@ spreadsheet::spreadsheet() :
 
 
 
-  button = Gtk::manage(new Gtk::Button("Reset system"));
+  button = Gtk::manage(new Gtk::Button("Update system"));
   (*button).signal_clicked().connect(
-    sigc::mem_fun(*this, &spreadsheet::on_reset_system) );
+    sigc::mem_fun(*this, &spreadsheet::on_update_system) );
 
   hbox_system.pack_start(table_system);
   hbox_system.pack_end(*button);
@@ -245,9 +245,9 @@ spreadsheet::on_system_status_clicked()
 }
 
 void
-spreadsheet::on_reset_system()
+spreadsheet::on_update_system()
 {
-// TLstuff->reset(header, eqns);
+// TLstuff->update(header, eqns);
   std::cout << "Loading header : " << std::endl << "\"" << std::endl 
             << header_32 << "\"" << std::endl;
   std::cout << "loading equations : " << std::endl << "\"" << std::endl 
@@ -265,15 +265,27 @@ spreadsheet::on_reset_system()
   // {
   //   std::cout << "Could not restart the system." << std::endl;
   // }
-  (*TLstuff).traductor.parse_header ( header_32 ) ;
-  (*TLstuff).traductor.translate_and_add_equation_set ( eqns_32 ) ;
+
+  try
+  {
+
+    (*TLstuff).traductor.parse_header ( header_32 ) ;
+    (*TLstuff).traductor.translate_and_add_equation_set ( eqns_32 ) ;
+  }
+  catch (...)
+  {
+    std::cout << " Could not load and parse header or equations." << std::endl;
+  }
   (*TLstuff).traductor.header().dimension_symbols.
              for_each(UpdatePivotOrds(pivot)); 
+
   //TODO redraw the pivot area
   delete(table_pivot);
   display_pivot();
   (vbox_pivot).show_all_children();
  
+  header_32.clear();
+  eqns_32.clear();
 
   filename_eqns_entry.set_text("");
   filename_header_entry.set_text("");
