@@ -16,9 +16,6 @@ TLobjects::TLobjects ( std::u32string header_str, std::u32string eqns_str )
   header = & traductor.header ( ) ;
   traductor.parse_header ( header_str );
   traductor.translate_and_add_equation_set ( eqns_str ) ;
-
-  // TODO: need to somehow add the dimension to the systems if ords.pivot
-  // is not empty
 }
 
 TLobjects::~TLobjects()

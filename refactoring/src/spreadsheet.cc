@@ -252,29 +252,28 @@ spreadsheet::on_update_system()
             << header_32 << "\"" << std::endl;
   std::cout << "loading equations : " << std::endl << "\"" << std::endl 
             << eqns_32 << "\"" << std::endl;
-  // TODO: if restarting the system and the translator
-  // Glib::ustring old_expr = (*TLstuff).expression;
-  // delete(TLstuff);
-  // try
-  // {
-  //   TLstuff = new TLobjects(header_32, eqns_32);
-  //   std::cout << "Restarting the system went right." << std::endl;
-  //   (*TLstuff).expression = old_expr;
-  // }
-  // catch (...)
-  // {
-  //   std::cout << "Could not restart the system." << std::endl;
-  // }
 
   try
   {
-
     (*TLstuff).traductor.parse_header ( header_32 ) ;
+  }
+  catch (...)
+  {
+    Glib::ustring msg = " Could not load and parse the header." ;
+    std::cout << msg << std::endl;
+    status_bar.push(msg);
+  }
+  (*TLstuff).traductor.header().dimension_symbols.
+             for_each(UpdatePivotOrds(pivot)); 
+  try
+  {
     (*TLstuff).traductor.translate_and_add_equation_set ( eqns_32 ) ;
   }
   catch (...)
   {
-    std::cout << " Could not load and parse header or equations." << std::endl;
+    Glib::ustring msg =  " Could not translate and add the equations." ;
+    std::cout << msg << std::endl;
+    status_bar.push(msg);
   }
   (*TLstuff).traductor.header().dimension_symbols.
              for_each(UpdatePivotOrds(pivot)); 
