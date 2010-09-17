@@ -1,11 +1,11 @@
-/* UpdatePivotOrds.cc
+/* HeaderDims_In_PivotOrds.cc
  * This file is part of the SuperSpreadSheet project.
  */
 
-#include "UpdatePivotOrds.h"
+#include "HeaderDims_In_PivotOrds.h"
 
 void
-UpdatePivotOrds::operator()
+HeaderDims_In_PivotOrds::operator()
   (const std::basic_string<TransLucid::Parser::char_type>& s, 
    const std::u32string& v
   )

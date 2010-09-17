@@ -7,7 +7,7 @@
 #include <fstream>
 #include <tl/parser_header_util.hpp>
 #include "spreadsheet.h"
-#include "UpdatePivotOrds.h"
+#include "HeaderDims_In_PivotOrds.h"
 #include <boost/spirit/include/qi.hpp>
 
 spreadsheet::spreadsheet() :
@@ -264,7 +264,7 @@ spreadsheet::on_update_system()
     status_bar.push(msg);
   }
   (*TLstuff).traductor.header().dimension_symbols.
-             for_each(UpdatePivotOrds(pivot)); 
+             for_each(HeaderDims_In_PivotOrds(pivot)); 
   try
   {
     (*TLstuff).traductor.translate_and_add_equation_set ( eqns_32 ) ;
@@ -276,16 +276,16 @@ spreadsheet::on_update_system()
     status_bar.push(msg);
   }
   (*TLstuff).traductor.header().dimension_symbols.
-             for_each(UpdatePivotOrds(pivot)); 
+             for_each(HeaderDims_In_PivotOrds(pivot)); 
 
-  //TODO redraw the pivot area
+  // Redraw the pivot area to show new dimensions from header
   delete(table_pivot);
   display_pivot();
   (vbox_pivot).show_all_children();
  
+  // Clering the fields to avoid reloading
   header_32.clear();
   eqns_32.clear();
-
   filename_eqns_entry.set_text("");
   filename_header_entry.set_text("");
 }
