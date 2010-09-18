@@ -26,22 +26,22 @@ public:
 protected:
   //Child widgets:
   Gtk::VBox main_box;
-  Gtk::HBox hbox_title,
-            hbox_system,
-            hbox_pivot_comp,
-            hbox_last;
+  Gtk::HBox title_hbox,
+            system_hbox,
+            pivot_comp_hbox,
+            last_hbox;
   Gtk::Statusbar status_bar;
 
-  Gtk::VBox vbox_pivot;
+  Gtk::VBox pivot_vbox;
   Gtk::ScrolledWindow * display_comp_SW;
  // Gtk::Frame * display_comp_SW;
-  Gtk::VBox vbox_new_dim;
+  Gtk::VBox new_dim_vbox;
   Gtk::VBox * vbox;  // For packing label and spin buttons in info
   Gtk::HButtonBox last_box;
 
-  Gtk::Table * table_comp,
-             * table_pivot,
-               table_system;
+  Gtk::Table * comp_table,
+             * pivot_table,
+               system_table;
 
   Gtk::RadioButton * hnodisplay,
                    * vnodisplay,
@@ -55,7 +55,8 @@ protected:
   Gtk::Adjustment * pivot_limits;
 
   Gtk::Button * button;
-  Gtk::Button system_status_button,
+  Gtk::Button tick_button,
+              system_status_button,
               redraw_comp_button,
               close_button;
 
@@ -75,11 +76,12 @@ protected:
   Gtk::Frame   pivot_frame,
                comp_frame,
                system_frame,
-               * frame ; // for each cell of the table_comp
+               * frame ; // for each cell of the comp_table
 
   Gtk::InfoBar infoBar_system_status;
 
   // Signal handlers:
+  void on_tick_time();
   void on_update_system();
   void on_get_expr();
   void on_filename_header();

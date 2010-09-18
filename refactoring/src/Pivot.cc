@@ -42,23 +42,16 @@ Pivot::isOneCol()
 bool
 Pivot::isMember(std::u32string dimInHeader)
 {
-  if (ords.empty())
-  {
-    return false;
-  }
-  for (std::map<Glib::ustring,int>::iterator mit=(ords).begin();
-       mit != (ords).end();
-       ++mit )
+  if (ords.empty()) return false;
+  for ( std::map<Glib::ustring,int>::iterator mit=(ords).begin();
+        mit != (ords).end();
+        ++mit )
   {
     Glib::ustring dimInOrds = ((*mit).first);
     std::u32string dimInOrds32 = std::u32string (dimInOrds.begin(),
-                                                dimInOrds.end());
-    std::cout << "dimInOrds is \"" << dimInOrds << "\"" << std::endl;
-
-    if (dimInHeader == dimInOrds32)
-    {
-      return true;
-    }
+                                                 dimInOrds.end());
+    if (dimInHeader == dimInOrds32) return true;
   }
   return false;
 }
+

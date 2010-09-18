@@ -14,10 +14,10 @@ spreadsheet::spreadsheet() :
   // false: child widgets don't have the same width
   //    10: distance in pixels between widgets
   main_box  (false, 10),
-  hbox_title (false, 10),
-  hbox_last (false, 10),
+  title_hbox (false, 10),
+  last_hbox (false, 10),
   window_header("The TransLucid browser" ),
-  table_system (3,3,false),
+  system_table (3,3,false),
 
   // Gtk::Adjustment(
   //   initial_value, lower, upper, step_increment, page_increment, page_size);
@@ -26,8 +26,9 @@ spreadsheet::spreadsheet() :
 
   // last_button is Gtk::HButtonBox for equal spacing (30) between buttons.
   last_box(Gtk::BUTTONBOX_END, 30),
-  system_status_button(" _Show Current System Status ",true), 
-  redraw_comp_button(" _Redraw SpreadSheet  ",true), 
+  system_status_button(" _Show Current System Status ", true), 
+  redraw_comp_button(" _Redraw SpreadSheet  ", true), 
+  tick_button("  _Tick Time  ", true),
   close_button("_Quit", true)       // to use alt-C to close app
 
 {
@@ -41,47 +42,47 @@ spreadsheet::spreadsheet() :
   add(main_box);
   // main_box.set_size_request(800,600);
   //Put the inner boxes in the outer box:
-  main_box.pack_start(hbox_title, false, false, 0);
-  main_box.pack_start(system_frame,false,false,0);
-//  main_box.pack_start(hbox_system,false,false,0);
-  main_box.pack_start(hbox_pivot_comp,true, true, 0);
-  main_box.pack_start(hbox_last, false, false, 0);
+  main_box.pack_start(title_hbox, false, false, 0);
+  main_box.pack_start(system_frame,false,false,5);
+//  main_box.pack_start(system_hbox,false,false,0);
+  main_box.pack_start(pivot_comp_hbox,true, true, 0);
+  main_box.pack_start(last_hbox, false, false, 0);
   main_box.pack_start(status_bar, false, false, 0);
 
   // Set the boxes' spacing around the outside of the container to 5 pixels
-  hbox_title.set_border_width(5); 
-  hbox_system.set_border_width(5);
-  hbox_pivot_comp.set_border_width(5);
-  hbox_last.set_border_width(5);
+  title_hbox.set_border_width(5); 
+  system_hbox.set_border_width(5);
+  pivot_comp_hbox.set_border_width(5);
+  last_hbox.set_border_width(5);
 
-// Begin hbox_title 
-  hbox_title.pack_start(window_header);
-// End hbox_title 
+// Begin title_hbox 
+  title_hbox.pack_start(window_header);
+// End title_hbox 
 
-// Begin hbox_system 
+// Begin system_hbox 
   TLstuff = new TLobjects();
-  // Begin table_system
+  // Begin system_table
     // Expression
   label = Gtk::manage(new Gtk::Label("Expression"));
-  (table_system).attach((*label),0,1,0,1,Gtk::FILL,Gtk::FILL);
+  (system_table).attach((*label),0,1,0,1,Gtk::FILL,Gtk::FILL);
   exprs_entry.set_text((*TLstuff).expression);
   exprs_entry.set_max_length(50);
   exprs_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_get_expr) );
-  (table_system).attach((exprs_entry),1,2,0,1,Gtk::FILL,Gtk::FILL);
+  (system_table).attach((exprs_entry),1,2,0,1,Gtk::FILL,Gtk::FILL);
     // Header file
   label = Gtk::manage(new Gtk::Label("Header file "));
-  (table_system).attach((*label),0,1,1,2,Gtk::FILL,Gtk::FILL);
-  (table_system).attach((filename_header_entry),1,2,1,2,Gtk::FILL,Gtk::FILL);
+  (system_table).attach((*label),0,1,1,2,Gtk::FILL,Gtk::FILL);
+  (system_table).attach((filename_header_entry),1,2,1,2,Gtk::FILL,Gtk::FILL);
   filename_header_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_filename_header) );
     // Equations file
   label = Gtk::manage(new Gtk::Label("Equations file "));
-  (table_system).attach((*label),0,1,2,3,Gtk::FILL,Gtk::FILL);
-  (table_system).attach((filename_eqns_entry),1,2,2,3,Gtk::FILL,Gtk::FILL);
+  (system_table).attach((*label),0,1,2,3,Gtk::FILL,Gtk::FILL);
+  (system_table).attach((filename_eqns_entry),1,2,2,3,Gtk::FILL,Gtk::FILL);
   filename_eqns_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_filename_eqns) );
-  // End table_system
+  // End system_table
 
 
 
@@ -98,63 +99,64 @@ spreadsheet::spreadsheet() :
   system_status_button.signal_clicked().connect(
     sigc::mem_fun( *this, &spreadsheet::on_system_status_clicked) );
 
-
-
-
-  button = Gtk::manage(new Gtk::Button("Update system"));
+  button = Gtk::manage(new Gtk::Button("  _Update system  ", true));
   (*button).signal_clicked().connect(
     sigc::mem_fun(*this, &spreadsheet::on_update_system) );
+  (tick_button).signal_clicked().connect(
+    sigc::mem_fun(*this, &spreadsheet::on_tick_time) );
+  tick_button.set_relief(Gtk::ReliefStyle::RELIEF_HALF);
 
-  hbox_system.pack_start(table_system);
-  hbox_system.pack_end(*button);
-  hbox_system.pack_end(infoBar_system_status);
-  hbox_system.pack_end(system_status_button);
+  system_hbox.pack_start(system_table);
+  system_hbox.pack_end(tick_button);
+  system_hbox.pack_end(*button);
+  system_hbox.pack_end(infoBar_system_status);
+  system_hbox.pack_end(system_status_button);
 
   system_frame.set_shadow_type(Gtk::SHADOW_IN);
-  system_frame.add(hbox_system);
-// End hbox_system
+  system_frame.add(system_hbox);
+// End system_hbox
 
-// Begin hbox_pivot_comp
-  // Begin pivot_frame, vbox_pivot
-    // Begin table_pivot
+// Begin pivot_comp_hbox
+  // Begin pivot_frame, pivot_vbox
+    // Begin pivot_table
   display_pivot();
   pivot_frame.set_shadow_type(Gtk::SHADOW_IN);
-  pivot_frame.add(((vbox_pivot)));
-  hbox_pivot_comp.pack_start(pivot_frame,false,true,0);
-    // End table_pivot
+  pivot_frame.add(((pivot_vbox)));
+  pivot_comp_hbox.pack_start(pivot_frame,false,true,0);
+    // End pivot_table
 
-    // Begin vbox_new_dim
+    // Begin new_dim_vbox
   Gtk::HBox * hbox = Gtk::manage(new Gtk::HBox);
   label = Gtk::manage(new Gtk::Label("Dim Name "));
   (*hbox).pack_start(*label); 
   (*hbox).pack_start(new_dim_entry); 
-  vbox_new_dim.pack_start(*hbox, false, false, 0);
+  new_dim_vbox.pack_start(*hbox, false, false, 0);
 
   hbox = Gtk::manage(new Gtk::HBox);
   label = Gtk::manage(new Gtk::Label("Pivot Value"));
   (*hbox).pack_start(*label); 
   (*hbox).pack_start(new_pivot_entry); 
-  vbox_new_dim.pack_start(*hbox, false, false, 0);
+  new_dim_vbox.pack_start(*hbox, false, false, 0);
 
   button = Gtk::manage(new Gtk::Button("_Add New Dimension",true));
-  vbox_new_dim.pack_start(*button);
+  new_dim_vbox.pack_start(*button);
   (*button).signal_clicked().connect(
     sigc::mem_fun(*this, &spreadsheet::on_add_dim) );
 
-  (vbox_pivot).pack_end(vbox_new_dim, false, false, 0);
-    // End vbox_new_dim
-  // End pivot_frame, vbox_pivot
+  (pivot_vbox).pack_end(new_dim_vbox, false, false, 0);
+    // End new_dim_vbox
+  // End pivot_frame, pivot_vbox
 
   // Begin comp_frame
   display_comp();
   comp_frame.set_shadow_type(Gtk::SHADOW_IN);
   comp_frame.add(*display_comp_SW);
-//  hbox_pivot_comp.pack_start(comp_frame,false,false);
-  hbox_pivot_comp.pack_start(comp_frame,true,true);
+//  pivot_comp_hbox.pack_start(comp_frame,false,false);
+  pivot_comp_hbox.pack_start(comp_frame,true,true);
   // End comp_frame
-// End hbox_pivot_comp
+// End pivot_comp_hbox
 
-// Begin hbox_last 
+// Begin last_hbox 
   // last_box.add(redraw_comp_button);
   redraw_comp_button.signal_clicked().connect(
     sigc::mem_fun( *this, &spreadsheet::on_redraw_comp_clicked) );
@@ -163,11 +165,11 @@ spreadsheet::spreadsheet() :
   close_button.signal_clicked().connect (
     sigc::mem_fun( *this, &spreadsheet::on_closebutton_clicked) );
 
-  hbox_last.pack_start(last_box);
+  last_hbox.pack_start(last_box);
   // Make the button the default widget. Not working as expected, gtk bug?.
   close_button.set_can_default();
   close_button.grab_default();
-// End hbox_last 
+// End last_hbox 
 
   show_all_children();
   infoBar_system_status.hide(); 
@@ -245,8 +247,18 @@ spreadsheet::on_system_status_clicked()
 }
 
 void
+spreadsheet::on_tick_time()
+{
+  int current_time = (*TLstuff).get_time();
+  std::stringstream ss;
+  ss << current_time;
+  status_bar.push("Advancing time: current time = " + ss.str());
+}
+
+void
 spreadsheet::on_update_system()
 {
+  status_bar.push("Updating system");
 // TLstuff->update(header, eqns);
   std::cout << "Loading header : " << std::endl << "\"" << std::endl 
             << header_32 << "\"" << std::endl;
@@ -279,9 +291,9 @@ spreadsheet::on_update_system()
              for_each(HeaderDims_In_PivotOrds(pivot)); 
 
   // Redraw the pivot area to show new dimensions from header
-  delete(table_pivot);
+  delete(pivot_table);
   display_pivot();
-  (vbox_pivot).show_all_children();
+  (pivot_vbox).show_all_children();
  
   // Clering the fields to avoid reloading
   header_32.clear();
@@ -303,7 +315,7 @@ spreadsheet::on_add_dim()
   { 
     new_dim_entry.set_text("");
     new_pivot_entry.set_text("");
-    vbox_new_dim.show();
+    new_dim_vbox.show();
     return;
   }
   else
@@ -333,12 +345,12 @@ spreadsheet::on_add_dim()
     std::cout << "  Name: "  << dimname << std::endl;
     std::cout << "  Pivot: " << dimpivot << std::endl;
 
-    (vbox_pivot).remove(*table_pivot);
-    delete(table_pivot);
+    (pivot_vbox).remove(*pivot_table);
+    delete(pivot_table);
     display_pivot();
-    (vbox_pivot).show_all_children();
-    // (vbox_pivot).show();
-    // vbox_new_dim.show();
+    (pivot_vbox).show_all_children();
+    // (pivot_vbox).show();
+    // new_dim_vbox.show();
   }
 }
 
@@ -369,11 +381,11 @@ spreadsheet::on_del_dim(Glib::ustring dim)
     (*vnodisplay).toggled();
   } 
 
-  (vbox_pivot).remove(*table_pivot);
-  delete(table_pivot);
+  (pivot_vbox).remove(*pivot_table);
+  delete(pivot_table);
   display_pivot();
-  (vbox_pivot).show_all_children();
-  (vbox_pivot).show();
+  (pivot_vbox).show_all_children();
+  (pivot_vbox).show();
 
   status_bar.push("Deleted dimension " + dim);
   std::cout << "Deleted dimension " << dim << std::endl;
@@ -384,7 +396,7 @@ void
 spreadsheet::on_redraw_comp_clicked()
 {
 //  delete(display_comp_SW);
-  delete(table_comp);
+  delete(comp_table);
   display_comp();
   comp_frame.remove();
   comp_frame.add(*display_comp_SW);
@@ -419,22 +431,22 @@ spreadsheet::display_pivot()
   v_spread_spin->set_numeric(true);
   v_spread_spin->set_alignment(1);
 
-// Begin table_pivot
+// Begin pivot_table
   // When pivot.ords is empty it's size is zero
-  table_pivot = Gtk::manage(new Gtk::Table(((pivot.ords).size()+2),6,false));
-  (*table_pivot).set_col_spacings(10);
+  pivot_table = Gtk::manage(new Gtk::Table(((pivot.ords).size()+2),6,false));
+  (*pivot_table).set_col_spacings(10);
 
   // Column titles
   label = Gtk::manage(new Gtk::Label);
   (*label).set_label("Dimension");
-  (*table_pivot).attach((*label),0,1,0,1,Gtk::FILL,Gtk::FILL);
+  (*pivot_table).attach((*label),0,1,0,1,Gtk::FILL,Gtk::FILL);
 
   vbox = Gtk::manage(new Gtk::VBox);
   label = Gtk::manage(new Gtk::Label);
   (*vbox).add(*label);
   (*vbox).add(*v_spread_spin);
   (*label).set_label("V dim\nradius");
-  (*table_pivot).attach((*vbox),1,2,0,1,Gtk::FILL,Gtk::FILL);
+  (*pivot_table).attach((*vbox),1,2,0,1,Gtk::FILL,Gtk::FILL);
   v_spread_spin->signal_value_changed().connect(
     sigc::mem_fun( *this, &spreadsheet::on_v_spread_spin ) );
 
@@ -443,30 +455,30 @@ spreadsheet::display_pivot()
   (*vbox).add(*label);
   (*vbox).add(*h_spread_spin);
   (*label).set_label("H dim\nradius");
-  (*table_pivot).attach((*vbox),2,3,0,1,Gtk::FILL,Gtk::FILL);
+  (*pivot_table).attach((*vbox),2,3,0,1,Gtk::FILL,Gtk::FILL);
   h_spread_spin->signal_value_changed().connect(
     sigc::mem_fun( *this, &spreadsheet::on_h_spread_spin ) );
 
   label = Gtk::manage(new Gtk::Label);
   (*label).set_label("Pivot");
-  (*table_pivot).attach((*label),3,4,0,1,Gtk::FILL,Gtk::FILL);
+  (*pivot_table).attach((*label),3,4,0,1,Gtk::FILL,Gtk::FILL);
 
   label = Gtk::manage(new Gtk::Label);
   (*label).set_label("Delete\ndimension?");
-  (*table_pivot).attach((*label),4,5,0,1,Gtk::FILL,Gtk::FILL);
+  (*pivot_table).attach((*label),4,5,0,1,Gtk::FILL,Gtk::FILL);
 
  // First row: no dimension chosen for computation display
   label = Gtk::manage(new Gtk::Label);
   (*label).set_label("None");
-  (*table_pivot).attach((*label),0,1,1,2,Gtk::FILL,Gtk::FILL);
+  (*pivot_table).attach((*label),0,1,1,2,Gtk::FILL,Gtk::FILL);
 
   Gtk::RadioButton::Group vgroup = (*vnodisplay).get_group();
-  (*table_pivot).attach((*vnodisplay),1,2,1,2,Gtk::FILL,Gtk::FILL);
+  (*pivot_table).attach((*vnodisplay),1,2,1,2,Gtk::FILL,Gtk::FILL);
   (*vnodisplay).signal_toggled().connect(
      sigc::mem_fun( *this, &spreadsheet::on_v_nodim_toggled ) );
 
   Gtk::RadioButton::Group hgroup = (*hnodisplay).get_group();
-  (*table_pivot).attach((*hnodisplay),2,3,1,2,Gtk::FILL,Gtk::FILL);
+  (*pivot_table).attach((*hnodisplay),2,3,1,2,Gtk::FILL,Gtk::FILL);
   (*hnodisplay).signal_toggled().connect(
     sigc::mem_fun( *this, &spreadsheet::on_h_nodim_toggled ) );
 
@@ -483,18 +495,18 @@ spreadsheet::display_pivot()
     label = Gtk::manage(new Gtk::Label);
     Glib::ustring dim = (*mit).first;
     (*label).set_label(dim);
-    (*table_pivot).attach( (*label), 0, 1, i+2, ii,Gtk::FILL,Gtk::FILL);
+    (*pivot_table).attach( (*label), 0, 1, i+2, ii,Gtk::FILL,Gtk::FILL);
 
     vdisplay = Gtk::manage(new Gtk::RadioButton);
     (*vdisplay).set_group(vgroup);
-    (*table_pivot).attach((*vdisplay), 1, 2, i+2, ii, Gtk::FILL,Gtk::FILL);
+    (*pivot_table).attach((*vdisplay), 1, 2, i+2, ii, Gtk::FILL,Gtk::FILL);
     (*vdisplay).signal_toggled().connect(
        sigc::bind(
          sigc::mem_fun(*this, &spreadsheet::on_v_toggled), vdisplay, dim ) );
 
     hdisplay = Gtk::manage(new Gtk::RadioButton);
     (*hdisplay).set_group(hgroup);
-    (*table_pivot).attach( (*hdisplay), 2, 3, i+2, ii, Gtk::FILL,Gtk::FILL);
+    (*pivot_table).attach( (*hdisplay), 2, 3, i+2, ii, Gtk::FILL,Gtk::FILL);
     (*hdisplay).signal_toggled().connect(
        sigc::bind(
          sigc::mem_fun(*this, &spreadsheet::on_h_toggled), hdisplay, dim ) );
@@ -519,17 +531,17 @@ spreadsheet::display_pivot()
       sigc::bind (
         sigc::mem_fun( *this, &spreadsheet::on_dim_pivot_changed),
                        dim, pivot_spin ) );
-    (*table_pivot).attach((*pivot_spin),3,4,i+2,ii,Gtk::FILL,Gtk::FILL);
+    (*pivot_table).attach((*pivot_spin),3,4,i+2,ii,Gtk::FILL,Gtk::FILL);
 
     button = Gtk::manage(new Gtk::Button(dim));
-    (*table_pivot).attach((*button),4,5,i+2,ii,Gtk::FILL,Gtk::FILL);
+    (*pivot_table).attach((*button),4,5,i+2,ii,Gtk::FILL,Gtk::FILL);
     button->signal_clicked().connect(
       sigc::bind (
          sigc::mem_fun(*this, &spreadsheet::on_del_dim), dim ) );
   }
-// End table_pivot
-  (vbox_pivot).pack_start(*table_pivot);
-  (vbox_pivot).show();
+// End pivot_table
+  (pivot_vbox).pack_start(*pivot_table);
+  (pivot_vbox).show();
   redraw_comp_button.clicked();
 }
 
@@ -676,14 +688,14 @@ void
 spreadsheet::display_comp_all(int row_range, int col_range,
                               int h_min, int v_min)
 {
-  table_comp = Gtk::manage(new Gtk::Table(row_range + 1, col_range + 1, false));
-  (*table_comp).set_col_spacings(10);
-  (*table_comp).set_row_spacings(10);
+  comp_table = Gtk::manage(new Gtk::Table(row_range + 1, col_range + 1, false));
+  (*comp_table).set_col_spacings(10);
+  (*comp_table).set_row_spacings(10);
 
-  (*table_comp).set_row_spacing(0,30);
-  (*table_comp).set_col_spacing(0,30);
+  (*comp_table).set_row_spacing(0,30);
+  (*comp_table).set_col_spacing(0,30);
 
-  (*display_comp_SW).add(*table_comp);
+  (*display_comp_SW).add(*comp_table);
 
   // Label cell, first cell
   label = Gtk::manage(new Gtk::Label);
@@ -691,9 +703,9 @@ spreadsheet::display_comp_all(int row_range, int col_range,
 //  (*label).set_size_request(10,10);
   (*label).set_width_chars(10);
   (*label).set_line_wrap(true);
-//  (*table_comp).attach(*label, 0, 1, 0, 1,
+//  (*comp_table).attach(*label, 0, 1, 0, 1,
 //                       Gtk::FILL|Gtk::EXPAND, Gtk::FILL|Gtk::EXPAND);
-  (*table_comp).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
+  (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
 
   //  Drawing horizontal index 
   for (int i = 0 ; i != row_range ; ++i)
@@ -705,8 +717,8 @@ spreadsheet::display_comp_all(int row_range, int col_range,
     label = Gtk::manage(new Gtk::Label);
     Glib::ustring cell = s;
     (*label).set_label(cell);
-    (*table_comp).attach(*label, i+1, i+2, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
-//    (*table_comp).attach(*label, i+1, i+2, 0, 1, Gtk::FILL, Gtk::FILL);
+    (*comp_table).attach(*label, i+1, i+2, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
+//    (*comp_table).attach(*label, i+1, i+2, 0, 1, Gtk::FILL, Gtk::FILL);
   }
 
   //  Drawing vertical index 
@@ -719,7 +731,7 @@ spreadsheet::display_comp_all(int row_range, int col_range,
     label = Gtk::manage(new Gtk::Label);
     Glib::ustring cell = s;
     (*label).set_label(cell);
-    (*table_comp).attach(*label, 0, 1, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK);
+    (*comp_table).attach(*label, 0, 1, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK);
   }
 
   // Drawing content
@@ -756,7 +768,7 @@ spreadsheet::display_comp_all(int row_range, int col_range,
       frame = Gtk::manage(new Gtk::Frame);
       (*label).set_label(cell);
       (*frame).add(*label);
-      (*table_comp).attach(*frame, i+1, i+2, j+1, j+2, Gtk::SHRINK,Gtk::SHRINK);
+      (*comp_table).attach(*frame, i+1, i+2, j+1, j+2, Gtk::SHRINK,Gtk::SHRINK);
     }
   }
 }
@@ -764,13 +776,13 @@ spreadsheet::display_comp_all(int row_range, int col_range,
 void 
 spreadsheet::display_comp_row(int row_range, int h_min)
 {
-  table_comp = Gtk::manage(new Gtk::Table(row_range + 1, 2, false));
-  (*table_comp).set_col_spacings(10);
-  (*table_comp).set_row_spacings(10);
-  (*display_comp_SW).add(*table_comp);
+  comp_table = Gtk::manage(new Gtk::Table(row_range + 1, 2, false));
+  (*comp_table).set_col_spacings(10);
+  (*comp_table).set_row_spacings(10);
+  (*display_comp_SW).add(*comp_table);
 
-  (*table_comp).set_row_spacing(0,30);
-  (*table_comp).set_col_spacing(0,30);
+  (*comp_table).set_row_spacing(0,30);
+  (*comp_table).set_col_spacing(0,30);
 
   // Label cell, first cell
   label = Gtk::manage(new Gtk::Label);
@@ -778,8 +790,8 @@ spreadsheet::display_comp_row(int row_range, int h_min)
 //  (*label).set_size_request(10,10);
   (*label).set_width_chars(10);
   (*label).set_line_wrap(true);
-  (*table_comp).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
-//  (*table_comp).attach(*label, 0, 1, 0, 1,
+  (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
+//  (*comp_table).attach(*label, 0, 1, 0, 1,
 //                       Gtk::FILL|Gtk::EXPAND, Gtk::FILL|Gtk::EXPAND);
 
   for (int i = 0 ; i != row_range ; ++i)
@@ -792,7 +804,7 @@ spreadsheet::display_comp_row(int row_range, int h_min)
     label = Gtk::manage(new Gtk::Label);
     Glib::ustring cell = s;
     (*label).set_label(cell);
-    (*table_comp).attach(*label, i+1, i+2, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
+    (*comp_table).attach(*label, i+1, i+2, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
 
     // Drawing content
     // Creating a string with expressions and context, calling TL for evaluation
@@ -821,20 +833,20 @@ spreadsheet::display_comp_row(int row_range, int h_min)
     frame = Gtk::manage(new Gtk::Frame);
     (*label).set_label(cell);
     (*frame).add(*label);
-    (*table_comp).attach(*frame, i+1, i+2, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
+    (*comp_table).attach(*frame, i+1, i+2, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
   }
 }
 
 void 
 spreadsheet::display_comp_col(int col_range, int v_min)
 {
-  table_comp = Gtk::manage(new Gtk::Table(2, col_range + 1, false));
-  (*table_comp).set_col_spacings(10);
-  (*table_comp).set_row_spacings(10);
-  (*display_comp_SW).add(*table_comp);
+  comp_table = Gtk::manage(new Gtk::Table(2, col_range + 1, false));
+  (*comp_table).set_col_spacings(10);
+  (*comp_table).set_row_spacings(10);
+  (*display_comp_SW).add(*comp_table);
 
-  (*table_comp).set_row_spacing(0,30);
-  (*table_comp).set_col_spacing(0,30);
+  (*comp_table).set_row_spacing(0,30);
+  (*comp_table).set_col_spacing(0,30);
 
   // Label cell, first cell
   label = Gtk::manage(new Gtk::Label);
@@ -842,8 +854,8 @@ spreadsheet::display_comp_col(int col_range, int v_min)
 //  (*label).set_size_request(10,10);
   (*label).set_width_chars(10);
   (*label).set_line_wrap(true);
-  (*table_comp).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
-//  (*table_comp).attach(*label, 0, 1, 0, 1,
+  (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
+//  (*comp_table).attach(*label, 0, 1, 0, 1,
 //                       Gtk::FILL|Gtk::EXPAND, Gtk::FILL|Gtk::EXPAND);
 
   for (int j = 0 ; j != col_range ; ++j)
@@ -856,7 +868,7 @@ spreadsheet::display_comp_col(int col_range, int v_min)
     label = Gtk::manage(new Gtk::Label);
     Glib::ustring cell = s;
     (*label).set_label(cell);
-    (*table_comp).attach(*label, 0, 1, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK);
+    (*comp_table).attach(*label, 0, 1, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK);
 
     // Drawing content
     // Creating a string with expressions and context, calling TL for evaluation
@@ -885,18 +897,18 @@ spreadsheet::display_comp_col(int col_range, int v_min)
     frame = Gtk::manage(new Gtk::Frame);
     (*label).set_label(cell);
     (*frame).add(*label);
-    (*table_comp).attach(*frame, 1, 2, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK);
+    (*comp_table).attach(*frame, 1, 2, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK);
   }
 }
 
 void
 spreadsheet::display_comp_cell()  // single cell
 {
-  table_comp = Gtk::manage(new Gtk::Table( 2, 2, false));
-  (*display_comp_SW).add(*table_comp);
+  comp_table = Gtk::manage(new Gtk::Table( 2, 2, false));
+  (*display_comp_SW).add(*comp_table);
 
-  (*table_comp).set_row_spacing(0,30);
-  (*table_comp).set_col_spacing(0,30);
+  (*comp_table).set_row_spacing(0,30);
+  (*comp_table).set_col_spacing(0,30);
 
   // Label cell, first cell
   label = Gtk::manage(new Gtk::Label);
@@ -904,9 +916,9 @@ spreadsheet::display_comp_cell()  // single cell
 //   (*label).set_size_request(10,10);
   (*label).set_width_chars(10);
   (*label).set_line_wrap(true);
-  // (*table_comp).attach(*label, 0, 1, 0, 1,
+  // (*comp_table).attach(*label, 0, 1, 0, 1,
   //                      Gtk::FILL|Gtk::EXPAND, Gtk::FILL|Gtk::EXPAND);
-  (*table_comp).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
+  (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
 
   // Creating a string with expressions and context, calling TL for evaluation
   std::stringstream newout;
@@ -931,17 +943,17 @@ spreadsheet::display_comp_cell()  // single cell
   frame = Gtk::manage(new Gtk::Frame);
   (*label).set_label(cell);
   (*frame).add(*label);
-  (*table_comp).attach(*frame, 1, 2, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
+  (*comp_table).attach(*frame, 1, 2, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
 }
 
 void
 spreadsheet::display_comp_cell_nodims()  // single cell and no dimensions
 {
-  table_comp = Gtk::manage(new Gtk::Table( 2, 2, false));
-  (*display_comp_SW).add(*table_comp);
+  comp_table = Gtk::manage(new Gtk::Table( 2, 2, false));
+  (*display_comp_SW).add(*comp_table);
 
-  (*table_comp).set_row_spacing(0,30);
-  (*table_comp).set_col_spacing(0,30);
+  (*comp_table).set_row_spacing(0,30);
+  (*comp_table).set_col_spacing(0,30);
 
   // Label cell, first cell
   label = Gtk::manage(new Gtk::Label);
@@ -949,9 +961,9 @@ spreadsheet::display_comp_cell_nodims()  // single cell and no dimensions
 //   (*label).set_size_request(10,10);
   (*label).set_width_chars(10);
   (*label).set_line_wrap(true);
-  // (*table_comp).attach(*label, 0, 1, 0, 1,
+  // (*comp_table).attach(*label, 0, 1, 0, 1,
   //                      Gtk::FILL|Gtk::EXPAND, Gtk::FILL|Gtk::EXPAND);
-  (*table_comp).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
+  (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
 
   // Creating a string with expressions and context, calling TL for evaluation
   // std::stringstream newout;
@@ -971,6 +983,6 @@ spreadsheet::display_comp_cell_nodims()  // single cell and no dimensions
   frame = Gtk::manage(new Gtk::Frame);
   (*label).set_label(cell);
   (*frame).add(*label);
-  (*table_comp).attach(*frame, 1, 2, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
+  (*comp_table).attach(*frame, 1, 2, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
 }
 

@@ -10,20 +10,19 @@ HeaderDims_In_PivotOrds::operator()
    const std::u32string& v
   )
 {
-  std::cout << "Dimension is " << v << std::endl;
-// #if 0
+//  std::cout << "Dimension is " << v << std::endl;
   std::string v_8 = std::string (v.begin(), v.end());
+  //TODO; will not need to check for system dimensions when Jarryd changes code
   if (!((v_8 == "time") || (v_8 == "all") || ( v_8 == "id")))
   {
     if (!(pivot.isMember(v)))
     {
       (pivot.ords)[v_8] = 0;
-       std::cout << "Adding dimension \"" << v_8 << "\" or \"" << v << "\"" 
-                 << std::endl;
+       std::cout << "Adding dimension \"" << v_8 << "\" in utf-8 or \"" 
+                 << v << "\" in uft-32" << std::endl;
     }
     else
     {
     }
   }
-// #endif
 }
