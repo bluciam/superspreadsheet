@@ -44,7 +44,7 @@ spreadsheet::spreadsheet() :
   //Put the inner boxes in the outer box:
   main_box.pack_start(title_hbox, false, false, 0);
   main_box.pack_start(system_frame,false,false,5);
-//  main_box.pack_start(system_hbox,false,false,0);
+  main_box.pack_start(equations.ent_TreeView,false,false,0);
   main_box.pack_start(pivot_comp_hbox,true, true, 0);
   main_box.pack_start(last_hbox, false, false, 0);
   main_box.pack_start(status_bar, false, false, 0);
@@ -82,8 +82,13 @@ spreadsheet::spreadsheet() :
   (system_table).attach((filename_eqns_entry),1,2,2,3,Gtk::FILL,Gtk::FILL);
   filename_eqns_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_filename_eqns) );
+    // Loaded Equations
+//  label = Gtk::manage(new Gtk::Label("Equations loaded:"));
+//  (system_table).attach((equations.ent_TreeView),0,1,3,3,Gtk::FILL,Gtk::FILL);
   // End system_table
 
+  equations.ent_TreeView.signal_row_activated().connect(
+    sigc::mem_fun(*this, &spreadsheet::on_treeview_row_activated) );
 
 
   // InfoBar is taken from example.
@@ -217,6 +222,20 @@ spreadsheet::on_filename_eqns()
   eqns_32 = std::u32string (eqns_8.begin(), eqns_8.end());
   status_bar.push("Equations file read.");
   std::cout << eqns_8 << std::endl;
+}
+
+void
+spreadsheet::on_treeview_row_activated(const Gtk::TreeModel::Path& path, 
+                                       Gtk::TreeViewColumn* column)
+{
+  Gtk::TreeModel::iterator iter = equations.ent_refTreeModel->get_iter(path);
+  if(iter)
+  {
+    Gtk::TreeModel::Row row = *iter;
+    std::cout << "Row activated: UUID = " << row[equations.theColumns.uuid]
+              << ", Equation = " << row[equations.theColumns.content] 
+              << std::endl;
+  }
 }
 
 void

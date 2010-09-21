@@ -9,6 +9,7 @@
 #include <gtkmm.h> 
 #include <map>
 #include <Pivot.h>
+#include <List_uuid_entities.h>
 #include <TLobjects.h>
 #include <tl/translator.hpp>
 #include <tl/utility.hpp>
@@ -120,6 +121,11 @@ protected:
   std::u32string header_32;
   std::u32string eqns_32;
 
+
+  //TESTING FOR THE POP UP CHOICES
+  List_uuid_entities equations;
+  void on_treeview_row_activated(const Gtk::TreeModel::Path& path, 
+                                 Gtk::TreeViewColumn* column);
 };
 
 #endif // SPREADSHEET_H
