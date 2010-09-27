@@ -53,7 +53,7 @@ List_uuid_entities::~List_uuid_entities()
 }
 
 void
-List_uuid_entities::add_entity(TransLucid::uuid uuid, std::string content)
+List_uuid_entities::add_entity(std::string uuid, std::string content)
 {
   Gtk::TreeModel::Row row = *(ent_refTreeModel->append());
   row[theColumns.uuid] = uuid;

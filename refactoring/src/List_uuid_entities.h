@@ -27,7 +27,8 @@ public:
       add(del_ent);
     }
 //  Gtk::TreeModelColumn<unsigned long> uuid;
-  Gtk::TreeModelColumn<TransLucid::uuid> uuid;
+//  Gtk::TreeModelColumn<TransLucid::uuid> uuid;
+  Gtk::TreeModelColumn<std::string> uuid;
   Gtk::TreeModelColumn<Glib::ustring> content;
   Gtk::TreeModelColumn<bool> del_ent;
   };
@@ -38,7 +39,7 @@ public:
   Glib::RefPtr<Gtk::ListStore> ent_refTreeModel;
 
   // Method for the spreadsheet
-  void add_entity(TransLucid::uuid uuid, std::string content);
+  void add_entity(std::string uuid, std::string content);
 };
 
 

@@ -307,10 +307,10 @@ spreadsheet::on_update_system()
     {
       std::cout << begin_eqs.print() << std::endl;
       std::cout << begin_eqs.id() << std::endl;
-      std::stringstream = ss;
+      std::stringstream ss;
       ss << begin_eqs.id();
-
-//      equations.add_entity(begin_eqs.id(), begin_eqs.print());
+      std::string uuid_str = ss.str();
+      equations.add_entity(uuid_str, begin_eqs.print());
 
       begin_eqs++;
     }
@@ -370,7 +370,7 @@ spreadsheet::on_delete_equation()
     Gtk::TreeModel::Row row = *iter;
     if (row[equations.theColumns.del_ent])
     {
-    std::cout << "Deleting equation: UUID = " << row[equations.theColumns.uuid]
+    std::cout //<< "Deleting equation: UUID = " << row[equations.theColumns.uuid]
               << ", Equation = " << row[equations.theColumns.content]
               << ", Delete status = " << row[equations.theColumns.del_ent]
               << std::endl;
@@ -401,7 +401,7 @@ spreadsheet::on_treeview_row_activated( const Gtk::TreeModel::Path& path,
   if(iter)
   {
     Gtk::TreeModel::Row row = *iter;
-    std::cout << "Row activated: UUID = " << row[equations.theColumns.uuid]
+    std::cout // << "Row activated: UUID = " << row[equations.theColumns.uuid]
               << ", Equation = " << row[equations.theColumns.content] 
               << ", Delete status = " << row[equations.theColumns.del_ent] 
               << std::endl;
