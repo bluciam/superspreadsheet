@@ -44,7 +44,8 @@ spreadsheet::spreadsheet() :
   //Put the inner boxes in the outer box:
   main_box.pack_start(title_hbox, false, false, 0);
   main_box.pack_start(system_frame,false,false,5);
-  main_box.pack_start(equations.ent_TreeView,false,false,0);
+//  main_box.pack_start(equations.ent_TreeView,false,false,0);
+  main_box.pack_start(entities_hbox,false,false,0);
   main_box.pack_start(pivot_comp_hbox,true, true, 0);
   main_box.pack_start(last_hbox, false, false, 0);
   main_box.pack_start(status_bar, false, false, 0);
@@ -52,6 +53,7 @@ spreadsheet::spreadsheet() :
   // Set the boxes' spacing around the outside of the container to 5 pixels
   title_hbox.set_border_width(5); 
   system_hbox.set_border_width(5);
+  entities_hbox.set_border_width(5);
   pivot_comp_hbox.set_border_width(5);
   last_hbox.set_border_width(5);
 
@@ -82,13 +84,32 @@ spreadsheet::spreadsheet() :
   (system_table).attach((filename_eqns_entry),1,2,2,3,Gtk::FILL,Gtk::FILL);
   filename_eqns_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_filename_eqns) );
-    // Loaded Equations
-//  label = Gtk::manage(new Gtk::Label("Equations loaded:"));
-//  (system_table).attach((equations.ent_TreeView),0,1,3,3,Gtk::FILL,Gtk::FILL);
   // End system_table
 
+  // Reading equations from the TL system
+
+/*
+  TL::Translator::EquationIterator
+       begin_eqs = (*TLstuff).traductor.beginEquations();
+  TL::Translator::EquationIterator
+       end_eqs = (*TLstuff).traductor.endEquations();
+  for ( ; begin_eqs != end_eqs ; )
+  {
+    std::cout << begin_eqs.print() << std::endl;
+    begin_eqs++;
+  }
+*/
+
+  // End reading equs. Perhaps for later
+
+    // Loaded Equations
   equations.ent_TreeView.signal_row_activated().connect(
     sigc::mem_fun(*this, &spreadsheet::on_treeview_row_activated) );
+  button = Gtk::manage(new Gtk::Button("  _Delete ticked equations",true));
+  (*button).signal_clicked().connect(
+    sigc::mem_fun(*this, &spreadsheet::on_delete_equation) );
+  entities_hbox.pack_start(equations.ent_TreeView);
+  entities_hbox.pack_start(*button);
 
 
   // InfoBar is taken from example.
@@ -225,20 +246,6 @@ spreadsheet::on_filename_eqns()
 }
 
 void
-spreadsheet::on_treeview_row_activated(const Gtk::TreeModel::Path& path, 
-                                       Gtk::TreeViewColumn* column)
-{
-  Gtk::TreeModel::iterator iter = equations.ent_refTreeModel->get_iter(path);
-  if(iter)
-  {
-    Gtk::TreeModel::Row row = *iter;
-    std::cout << "Row activated: UUID = " << row[equations.theColumns.uuid]
-              << ", Equation = " << row[equations.theColumns.content] 
-              << std::endl;
-  }
-}
-
-void
 spreadsheet::on_infobar_system_status(int)
 {
   infoBar_system_status.hide();
@@ -266,15 +273,6 @@ spreadsheet::on_system_status_clicked()
 }
 
 void
-spreadsheet::on_tick_time()
-{
-  int current_time = (*TLstuff).get_time();
-  std::stringstream ss;
-  ss << current_time;
-  status_bar.push("Advancing time: current time = " + ss.str());
-}
-
-void
 spreadsheet::on_update_system()
 {
   status_bar.push("Updating system");
@@ -283,7 +281,6 @@ spreadsheet::on_update_system()
             << header_32 << "\"" << std::endl;
   std::cout << "loading equations : " << std::endl << "\"" << std::endl 
             << eqns_32 << "\"" << std::endl;
-
   try
   {
     (*TLstuff).traductor.parse_header ( header_32 ) ;
@@ -298,7 +295,25 @@ spreadsheet::on_update_system()
              for_each(HeaderDims_In_PivotOrds(pivot)); 
   try
   {
+    // Add equations to TL system
     (*TLstuff).traductor.translate_and_add_equation_set ( eqns_32 ) ;
+    // Read equations from TL system and add to TreeView widget
+    TL::Translator::EquationIterator
+         begin_eqs = (*TLstuff).traductor.beginEquations();
+    TL::Translator::EquationIterator
+         end_eqs = (*TLstuff).traductor.endEquations();
+    // TODO what happens if adding an equation already added?
+    for ( ; begin_eqs != end_eqs ; )
+    {
+      std::cout << begin_eqs.print() << std::endl;
+      std::cout << begin_eqs.id() << std::endl;
+      std::stringstream = ss;
+      ss << begin_eqs.id();
+
+//      equations.add_entity(begin_eqs.id(), begin_eqs.print());
+
+      begin_eqs++;
+    }
   }
   catch (...)
   {
@@ -308,7 +323,6 @@ spreadsheet::on_update_system()
   }
   (*TLstuff).traductor.header().dimension_symbols.
              for_each(HeaderDims_In_PivotOrds(pivot)); 
-
   // Redraw the pivot area to show new dimensions from header
   delete(pivot_table);
   display_pivot();
@@ -319,6 +333,79 @@ spreadsheet::on_update_system()
   eqns_32.clear();
   filename_eqns_entry.set_text("");
   filename_header_entry.set_text("");
+}
+
+void
+spreadsheet::on_tick_time()
+{
+  int current_time = (*TLstuff).get_time();
+  std::stringstream ss;
+  ss << current_time;
+  status_bar.push("Advancing time: current time = " + ss.str());
+
+
+  // Reading equations from the TL system
+  TL::Translator::EquationIterator
+       begin_eqs = (*TLstuff).traductor.beginEquations();
+  TL::Translator::EquationIterator
+       end_eqs = (*TLstuff).traductor.endEquations();
+  for ( ; begin_eqs != end_eqs ; )
+  {
+    std::cout << begin_eqs.print() << std::endl;
+//    std::cout << begin_eqs.id() << std::endl;
+    begin_eqs++;
+  }
+}
+
+void
+spreadsheet::on_delete_equation()
+{
+  Glib::ustring msg;
+  int no_dels = 0;
+  typedef Gtk::TreeModel::Children type_children;
+  type_children children = equations.ent_refTreeModel->children();
+  for(type_children::iterator iter = children.begin();
+      iter != children.end(); )
+  {
+    Gtk::TreeModel::Row row = *iter;
+    if (row[equations.theColumns.del_ent])
+    {
+    std::cout << "Deleting equation: UUID = " << row[equations.theColumns.uuid]
+              << ", Equation = " << row[equations.theColumns.content]
+              << ", Delete status = " << row[equations.theColumns.del_ent]
+              << std::endl;
+    no_dels++ ;
+    // TODO with the uuid, nned to erase the equation from the system
+    iter = equations.ent_refTreeModel->erase(row);
+    }
+    else iter++; 
+  }
+  if (!no_dels) msg = "There are no equations to delete";
+  else 
+  {
+    std::stringstream sout;
+    sout << no_dels;
+    Glib::ustring num = sout.str();
+    msg = num + " equation(s) deleted";
+  }
+  status_bar.push(msg);
+
+
+}
+
+void
+spreadsheet::on_treeview_row_activated( const Gtk::TreeModel::Path& path, 
+                                        Gtk::TreeViewColumn* column)
+{
+  Gtk::TreeModel::iterator iter = equations.ent_refTreeModel->get_iter(path);
+  if(iter)
+  {
+    Gtk::TreeModel::Row row = *iter;
+    std::cout << "Row activated: UUID = " << row[equations.theColumns.uuid]
+              << ", Equation = " << row[equations.theColumns.content] 
+              << ", Delete status = " << row[equations.theColumns.del_ent] 
+              << std::endl;
+  }
 }
 
 void

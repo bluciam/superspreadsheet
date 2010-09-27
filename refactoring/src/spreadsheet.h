@@ -29,6 +29,7 @@ protected:
   Gtk::VBox main_box;
   Gtk::HBox title_hbox,
             system_hbox,
+            entities_hbox,
             pivot_comp_hbox,
             last_hbox;
   Gtk::Statusbar status_bar;
@@ -124,8 +125,9 @@ protected:
 
   //TESTING FOR THE POP UP CHOICES
   List_uuid_entities equations;
-  void on_treeview_row_activated(const Gtk::TreeModel::Path& path, 
+  void on_treeview_row_activated( const Gtk::TreeModel::Path& path, 
                                  Gtk::TreeViewColumn* column);
+  void on_delete_equation();
 };
 
 #endif // SPREADSHEET_H

@@ -6,6 +6,10 @@
 #define LISTUUIDENTITIES_H
 
 #include <gtkmm.h>
+#include <tl/translator.hpp>
+#include <tl/utility.hpp>
+#include <tl/parser_util.hpp>
+
 
 class List_uuid_entities 
 {
@@ -20,15 +24,21 @@ public:
     {
       add(uuid);
       add(content);
+      add(del_ent);
     }
-  Gtk::TreeModelColumn<unsigned long> uuid;
+//  Gtk::TreeModelColumn<unsigned long> uuid;
+  Gtk::TreeModelColumn<TransLucid::uuid> uuid;
   Gtk::TreeModelColumn<Glib::ustring> content;
+  Gtk::TreeModelColumn<bool> del_ent;
   };
 
   ModelColumns theColumns;
 
   Gtk::TreeView ent_TreeView;
   Glib::RefPtr<Gtk::ListStore> ent_refTreeModel;
+
+  // Method for the spreadsheet
+  void add_entity(TransLucid::uuid uuid, std::string content);
 };
 
 
