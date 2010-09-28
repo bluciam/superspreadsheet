@@ -44,7 +44,6 @@ spreadsheet::spreadsheet() :
   //Put the inner boxes in the outer box:
   main_box.pack_start(title_hbox, false, false, 0);
   main_box.pack_start(system_frame,false,false,5);
-//  main_box.pack_start(equations.ent_TreeView,false,false,0);
   main_box.pack_start(entities_hbox,false,false,0);
   main_box.pack_start(pivot_comp_hbox,true, true, 0);
   main_box.pack_start(last_hbox, false, false, 0);
@@ -85,22 +84,6 @@ spreadsheet::spreadsheet() :
   filename_eqns_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_filename_eqns) );
   // End system_table
-
-  // Reading equations from the TL system
-
-/*
-  TL::Translator::EquationIterator
-       begin_eqs = (*TLstuff).traductor.beginEquations();
-  TL::Translator::EquationIterator
-       end_eqs = (*TLstuff).traductor.endEquations();
-  for ( ; begin_eqs != end_eqs ; )
-  {
-    std::cout << begin_eqs.print() << std::endl;
-    begin_eqs++;
-  }
-*/
-
-  // End reading equs. Perhaps for later
 
     // Loaded Equations
   equations.ent_TreeView.signal_row_activated().connect(
@@ -371,7 +354,7 @@ spreadsheet::on_delete_equation()
     if (row[equations.theColumns.del_ent])
     {
     std::cout //<< "Deleting equation: UUID = " << row[equations.theColumns.uuid]
-              << ", Equation = " << row[equations.theColumns.content]
+              << "Equation = " << row[equations.theColumns.content]
               << ", Delete status = " << row[equations.theColumns.del_ent]
               << std::endl;
     no_dels++ ;
