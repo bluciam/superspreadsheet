@@ -6,7 +6,6 @@
 #include <cstdio>
 #include <iostream>
 
-
 Pivot::Pivot()
 {
   v_dim.clear();
@@ -14,7 +13,6 @@ Pivot::Pivot()
   h_radius = 6;
   v_radius = 6;
 }
-
 
 Pivot::~Pivot()
 {

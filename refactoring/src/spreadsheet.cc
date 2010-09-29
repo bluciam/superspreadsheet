@@ -26,6 +26,8 @@ spreadsheet::spreadsheet() :
 
   // last_button is Gtk::HButtonBox for equal spacing (30) between buttons.
   last_box(Gtk::BUTTONBOX_END, 30),
+  equations_box(Gtk::BUTTONBOX_CENTER, 30),
+  system_box(Gtk::BUTTONBOX_CENTER, 10),
   system_status_button(" _Show Current System Status ", true), 
   redraw_comp_button(" _Redraw SpreadSheet  ", true), 
   tick_button("  _Tick Time  ", true),
@@ -44,7 +46,8 @@ spreadsheet::spreadsheet() :
   //Put the inner boxes in the outer box:
   main_box.pack_start(title_hbox, false, false, 0);
   main_box.pack_start(system_frame,false,false,5);
-  main_box.pack_start(entities_hbox,false,false,0);
+  main_box.pack_start(equations_frame,false,false,5);
+//  main_box.pack_start(entities_hbox,false,false,0);
   main_box.pack_start(pivot_comp_hbox,true, true, 0);
   main_box.pack_start(last_hbox, false, false, 0);
   main_box.pack_start(status_bar, false, false, 0);
@@ -86,13 +89,19 @@ spreadsheet::spreadsheet() :
   // End system_table
 
     // Loaded Equations
-  equations.ent_TreeView.signal_row_activated().connect(
-    sigc::mem_fun(*this, &spreadsheet::on_treeview_row_activated) );
-  button = Gtk::manage(new Gtk::Button("  _Delete ticked equations",true));
+//  equations.ent_TreeView.signal_row_activated().connect(
+//    sigc::mem_fun(*this, &spreadsheet::on_treeview_row_activated) );
+  filling_equations_table();
+  button = Gtk::manage(new Gtk::Button("  _Delete ticked equations  ",true));
   (*button).signal_clicked().connect(
     sigc::mem_fun(*this, &spreadsheet::on_delete_equation) );
-  entities_hbox.pack_start(equations.ent_TreeView);
-  entities_hbox.pack_start(*button);
+//  entities_hbox.pack_start(*equations_table);
+//  entities_hbox.pack_end(*button, Gtk::PACK_SHRINK);
+//  entities_hbox.pack_end(*button, false, false, 3);
+  equations_box.pack_end(*button, true, false, 3);
+  entities_hbox.pack_end(equations_box);
+  equations_frame.set_shadow_type(Gtk::SHADOW_IN);
+  equations_frame.add(entities_hbox);
 
 
   // InfoBar is taken from example.
@@ -116,10 +125,16 @@ spreadsheet::spreadsheet() :
   tick_button.set_relief(Gtk::ReliefStyle::RELIEF_HALF);
 
   system_hbox.pack_start(system_table);
-  system_hbox.pack_end(tick_button);
-  system_hbox.pack_end(*button);
+  system_box.pack_start(tick_button, Gtk::PACK_SHRINK);
+//  system_hbox.pack_end(tick_button, false, false, 3);
+  system_box.pack_start(*button);
+//  system_box.pack_end(infoBar_system_status);
+  system_box.pack_start(system_status_button);
+
+  system_hbox.pack_start(system_box);
+//  system_hbox.pack_end(*button);
   system_hbox.pack_end(infoBar_system_status);
-  system_hbox.pack_end(system_status_button);
+//  system_hbox.pack_end(system_status_button);
 
   system_frame.set_shadow_type(Gtk::SHADOW_IN);
   system_frame.add(system_hbox);
@@ -229,6 +244,80 @@ spreadsheet::on_filename_eqns()
 }
 
 void
+spreadsheet::filling_equations_table()
+{
+  /*
+  TODO: check on the equations.entities.size() to define the size 
+  of the table. Does this return zero is empty() ?
+
+  */
+  equations_table = Gtk::manage(new Gtk::Table(4,3,false));
+  (*equations_table).set_col_spacings(10);
+  label = Gtk::manage(new Gtk::Label("  uuid  "));
+  (*equations_table).attach((*label), 0, 1, 0, 1,Gtk::FILL,Gtk::FILL);
+  label = Gtk::manage(new Gtk::Label("  content  "));
+  (*equations_table).attach((*label), 1, 2, 0, 1,Gtk::FILL,Gtk::FILL);
+  label = Gtk::manage(new Gtk::Label("  delete ?  "));
+  (*equations_table).attach((*label), 2, 3, 0, 1,Gtk::FILL,Gtk::FILL);
+  if (!(equations.entities.empty()))
+  // Create a second map to sort by formula to display.
+  {
+  std::map<Glib::ustring, TransLucid::uuid> temp_equations;
+//    int i = 1;
+    for ( std::map<TransLucid::uuid,Glib::ustring>::iterator 
+               mit=(equations.entities).begin();
+               mit != (equations.entities).end();
+               ++mit // ,++i
+        )
+    {
+      temp_equations[ (*mit).second ] = (*mit).first;
+    }
+
+    int i = 1;
+    for ( std::map<Glib::ustring , TransLucid::uuid >::iterator 
+               mit=(temp_equations).begin();
+               mit != (temp_equations).end();
+               ++mit , ++i )
+
+    {
+      std::stringstream ss;
+      ss << (*mit).second;
+      Glib::ustring uuid_str = ss.str();
+      label = Gtk::manage(new Gtk::Label(uuid_str));
+      (*label).set_alignment(Gtk::ALIGN_LEFT, Gtk::ALIGN_TOP);
+      (*equations_table).attach((*label), 0, 1, i, i+1, Gtk::FILL,Gtk::FILL);
+//      label = Gtk::manage(new Gtk::Label((*mit).first));
+//      (*label).set_alignment(Gtk::ALIGN_LEFT, Gtk::ALIGN_TOP);
+//      (*equations_table).attach((*label), 1, 2, i, i+1, Gtk::FILL,Gtk::FILL);
+      int size = (*mit).first.size();
+      entry = Gtk::manage(new Gtk::Entry());
+      (*entry).set_width_chars(size);
+      (*entry).set_text((*mit).first);
+      (*equations_table).attach((*entry), 1, 2, i, i+1);
+//      (*equations_table).attach((*entry), 1, 2, i, i+1, Gtk::FILL,Gtk::FILL);
+
+      // TODO cna't get the checkbutton to be centered.
+      checkbutton = Gtk::manage(new Gtk::CheckButton());
+      (*checkbutton).set_alignment(Gtk::ALIGN_CENTER, Gtk::ALIGN_TOP);
+      (*equations_table).attach((*checkbutton), 2, 3, i, i+1, Gtk::FILL,Gtk::FILL);
+
+      /*
+      TODO: connect a signal when button is clicked. If on, add the uuid
+      to a vector and if off delete if it exist the uuid from the vector.
+      This vector is used in callback "delete ticked equations" to delete
+      those equations from the system and from equations.entities.
+      Then need to redraw equations_table.
+      TODO: perhaps need to also redraw the computations part of the window
+
+      */
+    }
+
+  }
+  entities_hbox.pack_start(*equations_table);
+
+}
+
+void
 spreadsheet::on_infobar_system_status(int)
 {
   infoBar_system_status.hide();
@@ -290,10 +379,16 @@ spreadsheet::on_update_system()
     {
       std::cout << begin_eqs.print() << std::endl;
       std::cout << begin_eqs.id() << std::endl;
-      std::stringstream ss;
-      ss << begin_eqs.id();
-      std::string uuid_str = ss.str();
-      equations.add_entity(uuid_str, begin_eqs.print());
+//      std::stringstream ss;
+//      ss << begin_eqs.id();
+//      std::string uuid_str = ss.str();
+      equations.add_entity(begin_eqs.id(), begin_eqs.print());
+      // Need to readraw the system_table using filling_equations_table()
+      entities_hbox.remove(*equations_table);
+      delete(equations_table);
+      filling_equations_table();
+      entities_hbox.show_all_children();
+      
 
       begin_eqs++;
     }
@@ -343,6 +438,8 @@ spreadsheet::on_tick_time()
 void
 spreadsheet::on_delete_equation()
 {
+
+/*
   Glib::ustring msg;
   int no_dels = 0;
   typedef Gtk::TreeModel::Children type_children;
@@ -372,7 +469,7 @@ spreadsheet::on_delete_equation()
     msg = num + " equation(s) deleted";
   }
   status_bar.push(msg);
-
+*/
 
 }
 
@@ -380,6 +477,8 @@ void
 spreadsheet::on_treeview_row_activated( const Gtk::TreeModel::Path& path, 
                                         Gtk::TreeViewColumn* column)
 {
+
+/*
   Gtk::TreeModel::iterator iter = equations.ent_refTreeModel->get_iter(path);
   if(iter)
   {
@@ -389,6 +488,8 @@ spreadsheet::on_treeview_row_activated( const Gtk::TreeModel::Path& path,
               << ", Delete status = " << row[equations.theColumns.del_ent] 
               << std::endl;
   }
+*/
+
 }
 
 void

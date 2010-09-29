@@ -9,7 +9,7 @@
 #include <gtkmm.h> 
 #include <map>
 #include <Pivot.h>
-#include <List_uuid_entities.h>
+#include <List_uuid_n_content.h>
 #include <TLobjects.h>
 #include <tl/translator.hpp>
 #include <tl/utility.hpp>
@@ -39,11 +39,20 @@ protected:
  // Gtk::Frame * display_comp_SW;
   Gtk::VBox new_dim_vbox;
   Gtk::VBox * vbox;  // For packing label and spin buttons in info
-  Gtk::HButtonBox last_box;
+  Gtk::HButtonBox system_box,
+                  equations_box,
+                  last_box;
 
   Gtk::Table * comp_table,
              * pivot_table,
-               system_table;
+               system_table,
+             * equations_table;
+
+  Gtk::Frame   pivot_frame,
+               comp_frame,
+               system_frame,
+               equations_frame,
+               * frame ; // for each cell of the comp_table
 
   Gtk::RadioButton * hnodisplay,
                    * vnodisplay,
@@ -62,23 +71,20 @@ protected:
               redraw_comp_button,
               close_button;
 
+  Gtk::CheckButton * checkbutton;
+
   Gtk::Entry  exprs_entry,
               eqns_entry,
               filename_eqns_entry,
               filename_header_entry,
-              filename_expr_entry;
-
+              filename_expr_entry,
+              * entry;
   Gtk::Entry  new_dim_entry,
               new_pivot_entry;
 
   Gtk::Label   label_system_status,
                * label,
                window_header;
-
-  Gtk::Frame   pivot_frame,
-               comp_frame,
-               system_frame,
-               * frame ; // for each cell of the comp_table
 
   Gtk::InfoBar infoBar_system_status;
 
@@ -124,7 +130,8 @@ protected:
 
 
   //TESTING FOR THE POP UP CHOICES
-  List_uuid_entities equations;
+  List_uuid_n_content equations;
+  void filling_equations_table();
   void on_treeview_row_activated( const Gtk::TreeModel::Path& path, 
                                  Gtk::TreeViewColumn* column);
   void on_delete_equation();
