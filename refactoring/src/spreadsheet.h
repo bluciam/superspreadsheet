@@ -32,16 +32,17 @@ protected:
             entities_hbox,
             pivot_comp_hbox,
             last_hbox;
-  Gtk::Statusbar status_bar;
+  Gtk::VBox pivot_vbox,
+            new_dim_vbox,
+            * vbox;  // For packing label and spin buttons in info
 
-  Gtk::VBox pivot_vbox;
-  Gtk::ScrolledWindow * display_comp_SW;
- // Gtk::Frame * display_comp_SW;
-  Gtk::VBox new_dim_vbox;
-  Gtk::VBox * vbox;  // For packing label and spin buttons in info
   Gtk::HButtonBox system_box,
                   equations_box,
                   last_box;
+
+  Gtk::Statusbar status_bar;
+
+  Gtk::ScrolledWindow * display_comp_SW;
 
   Gtk::Table * comp_table,
              * pivot_table,
@@ -51,6 +52,7 @@ protected:
   Gtk::Frame   pivot_frame,
                comp_frame,
                system_frame,
+               expressions_frame,
                equations_frame,
                * frame ; // for each cell of the comp_table
 
@@ -132,8 +134,6 @@ protected:
   //TESTING FOR THE ENTITIES DISPLAY
   List_uuid_n_content equations;
   void filling_equations_table();
-  void on_treeview_row_activated( const Gtk::TreeModel::Path& path, 
-                                 Gtk::TreeViewColumn* column);
   void on_delete_equation();
 };
 

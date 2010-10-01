@@ -24,10 +24,10 @@ spreadsheet::spreadsheet() :
   h_spread_limits(0.0, 0.0, 20.0, 1.0, 1.0, 0.0),
   v_spread_limits(0.0, 0.0, 20.0, 1.0, 1.0, 0.0),
 
-  // last_button is Gtk::HButtonBox for equal spacing (30) between buttons.
+  // Gtk::HButtonBox (boxfor equal spacing (30) between buttons.
   last_box(Gtk::BUTTONBOX_END, 30),
-  equations_box(Gtk::BUTTONBOX_CENTER, 30),
-  system_box(Gtk::BUTTONBOX_CENTER, 10),
+  equations_box(Gtk::BUTTONBOX_END, 30),
+  system_box(Gtk::BUTTONBOX_SPREAD, 30),
   system_status_button(" _Show Current System Status ", true), 
   redraw_comp_button(" _Redraw SpreadSheet  ", true), 
   tick_button("  _Tick Time  ", true),
@@ -35,28 +35,27 @@ spreadsheet::spreadsheet() :
 
 {
 
-//TODO: use delete for all of the pointers.
-
   // Set title and size of the SuperSpreadSheet main window
   set_title("The Super SpreadSheet, The S³");
-  // Add outer box to the window since it may only contain a single widget 
   add(main_box);
   // main_box.set_size_request(800,600);
   //Put the inner boxes in the outer box:
   main_box.pack_start(title_hbox, false, false, 0);
   main_box.pack_start(system_frame,false,false,5);
+  main_box.pack_start(expressions_frame,false,false,0);
   main_box.pack_start(equations_frame,false,false,5);
-//  main_box.pack_start(entities_hbox,false,false,0);
   main_box.pack_start(pivot_comp_hbox,true, true, 0);
   main_box.pack_start(last_hbox, false, false, 0);
   main_box.pack_start(status_bar, false, false, 0);
 
   // Set the boxes' spacing around the outside of the container to 5 pixels
-  title_hbox.set_border_width(5); 
+//  title_hbox.set_border_width(5); 
   system_hbox.set_border_width(5);
   entities_hbox.set_border_width(5);
   pivot_comp_hbox.set_border_width(5);
   last_hbox.set_border_width(5);
+  pivot_vbox.set_border_width(5);
+  new_dim_vbox.set_border_width(5);
 
 // Begin title_hbox 
   title_hbox.pack_start(window_header);
@@ -468,25 +467,6 @@ spreadsheet::on_delete_equation()
     msg = num + " equation(s) deleted";
   }
   status_bar.push(msg);
-*/
-
-}
-
-void
-spreadsheet::on_treeview_row_activated( const Gtk::TreeModel::Path& path, 
-                                        Gtk::TreeViewColumn* column)
-{
-
-/*
-  Gtk::TreeModel::iterator iter = equations.ent_refTreeModel->get_iter(path);
-  if(iter)
-  {
-    Gtk::TreeModel::Row row = *iter;
-    std::cout // << "Row activated: UUID = " << row[equations.theColumns.uuid]
-              << ", Equation = " << row[equations.theColumns.content] 
-              << ", Delete status = " << row[equations.theColumns.del_ent] 
-              << std::endl;
-  }
 */
 
 }
