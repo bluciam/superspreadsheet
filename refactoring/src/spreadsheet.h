@@ -129,7 +129,7 @@ protected:
   std::u32string eqns_32;
 
 
-  //TESTING FOR THE POP UP CHOICES
+  //TESTING FOR THE ENTITIES DISPLAY
   List_uuid_n_content equations;
   void filling_equations_table();
   void on_treeview_row_activated( const Gtk::TreeModel::Path& path, 

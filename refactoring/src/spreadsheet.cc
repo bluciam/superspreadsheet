@@ -36,7 +36,6 @@ spreadsheet::spreadsheet() :
 {
 
 //TODO: use delete for all of the pointers.
-//TODO: catch all the errors froms TransLucid
 
   // Set title and size of the SuperSpreadSheet main window
   set_title("The Super SpreadSheet, The S³");
@@ -326,18 +325,18 @@ spreadsheet::on_infobar_system_status(int)
 void
 spreadsheet::on_system_status_clicked()
 {
-  std::stringstream sout;
-  sout << "Current expression is \"" << (*TLstuff).expression 
+  std::stringstream ss;
+  ss << "Current expression is \"" << (*TLstuff).expression 
        << "\"" << std::endl;
   for (std::map<Glib::ustring,int>::iterator mit=(pivot.ords).begin(); 
        mit != (pivot.ords).end(); 
        ++mit )
   {
-    sout << "Dimension \"" << (*mit).first << "\" = " << (*mit).second 
+    ss << "Dimension \"" << (*mit).first << "\" = " << (*mit).second 
          << std::endl;
   }
 
-  std::string text = sout.str();
+  std::string text = ss.str();
 
   label_system_status.set_text(text);
   infoBar_system_status.show(); // To show the widget when status is clicked.
@@ -463,9 +462,9 @@ spreadsheet::on_delete_equation()
   if (!no_dels) msg = "There are no equations to delete";
   else 
   {
-    std::stringstream sout;
-    sout << no_dels;
-    Glib::ustring num = sout.str();
+    std::stringstream ss;
+    ss << no_dels;
+    Glib::ustring num = ss.str();
     msg = num + " equation(s) deleted";
   }
   status_bar.push(msg);
@@ -627,39 +626,33 @@ spreadsheet::display_pivot()
   (*pivot_table).set_col_spacings(10);
 
   // Column titles
-  label = Gtk::manage(new Gtk::Label);
-  (*label).set_label("Dimension");
+  label = Gtk::manage(new Gtk::Label("Dimensions"));
   (*pivot_table).attach((*label),0,1,0,1,Gtk::FILL,Gtk::FILL);
 
   vbox = Gtk::manage(new Gtk::VBox);
-  label = Gtk::manage(new Gtk::Label);
+  label = Gtk::manage(new Gtk::Label("V dim\nradius"));
   (*vbox).add(*label);
   (*vbox).add(*v_spread_spin);
-  (*label).set_label("V dim\nradius");
   (*pivot_table).attach((*vbox),1,2,0,1,Gtk::FILL,Gtk::FILL);
   v_spread_spin->signal_value_changed().connect(
     sigc::mem_fun( *this, &spreadsheet::on_v_spread_spin ) );
 
   vbox = Gtk::manage(new Gtk::VBox);
-  label = Gtk::manage(new Gtk::Label);
+  label = Gtk::manage(new Gtk::Label("H dim\nradius"));
   (*vbox).add(*label);
   (*vbox).add(*h_spread_spin);
-  (*label).set_label("H dim\nradius");
   (*pivot_table).attach((*vbox),2,3,0,1,Gtk::FILL,Gtk::FILL);
   h_spread_spin->signal_value_changed().connect(
     sigc::mem_fun( *this, &spreadsheet::on_h_spread_spin ) );
 
-  label = Gtk::manage(new Gtk::Label);
-  (*label).set_label("Pivot");
+  label = Gtk::manage(new Gtk::Label("Pivot"));
   (*pivot_table).attach((*label),3,4,0,1,Gtk::FILL,Gtk::FILL);
 
-  label = Gtk::manage(new Gtk::Label);
-  (*label).set_label("Delete\ndimension?");
+  label = Gtk::manage(new Gtk::Label("Delete\ndimension?"));
   (*pivot_table).attach((*label),4,5,0,1,Gtk::FILL,Gtk::FILL);
 
  // First row: no dimension chosen for computation display
-  label = Gtk::manage(new Gtk::Label);
-  (*label).set_label("None");
+  label = Gtk::manage(new Gtk::Label("None"));
   (*pivot_table).attach((*label),0,1,1,2,Gtk::FILL,Gtk::FILL);
 
   Gtk::RadioButton::Group vgroup = (*vnodisplay).get_group();
@@ -682,9 +675,8 @@ spreadsheet::display_pivot()
   {
     int ii = i+3;
 
-    label = Gtk::manage(new Gtk::Label);
     Glib::ustring dim = (*mit).first;
-    (*label).set_label(dim);
+    label = Gtk::manage(new Gtk::Label(dim));
     (*pivot_table).attach( (*label), 0, 1, i+2, ii,Gtk::FILL,Gtk::FILL);
 
     vdisplay = Gtk::manage(new Gtk::RadioButton);
@@ -739,10 +731,9 @@ void
 spreadsheet::on_v_spread_spin()
 {
   (pivot.v_radius) = v_spread_spin->get_value();
-  std::stringstream sout;
-  sout << pivot.v_radius;
-  std::string s = sout.str();
-  status_bar.push( "The new v_radius is " + s);
+  std::stringstream ss;
+  ss << pivot.v_radius;
+  status_bar.push( "The new v_radius is " + ss.str());
   redraw_comp_button.clicked();
 }
 
@@ -750,10 +741,9 @@ void
 spreadsheet::on_h_spread_spin()
 {
   (pivot.h_radius) = h_spread_spin->get_value();
-  std::stringstream sout;
-  sout << pivot.h_radius;
-  std::string s = sout.str();
-  status_bar.push( "The new h_radius is " + s);
+  std::stringstream ss;
+  ss << pivot.h_radius;
+  status_bar.push( "The new h_radius is " + ss.str());
   redraw_comp_button.clicked();
 }
 
@@ -825,10 +815,10 @@ spreadsheet::on_dim_pivot_changed(Glib::ustring dim,
                                   Gtk::SpinButton * pivot_spin)
 {
   int new_pivot = pivot_spin->get_value ();
-  std::stringstream sout;
-  sout << new_pivot;
+  std::stringstream ss;
+  ss << new_pivot;
   std::string msg = "New pivot for dim \"" + dim + "\" is \"" + 
-                    sout.str() + "\"";
+                    ss.str() + "\"";
   status_bar.push(msg);
   pivot.ords[dim] = new_pivot;
   redraw_comp_button.clicked();
@@ -888,39 +878,26 @@ spreadsheet::display_comp_all(int row_range, int col_range,
   (*display_comp_SW).add(*comp_table);
 
   // Label cell, first cell
-  label = Gtk::manage(new Gtk::Label);
-  (*label).set_label( pivot.v_dim + " \\ " + pivot.h_dim );
-//  (*label).set_size_request(10,10);
+  label = Gtk::manage(new Gtk::Label( pivot.v_dim + " \\ " + pivot.h_dim ));
   (*label).set_width_chars(10);
   (*label).set_line_wrap(true);
-//  (*comp_table).attach(*label, 0, 1, 0, 1,
-//                       Gtk::FILL|Gtk::EXPAND, Gtk::FILL|Gtk::EXPAND);
   (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
 
   //  Drawing horizontal index 
   for (int i = 0 ; i != row_range ; ++i)
   {
-    std::string s;
-    std::stringstream out;
-    out << h_min + i ;
-    s = out.str();
-    label = Gtk::manage(new Gtk::Label);
-    Glib::ustring cell = s;
-    (*label).set_label(cell);
+    std::stringstream ss;
+    ss << h_min + i ;
+    label = Gtk::manage(new Gtk::Label(ss.str()));
     (*comp_table).attach(*label, i+1, i+2, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
-//    (*comp_table).attach(*label, i+1, i+2, 0, 1, Gtk::FILL, Gtk::FILL);
   }
 
   //  Drawing vertical index 
   for (int j = 0 ; j < col_range ; ++j)
   {
-    std::string s;
-    std::stringstream out;
-    out << v_min + j ;
-    s = out.str();
-    label = Gtk::manage(new Gtk::Label);
-    Glib::ustring cell = s;
-    (*label).set_label(cell);
+    std::stringstream ss;
+    ss << v_min + j ;
+    label = Gtk::manage(new Gtk::Label(ss.str()));
     (*comp_table).attach(*label, 0, 1, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK);
   }
 
@@ -931,32 +908,29 @@ spreadsheet::display_comp_all(int row_range, int col_range,
     {
     // Creating a string with expressions and context, calling TL for evaluation
       std::cout << "expression = " << (*TLstuff).expression << std::endl;
-      std::stringstream newout;
-      newout << "(";
-      newout << (*TLstuff).expression;
-      newout << ")";
-      // newout << " @ [ ";
-      newout << " @ [time:0, ";
-      newout << pivot.h_dim << ":" << (i+h_min) << ", ";
-      newout << pivot.v_dim << ":" << (j+v_min);
+      std::stringstream ss;
+      ss << "(";
+      ss << (*TLstuff).expression;
+      ss << ")";
+      ss << " @ [time:0, ";
+      ss << pivot.h_dim << ":" << (i+h_min) << ", ";
+      ss << pivot.v_dim << ":" << (j+v_min);
       for (std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
            mit != pivot.ords.end(); ++mit)
       {
          if (mit->first != pivot.h_dim && mit->first != pivot.v_dim)
          {
-           newout << ", " << mit->first << ":" << mit->second;
+           ss << ", " << mit->first << ":" << mit->second;
          }
       }
-      newout << "]";
-      std::string newout_str = newout.str();
-      // std::cout << newout_str << std::endl;
-      std::u32string tuple32 (newout_str.begin(), newout_str.end());
+      ss << "]";
+      std::string ss_str = ss.str();
+      std::u32string tuple32 (ss_str.begin(), ss_str.end());
       std::cout << tuple32 << std::endl;
       Glib::ustring cell = (*TLstuff).calculate_expr(tuple32);
 
-      label = Gtk::manage(new Gtk::Label);
+      label = Gtk::manage(new Gtk::Label(cell));
       frame = Gtk::manage(new Gtk::Frame);
-      (*label).set_label(cell);
       (*frame).add(*label);
       (*comp_table).attach(*frame, i+1, i+2, j+1, j+2, Gtk::SHRINK,Gtk::SHRINK);
     }
@@ -975,53 +949,42 @@ spreadsheet::display_comp_row(int row_range, int h_min)
   (*comp_table).set_col_spacing(0,30);
 
   // Label cell, first cell
-  label = Gtk::manage(new Gtk::Label);
-  (*label).set_label(pivot.h_dim);
-//  (*label).set_size_request(10,10);
+  label = Gtk::manage(new Gtk::Label(pivot.h_dim));
   (*label).set_width_chars(10);
   (*label).set_line_wrap(true);
   (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
-//  (*comp_table).attach(*label, 0, 1, 0, 1,
-//                       Gtk::FILL|Gtk::EXPAND, Gtk::FILL|Gtk::EXPAND);
 
   for (int i = 0 ; i != row_range ; ++i)
   {
     //  Drawing horizontal index 
-    std::string s;
-    std::stringstream out;
-    out << h_min + i ;
-    s = out.str();
-    label = Gtk::manage(new Gtk::Label);
-    Glib::ustring cell = s;
-    (*label).set_label(cell);
+    std::stringstream ss;
+    ss << h_min + i ;
+    label = Gtk::manage(new Gtk::Label(ss.str()));
     (*comp_table).attach(*label, i+1, i+2, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
 
     // Drawing content
     // Creating a string with expressions and context, calling TL for evaluation
     std::cout << "expression = " << (*TLstuff).expression << std::endl;
-    std::stringstream newout;
-    newout << "(";
-    newout << (*TLstuff).expression;
-    newout << ")";
-    newout << " @ [time:0, ";
-    newout << pivot.h_dim << ":" << (i+h_min) ;
+    ss.str("");
+    ss << "(" << (*TLstuff).expression << ")";
+    ss << " @ [time:0, ";
+    ss << pivot.h_dim << ":" << (i+h_min) ;
     for (std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
          mit != pivot.ords.end(); ++mit)
     {
       if (mit->first != pivot.h_dim)
       {
-        newout << ", " << mit->first << ":" << mit->second;
+        ss << ", " << mit->first << ":" << mit->second;
       }
     }
-    newout << "]";
-    std::string newout_str = newout.str();
-    std::u32string tuple32 (newout_str.begin(), newout_str.end());
+    ss << "]";
+    std::string ss_str = ss.str();
+    std::u32string tuple32 (ss_str.begin(), ss_str.end());
     std::cout << tuple32 << std::endl;
-    cell = (*TLstuff).calculate_expr(tuple32);
+    Glib::ustring cell = (*TLstuff).calculate_expr(tuple32);
 
-    label = Gtk::manage(new Gtk::Label);
+    label = Gtk::manage(new Gtk::Label(cell));
     frame = Gtk::manage(new Gtk::Frame);
-    (*label).set_label(cell);
     (*frame).add(*label);
     (*comp_table).attach(*frame, i+1, i+2, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
   }
@@ -1039,53 +1002,42 @@ spreadsheet::display_comp_col(int col_range, int v_min)
   (*comp_table).set_col_spacing(0,30);
 
   // Label cell, first cell
-  label = Gtk::manage(new Gtk::Label);
-  (*label).set_label(pivot.v_dim);
-//  (*label).set_size_request(10,10);
+  label = Gtk::manage(new Gtk::Label(pivot.v_dim));
   (*label).set_width_chars(10);
   (*label).set_line_wrap(true);
   (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
-//  (*comp_table).attach(*label, 0, 1, 0, 1,
-//                       Gtk::FILL|Gtk::EXPAND, Gtk::FILL|Gtk::EXPAND);
 
   for (int j = 0 ; j != col_range ; ++j)
   {
     //  Drawing vertical index 
-    std::string s;
-    std::stringstream out;
-    out << v_min + j ;
-    s = out.str();
-    label = Gtk::manage(new Gtk::Label);
-    Glib::ustring cell = s;
-    (*label).set_label(cell);
+    std::stringstream ss;
+    ss << v_min + j ;
+    label = Gtk::manage(new Gtk::Label(ss.str()));
     (*comp_table).attach(*label, 0, 1, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK);
 
     // Drawing content
     // Creating a string with expressions and context, calling TL for evaluation
     std::cout << "expression = " << (*TLstuff).expression << std::endl;
-    std::stringstream newout;
-    newout << "(";
-    newout << (*TLstuff).expression;
-    newout << ")";
-    newout << " @ [time:0, ";
-    newout << pivot.v_dim << ":" << (j+v_min) ;
+    ss.str("");
+    ss << "(" << (*TLstuff).expression << ")";
+    ss << " @ [time:0, ";
+    ss << pivot.v_dim << ":" << (j+v_min) ;
     for (std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
          mit != pivot.ords.end(); ++mit)
     {
       if (mit->first != pivot.v_dim)
       {
-        newout << ", " << mit->first << ":" << mit->second;
+        ss << ", " << mit->first << ":" << mit->second;
       }
     }
-    newout << "]";
-    std::string newout_str = newout.str();
-    std::u32string tuple32 (newout_str.begin(), newout_str.end());
+    ss << "]";
+    std::string ss_str = ss.str();
+    std::u32string tuple32 (ss_str.begin(), ss_str.end());
     std::cout << tuple32 << std::endl;
-    cell = (*TLstuff).calculate_expr(tuple32);
+    Glib::ustring cell = (*TLstuff).calculate_expr(tuple32);
 
-    label = Gtk::manage(new Gtk::Label);
+    label = Gtk::manage(new Gtk::Label(cell));
     frame = Gtk::manage(new Gtk::Frame);
-    (*label).set_label(cell);
     (*frame).add(*label);
     (*comp_table).attach(*frame, 1, 2, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK);
   }
@@ -1101,37 +1053,31 @@ spreadsheet::display_comp_cell()  // single cell
   (*comp_table).set_col_spacing(0,30);
 
   // Label cell, first cell
-  label = Gtk::manage(new Gtk::Label);
+  label = Gtk::manage(new Gtk::Label("  "));
   (*label).set_label("  ");
-//   (*label).set_size_request(10,10);
   (*label).set_width_chars(10);
   (*label).set_line_wrap(true);
-  // (*comp_table).attach(*label, 0, 1, 0, 1,
-  //                      Gtk::FILL|Gtk::EXPAND, Gtk::FILL|Gtk::EXPAND);
   (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
 
   // Creating a string with expressions and context, calling TL for evaluation
-  std::stringstream newout;
-  newout << "(";
-  newout << (*TLstuff).expression;
-  newout << ")";
-  newout << " @ [time:0";
+  std::stringstream ss;
+  ss << "(" << (*TLstuff).expression << ")";
+  ss << " @ [time:0";
   // There is at least one element in pivot.ords otherwise control would be
   // given to display_comp_cel_nodim()
   for (std::map<Glib::ustring,int>::iterator mit = pivot.ords.begin();
        mit != pivot.ords.end(); ++mit)
   {
-    newout << "," << mit->first << ":" << mit->second;
+    ss << "," << mit->first << ":" << mit->second;
   }
-  newout << "]";
-  std::string newout_str = newout.str();
-  std::u32string tuple32 (newout_str.begin(), newout_str.end());
+  ss << "]";
+  std::string ss_str = ss.str();
+  std::u32string tuple32 (ss_str.begin(), ss_str.end());
   std::cout << tuple32 << std::endl;
   Glib::ustring cell = (*TLstuff).calculate_expr(tuple32);
 
-  label = Gtk::manage(new Gtk::Label);
+  label = Gtk::manage(new Gtk::Label(cell));
   frame = Gtk::manage(new Gtk::Frame);
-  (*label).set_label(cell);
   (*frame).add(*label);
   (*comp_table).attach(*frame, 1, 2, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
 }
@@ -1146,32 +1092,18 @@ spreadsheet::display_comp_cell_nodims()  // single cell and no dimensions
   (*comp_table).set_col_spacing(0,30);
 
   // Label cell, first cell
-  label = Gtk::manage(new Gtk::Label);
-  (*label).set_label("  ");
-//   (*label).set_size_request(10,10);
+  label = Gtk::manage(new Gtk::Label("  "));
   (*label).set_width_chars(10);
   (*label).set_line_wrap(true);
-  // (*comp_table).attach(*label, 0, 1, 0, 1,
-  //                      Gtk::FILL|Gtk::EXPAND, Gtk::FILL|Gtk::EXPAND);
   (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
 
-  // Creating a string with expressions and context, calling TL for evaluation
-  // std::stringstream newout;
-  // newout << "(";
-  // newout << (*TLstuff).expression;
-  // newout << ")";
-  // newout << " @ [time:0";
-  // newout << "]";
-  // std::string newout_str = newout.str();
-  std::string newout_str = "(" + (*TLstuff).expression + ") @ [time:0]";
-  // std::cout << newout_str << std::endl;
-  std::u32string tuple32 (newout_str.begin(), newout_str.end());
+  std::string ss_str = "(" + (*TLstuff).expression + ") @ [time:0]";
+  std::u32string tuple32 (ss_str.begin(), ss_str.end());
   std::cout << tuple32 << std::endl;
   Glib::ustring cell = (*TLstuff).calculate_expr(tuple32);
 
-  label = Gtk::manage(new Gtk::Label);
+  label = Gtk::manage(new Gtk::Label(cell));
   frame = Gtk::manage(new Gtk::Frame);
-  (*label).set_label(cell);
   (*frame).add(*label);
   (*comp_table).attach(*frame, 1, 2, 1, 2, Gtk::SHRINK, Gtk::SHRINK);
 }
