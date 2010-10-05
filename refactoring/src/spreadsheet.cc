@@ -126,20 +126,8 @@ spreadsheet::spreadsheet() :
 // Begin expressions_hbox
   expressions.insert ((*TLstuff).expression);
   filling_expressions_table();
-  label = Gtk::manage(new Gtk::Label("New Expression"));
-//  (system_table).attach((*label),0,1,0,1,Gtk::FILL,Gtk::FILL);
-  (expressions_table).attach((*label),0,1,0,1,Gtk::FILL,Gtk::FILL,5);
-//  exprs_entry.set_text((*TLstuff).expression);
-  exprs_entry.set_max_length(50);
-  exprs_entry.signal_activate().connect(
-    sigc::mem_fun(*this, &spreadsheet::on_get_expr) );
-//  (system_table).attach((exprs_entry),1,2,0,1,Gtk::FILL,Gtk::FILL);
-  (expressions_table).attach((exprs_entry),1,2,0,1,Gtk::FILL,Gtk::FILL,5);
-//  expressions_hbox.pack_start(*label, false, false, 0);
-//  expressions_hbox.pack_start(exprs_entry, false, false, 20);
-//  expressions_frame.add(expressions_hbox);
-  expressions_frame.add(expressions_table);
   expressions_frame.set_shadow_type(Gtk::SHADOW_IN);
+  expressions_frame.add(*expressions_table);
 // End expressions_hbox
 
 // Begin equations_frame
@@ -219,30 +207,6 @@ spreadsheet::~spreadsheet()
   */
 //  Glib::Error::register_cleanup();
 //  Glib::wrap_register_cleanup();
-}
-
-void
-spreadsheet::on_get_expr()
-{
-  (*TLstuff).expression = exprs_entry.get_text();
-  status_bar.push("Expression \"" + (*TLstuff).expression + "\" entered.");
-  std::cout << "Expression \"" + (*TLstuff).expression + "\" entered."
-            << std::endl;
-  redraw_comp_button.clicked();
-  //TODO add the new expression, only if new, to the expression structure.
-}
-
-void
-spreadsheet::filling_expressions_table()
-{
-  std::set<Glib::ustring>::iterator sit;
-  for (sit = expressions.begin(); sit != expressions.end(); sit++)
-  {
-  entry = Gtk::manage(new Gtk::Entry());
-  (*entry).set_text(*sit);
-   std::cout << " " << *sit << std::endl;
-  (expressions_table).attach((*entry),1,2,1,2,Gtk::FILL,Gtk::FILL);
-  }
 }
 
 void
@@ -511,6 +475,80 @@ spreadsheet::on_tick_time()
   std::stringstream ss;
   ss << current_time;
   status_bar.push("Advancing time: current time = " + ss.str());
+}
+
+void
+spreadsheet::on_get_expr()
+{
+  (*TLstuff).expression = exprs_entry.get_text();
+  status_bar.push("Expression \"" + (*TLstuff).expression + "\" entered.");
+  std::cout << "Expression \"" + (*TLstuff).expression + "\" entered."
+            << std::endl;
+  redraw_comp_button.clicked();
+  //TODO add the new expression, only if new, to the expression structure.
+}
+
+void
+spreadsheet::filling_expressions_table()
+{
+  // TODO create the table with the right size
+  label = Gtk::manage(new Gtk::Label("New Expression"));
+  (*label).set_alignment(Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER);
+  expressions_table = Gtk::manage(new Gtk::Table());
+  (*expressions_table).attach((*label),0,1,0,1,Gtk::FILL,Gtk::FILL,5);
+  exprs_entry.set_max_length(50);
+  exprs_entry.signal_activate().connect(
+    sigc::mem_fun(*this, &spreadsheet::on_get_expr) );
+  (*expressions_table).attach((exprs_entry),1,2,0,1,Gtk::FILL,Gtk::FILL,5);
+
+  label = Gtk::manage(new Gtk::Label("Previous Expressions"));
+  (*label).set_alignment(Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER);
+  (*expressions_table).attach((*label),0,1,2,3,Gtk::FILL,Gtk::FILL,5);
+
+  // TODO: hook callback functions to Delete and Activate.
+  label = Gtk::manage(new Gtk::Label("Delete?"));
+  (*label).set_alignment(Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER);
+  (*expressions_table).attach((*label),2,3,1,2,Gtk::FILL,Gtk::FILL,5);
+
+  label = Gtk::manage(new Gtk::Label("Activate?"));
+  (*label).set_alignment(Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER);
+  (*expressions_table).attach((*label),3,4,1,2,Gtk::FILL,Gtk::FILL,5);
+
+  std::set<Glib::ustring>::iterator sit;
+  int i = 2;
+  for (sit = expressions.begin(); sit != expressions.end(); sit++, i++)
+  {
+    entry = Gtk::manage(new Gtk::Entry());
+    (*entry).set_text(*sit);
+    std::cout << " " << *sit << std::endl;
+    (*expressions_table).attach((*entry),1,2,i,i+1,Gtk::FILL,Gtk::FILL,5);
+    entry->signal_activate().connect(
+      sigc::bind(
+        sigc::mem_fun(*this,&spreadsheet::on_change_expr), entry) );
+
+   checkbutton = Gtk::manage(new Gtk::CheckButton());
+   (*checkbutton).set_alignment(Gtk::ALIGN_CENTER, Gtk::ALIGN_TOP);
+   (*expressions_table).attach((*checkbutton), 2, 3, i, i+1,
+                               Gtk::FILL,Gtk::FILL,5);
+
+   checkbutton = Gtk::manage(new Gtk::CheckButton());
+   (*checkbutton).set_alignment(Gtk::ALIGN_CENTER, Gtk::ALIGN_TOP);
+   (*expressions_table).attach((*checkbutton), 3, 4, i, i+1,
+                               Gtk::FILL,Gtk::FILL,5);
+  }
+}
+
+void
+spreadsheet::on_change_expr(Gtk::Entry * entry)
+{
+  Glib::ustring new_value = entry->get_text();
+//  std::cout << new_value << std::endl;
+  expressions.insert (new_value);
+  delete(expressions_table);
+  filling_expressions_table();
+  expressions_frame.add(*expressions_table);
+  expressions_frame.show_all_children();
+  
 }
 
 void

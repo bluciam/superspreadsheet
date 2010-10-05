@@ -49,7 +49,7 @@ protected:
   Gtk::Table * comp_table,
              * pivot_table,
                system_table,
-               expressions_table,
+             * expressions_table,
              * equations_table;
 
   Gtk::Frame   pivot_frame,
@@ -142,6 +142,7 @@ protected:
   void on_browse_equationsfile();
   std::set<Glib::ustring> expressions;
   void filling_expressions_table();
+  void on_change_expr(Gtk::Entry * entry);
 };
 
 #endif // SPREADSHEET_H
