@@ -8,6 +8,7 @@
 #include <iostream>
 #include <gtkmm.h> 
 #include <map>
+#include <set>
 #include <Pivot.h>
 #include <List_uuid_n_content.h>
 #include <TLobjects.h>
@@ -30,6 +31,7 @@ protected:
   Gtk::HBox title_hbox,
             system_hbox,
             entities_hbox,
+            expressions_hbox,
             pivot_comp_hbox,
             last_hbox;
   Gtk::VBox pivot_vbox,
@@ -47,6 +49,7 @@ protected:
   Gtk::Table * comp_table,
              * pivot_table,
                system_table,
+               expressions_table,
              * equations_table;
 
   Gtk::Frame   pivot_frame,
@@ -131,10 +134,14 @@ protected:
   std::u32string eqns_32;
 
 
-  //TESTING FOR THE ENTITIES DISPLAY
+  //TESTING FOR THE ENTITIES DISPLAY and other things
   List_uuid_n_content equations;
   void filling_equations_table();
-  void on_delete_equation();
+  void on_delete_ticked_equations();
+  void on_browse_headerfile();
+  void on_browse_equationsfile();
+  std::set<Glib::ustring> expressions;
+  void filling_expressions_table();
 };
 
 #endif // SPREADSHEET_H
