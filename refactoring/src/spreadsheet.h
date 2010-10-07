@@ -62,7 +62,9 @@ protected:
   Gtk::RadioButton * hnodisplay,
                    * vnodisplay,
                    * hdisplay,
-                   * vdisplay;
+                   * vdisplay,
+                   * act_exp_checkbutton;
+
   Gtk::SpinButton * h_spread_spin,
                   * v_spread_spin;
   Gtk::Adjustment h_spread_limits,
@@ -76,7 +78,8 @@ protected:
               redraw_comp_button,
               close_button;
 
-  Gtk::CheckButton * checkbutton;
+  Gtk::CheckButton * checkbutton,
+                   * del_exp_checkbutton;
 
   Gtk::Entry  exprs_entry,
               eqns_entry,
@@ -143,6 +146,10 @@ protected:
   std::set<Glib::ustring> expressions;
   void filling_expressions_table();
   void on_change_expr(Gtk::Entry * entry);
+
+  // Hooking up callbacks; to sort when the code is tested a bit more.
+  void on_active_expr(Gtk::RadioButton * active, Glib::ustring expr);
+
 };
 
 #endif // SPREADSHEET_H

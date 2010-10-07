@@ -16,7 +16,7 @@ spreadsheet::spreadsheet() :
   main_box  (false, 10),
   title_hbox (false, 10),
   last_hbox (false, 10),
-  window_header("The TransLucid browser" ),
+  //  window_header("The TransLucid browser" ), \\Label
   system_table (3,3,false),
 
   // Gtk::Adjustment(
@@ -30,20 +30,19 @@ spreadsheet::spreadsheet() :
   system_box(Gtk::BUTTONBOX_SPREAD, 30),
   system_status_button(" _Show Current System Status ", true), 
   redraw_comp_button(" _Redraw SpreadSheet  ", true), 
-  tick_button("  _Tick Time  ", true),
-//  tick_button("  _Commit  ", true),
+  tick_button(" Commit: _Tick Time  ", true),
   close_button("_Quit", true)       // to use alt-C to close app
 
 {
 
   // Set title and size of the SuperSpreadSheet main window
-  set_title("The Super SpreadSheet, The S³");
+  set_title("The Super SpreadSheet, The S³: The TransLucid Browser");
   add(main_box);
   // main_box.set_size_request(800,600);
   //Put the inner boxes in the outer box:
-  main_box.pack_start(title_hbox, false, false, 10);
-  main_box.pack_start(system_box, false, false, 0);
-  main_box.pack_start(system_frame,false,false,5);
+//  main_box.pack_start(title_hbox, false, false, 10);
+  main_box.pack_start(system_box, false, false, 20);
+  main_box.pack_start(system_frame,false,false,0);
   main_box.pack_start(expressions_frame,false,false,0);
   main_box.pack_start(equations_frame,false,false,5);
   main_box.pack_start(pivot_comp_hbox,true, true, 0);
@@ -480,12 +479,20 @@ spreadsheet::on_tick_time()
 void
 spreadsheet::on_get_expr()
 {
-  (*TLstuff).expression = exprs_entry.get_text();
-  status_bar.push("Expression \"" + (*TLstuff).expression + "\" entered.");
-  std::cout << "Expression \"" + (*TLstuff).expression + "\" entered."
+  Glib::ustring new_expr = exprs_entry.get_text();
+  (*TLstuff).expression = new_expr;
+  status_bar.push("Expression \"" + new_expr + "\" entered.");
+  std::cout << "Expression \"" + new_expr + "\" entered."
             << std::endl;
+
+  expressions.insert (new_expr);
+  delete(expressions_table);
+  filling_expressions_table();
+  expressions_frame.add(*expressions_table);
+  expressions_frame.show_all_children();
+
   redraw_comp_button.clicked();
-  //TODO add the new expression, only if new, to the expression structure.
+  // exprs_entry.set_text("");
 }
 
 void
@@ -497,6 +504,9 @@ spreadsheet::filling_expressions_table()
   expressions_table = Gtk::manage(new Gtk::Table());
   (*expressions_table).attach((*label),0,1,0,1,Gtk::FILL,Gtk::FILL,5);
   exprs_entry.set_max_length(50);
+  // Poses a problem here: if I want to zero the field elsewhere it triggers
+  // the activate action and tries to refill this table with an empty
+  // expression.
   exprs_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_get_expr) );
   (*expressions_table).attach((exprs_entry),1,2,0,1,Gtk::FILL,Gtk::FILL,5);
@@ -514,6 +524,9 @@ spreadsheet::filling_expressions_table()
   (*label).set_alignment(Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER);
   (*expressions_table).attach((*label),3,4,1,2,Gtk::FILL,Gtk::FILL,5);
 
+  act_exp_checkbutton = Gtk::manage(new Gtk::RadioButton);
+  Gtk::RadioButton::Group active_group = (*act_exp_checkbutton).get_group();
+
   std::set<Glib::ustring>::iterator sit;
   int i = 2;
   for (sit = expressions.begin(); sit != expressions.end(); sit++, i++)
@@ -526,15 +539,34 @@ spreadsheet::filling_expressions_table()
       sigc::bind(
         sigc::mem_fun(*this,&spreadsheet::on_change_expr), entry) );
 
-   checkbutton = Gtk::manage(new Gtk::CheckButton());
-   (*checkbutton).set_alignment(Gtk::ALIGN_CENTER, Gtk::ALIGN_TOP);
-   (*expressions_table).attach((*checkbutton), 2, 3, i, i+1,
+    // CheckButton to "Delete?" button
+    checkbutton = Gtk::manage(new Gtk::CheckButton());
+    (*checkbutton).set_alignment(Gtk::ALIGN_CENTER, Gtk::ALIGN_TOP);
+    (*expressions_table).attach((*checkbutton), 2, 3, i, i+1,
                                Gtk::FILL,Gtk::FILL,5);
 
-   checkbutton = Gtk::manage(new Gtk::CheckButton());
-   (*checkbutton).set_alignment(Gtk::ALIGN_CENTER, Gtk::ALIGN_TOP);
-   (*expressions_table).attach((*checkbutton), 3, 4, i, i+1,
-                               Gtk::FILL,Gtk::FILL,5);
+    // RadioButon to "Activate?" button
+    act_exp_checkbutton = Gtk::manage(new Gtk::RadioButton);
+    (*act_exp_checkbutton).set_group(active_group);
+    (*act_exp_checkbutton).set_alignment(Gtk::ALIGN_CENTER, Gtk::ALIGN_TOP);
+    if ((*sit) == (*TLstuff).expression)
+      (*act_exp_checkbutton).set_active();
+    (*expressions_table).attach((*act_exp_checkbutton), 3, 4, i, i+1,
+                                Gtk::FILL,Gtk::FILL,5);
+    (*act_exp_checkbutton).signal_toggled().connect(
+      sigc::bind(
+        sigc::mem_fun(*this,&spreadsheet::on_active_expr),
+                      act_exp_checkbutton, (*sit)));
+  }
+}
+
+void
+spreadsheet::on_active_expr(Gtk::RadioButton * active, Glib::ustring expr)
+{
+  if ((*active).get_active())
+  {
+    (*TLstuff).expression = expr;
+    redraw_comp_button.clicked();
   }
 }
 
