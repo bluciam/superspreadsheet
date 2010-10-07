@@ -490,9 +490,40 @@ spreadsheet::on_get_expr()
   filling_expressions_table();
   expressions_frame.add(*expressions_table);
   expressions_frame.show_all_children();
-
   redraw_comp_button.clicked();
   // exprs_entry.set_text("");
+}
+
+void
+spreadsheet::on_active_expr(Gtk::RadioButton * active, Glib::ustring expr)
+{
+  if ((*active).get_active())
+  {
+    (*TLstuff).expression = expr;
+    redraw_comp_button.clicked();
+  }
+}
+
+void
+spreadsheet::on_change_expr(Gtk::Entry * entry)
+{
+  Glib::ustring new_value = entry->get_text();
+//  std::cout << new_value << std::endl;
+  expressions.insert (new_value);
+  delete(expressions_table);
+  filling_expressions_table();
+  expressions_frame.add(*expressions_table);
+  expressions_frame.show_all_children();
+}
+
+void
+spreadsheet::on_delete_expr(Glib::ustring expr)
+{
+  expressions.erase (expr);
+  delete(expressions_table);
+  filling_expressions_table();
+  expressions_frame.add(*expressions_table);
+  expressions_frame.show_all_children();
 }
 
 void
@@ -523,7 +554,6 @@ spreadsheet::filling_expressions_table()
   label = Gtk::manage(new Gtk::Label("Activate?"));
   (*label).set_alignment(Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER);
   (*expressions_table).attach((*label),3,4,1,2,Gtk::FILL,Gtk::FILL,5);
-
   act_exp_checkbutton = Gtk::manage(new Gtk::RadioButton);
   Gtk::RadioButton::Group active_group = (*act_exp_checkbutton).get_group();
 
@@ -531,9 +561,10 @@ spreadsheet::filling_expressions_table()
   int i = 2;
   for (sit = expressions.begin(); sit != expressions.end(); sit++, i++)
   {
+    // Entry with the current expression as in Set expressions.
     entry = Gtk::manage(new Gtk::Entry());
     (*entry).set_text(*sit);
-    std::cout << " " << *sit << std::endl;
+//    std::cout << " " << *sit << std::endl;
     (*expressions_table).attach((*entry),1,2,i,i+1,Gtk::FILL,Gtk::FILL,5);
     entry->signal_activate().connect(
       sigc::bind(
@@ -544,6 +575,9 @@ spreadsheet::filling_expressions_table()
     (*checkbutton).set_alignment(Gtk::ALIGN_CENTER, Gtk::ALIGN_TOP);
     (*expressions_table).attach((*checkbutton), 2, 3, i, i+1,
                                Gtk::FILL,Gtk::FILL,5);
+    (*checkbutton).signal_toggled().connect(
+      sigc::bind(
+        sigc::mem_fun(*this,&spreadsheet::on_delete_expr), (*sit) ));
 
     // RadioButon to "Activate?" button
     act_exp_checkbutton = Gtk::manage(new Gtk::RadioButton);
@@ -558,29 +592,6 @@ spreadsheet::filling_expressions_table()
         sigc::mem_fun(*this,&spreadsheet::on_active_expr),
                       act_exp_checkbutton, (*sit)));
   }
-}
-
-void
-spreadsheet::on_active_expr(Gtk::RadioButton * active, Glib::ustring expr)
-{
-  if ((*active).get_active())
-  {
-    (*TLstuff).expression = expr;
-    redraw_comp_button.clicked();
-  }
-}
-
-void
-spreadsheet::on_change_expr(Gtk::Entry * entry)
-{
-  Glib::ustring new_value = entry->get_text();
-//  std::cout << new_value << std::endl;
-  expressions.insert (new_value);
-  delete(expressions_table);
-  filling_expressions_table();
-  expressions_frame.add(*expressions_table);
-  expressions_frame.show_all_children();
-  
 }
 
 void
@@ -798,13 +809,9 @@ spreadsheet::display_pivot()
          sigc::mem_fun(*this, &spreadsheet::on_h_toggled), hdisplay, dim ) );
 
     if ((pivot.h_dim) == dim)
-    {
       (*hdisplay).set_active();
-    }
     else if ((pivot.v_dim) == dim)
-    {
       (*vdisplay).set_active();
-    }
 
     pivot_spin = Gtk::manage(new Gtk::SpinButton);
     pivot_limits = Gtk::manage(new Gtk::Adjustment(
@@ -898,7 +905,8 @@ spreadsheet::on_v_toggled(Gtk::RadioButton * v_radio, Glib::ustring dim)
 void
 spreadsheet::on_h_toggled(Gtk::RadioButton * h_radio, Glib::ustring dim)
 {
-  if ((*h_radio).get_active()) { // When a dim is chosen
+  if ((*h_radio).get_active()) 
+  { // When a dim is chosen
     if ((pivot.v_dim) == dim)
     {
       std::cout << "Cannot display the same dimension in both directions."

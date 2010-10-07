@@ -149,6 +149,7 @@ protected:
 
   // Hooking up callbacks; to sort when the code is tested a bit more.
   void on_active_expr(Gtk::RadioButton * active, Glib::ustring expr);
+  void on_delete_expr(Glib::ustring expr);
 
 };
 
