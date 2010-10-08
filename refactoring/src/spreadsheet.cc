@@ -16,8 +16,10 @@ spreadsheet::spreadsheet() :
   main_box  (false, 10),
   title_hbox (false, 10),
   last_hbox (false, 10),
+  new_equation_hbox(false,10),
   //  window_header("The TransLucid browser" ), \\Label
   system_table (3,3,false),
+  equations_show_table(2,2,false),
 
   // Gtk::Adjustment(
   //   initial_value, lower, upper, step_increment, page_increment, page_size);
@@ -52,7 +54,6 @@ spreadsheet::spreadsheet() :
   // Set the boxes' spacing around the outside of the container to 5 pixels
 //  title_hbox.set_border_width(5); 
   system_hbox.set_border_width(5);
-  entities_hbox.set_border_width(5);
   pivot_comp_hbox.set_border_width(5);
   last_hbox.set_border_width(5);
   pivot_vbox.set_border_width(5);
@@ -130,14 +131,28 @@ spreadsheet::spreadsheet() :
 // End expressions_hbox
 
 // Begin equations_frame
+  // New equations slot
+  label = Gtk::manage(new Gtk::Label("New Equation   "));
+  (*label).set_alignment(Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER);
+  eqn_entry.set_width_chars(50);
+  //  eqn_entry.signal_activate().connect(
+  //    sigc::mem_fun(*this, &spreadsheet::on_new_equation) );
+  new_equation_hbox.pack_start(*label,false,false,0);
+  new_equation_hbox.pack_start(eqn_entry,false,false,3);
+  equations_show_table.attach(new_equation_hbox, 0, 1, 0, 1,
+                              Gtk::FILL,Gtk::FILL,15,15);
+  (equations_show_table).set_col_spacings(10);
+
+  // Existing equations
   filling_equations_table();
   button = Gtk::manage(new Gtk::Button("  _Delete ticked equations  ",true));
   (*button).signal_clicked().connect(
     sigc::mem_fun(*this, &spreadsheet::on_delete_ticked_equations) );
   equations_box.pack_end(*button, true, false, 3);
-  entities_hbox.pack_end(equations_box);
+  equations_show_table.attach(equations_box,1,2,1,2,Gtk::FILL,Gtk::FILL,5);
+
   equations_frame.set_shadow_type(Gtk::SHADOW_IN);
-  equations_frame.add(entities_hbox);
+  equations_frame.add(equations_show_table);
 // End equations_frame
 
 // Begin pivot_comp_hbox
@@ -318,14 +333,15 @@ void
 spreadsheet::filling_equations_table()
 {
   int row_size = equations.entities.size() + 1 ;
-  equations_table = Gtk::manage(new Gtk::Table(row_size,3,false));
+  equations_table = Gtk::manage(new Gtk::Table(row_size,4,false));
   (*equations_table).set_col_spacings(10);
-  label = Gtk::manage(new Gtk::Label("  uuid  "));
-  (*equations_table).attach((*label), 0, 1, 0, 1,Gtk::FILL,Gtk::FILL);
-  label = Gtk::manage(new Gtk::Label("  content  "));
-  (*equations_table).attach((*label), 1, 2, 0, 1,Gtk::FILL,Gtk::FILL);
-  label = Gtk::manage(new Gtk::Label("  delete ?  "));
-  (*equations_table).attach((*label), 2, 3, 0, 1,Gtk::FILL,Gtk::FILL);
+
+  label = Gtk::manage(new Gtk::Label("  UUID  "));
+  (*equations_table).attach((*label), 0, 1, 0, 1,Gtk::FILL,Gtk::FILL,5);
+  label = Gtk::manage(new Gtk::Label("  Equations  "));
+  (*equations_table).attach((*label), 1, 2, 0, 1,Gtk::FILL,Gtk::FILL,5);
+  label = Gtk::manage(new Gtk::Label("Delete"));
+  (*equations_table).attach((*label), 2, 3, 0, 1,Gtk::FILL,Gtk::FILL,5);
   if (!(equations.entities.empty()))
   // Create a second map to sort by equation. Problem when same equation has 
   // loaded twice receiving different uuid.
@@ -338,6 +354,7 @@ spreadsheet::filling_equations_table()
         temp_equations[ (*mit).second ] = (*mit).first;
 
     int i = 1;
+    // int i = 2;
     for ( std::map<Glib::ustring , TransLucid::uuid >::iterator 
                mit=(temp_equations).begin();
                mit != (temp_equations).end();
@@ -372,7 +389,7 @@ spreadsheet::filling_equations_table()
     }
 
   }
-  entities_hbox.pack_start(*equations_table);
+  equations_show_table.attach((*equations_table),0,1,1,2,Gtk::FILL,Gtk::FILL,5,15);
 
 }
 
@@ -386,6 +403,7 @@ void
 spreadsheet::on_system_status_clicked()
 {
   std::stringstream ss;
+/*
   ss << "Current expression is \"" << (*TLstuff).expression 
        << "\"" << std::endl;
   for (std::map<Glib::ustring,int>::iterator mit=(pivot.ords).begin(); 
@@ -395,7 +413,13 @@ spreadsheet::on_system_status_clicked()
     ss << "Dimension \"" << (*mit).first << "\" = " << (*mit).second 
          << std::endl;
   }
+*/
 
+  ss << "Loaded libraries in header: library ustring<int>" << std::endl;
+  ss << "Available operators:" << std::endl;
+  ss << "  infixl ustring<-> ustring<operator-> 5" << std::endl;
+  ss << "  infixl ustring<+> ustring<operator+> 5" << std::endl;
+  ss << "  infixl ustring<*> ustring<operator*> 10" << std::endl;
   std::string text = ss.str();
 
   label_system_status.set_text(text);
@@ -442,10 +466,10 @@ spreadsheet::on_update_system()
       std::cout << begin_eqs.id() << std::endl;
       equations.add_entity(begin_eqs.id(), begin_eqs.print());
       // Readraw the system_table using filling_equations_table()
-      entities_hbox.remove(*equations_table);
+      equations_show_table.remove(*equations_table);
       delete(equations_table);
       filling_equations_table();
-      entities_hbox.show_all_children();
+      equations_show_table.show_all_children();
       begin_eqs++;
     }
   }
@@ -490,7 +514,7 @@ spreadsheet::on_get_expr()
   filling_expressions_table();
   expressions_frame.add(*expressions_table);
   expressions_frame.show_all_children();
-  redraw_comp_button.clicked();
+//`  redraw_comp_button.clicked();
   // exprs_entry.set_text("");
 }
 
@@ -519,6 +543,9 @@ spreadsheet::on_change_expr(Gtk::Entry * entry)
 void
 spreadsheet::on_delete_expr(Glib::ustring expr)
 {
+  // TODO: need to choose a new expression or create the "0" expression
+  // if is active.
+  // (*TLstuff).expression = "0";
   expressions.erase (expr);
   delete(expressions_table);
   filling_expressions_table();
@@ -537,7 +564,7 @@ spreadsheet::filling_expressions_table()
   exprs_entry.set_max_length(50);
   // Poses a problem here: if I want to zero the field elsewhere it triggers
   // the activate action and tries to refill this table with an empty
-  // expression.
+  // expression. This statement might be false, bug else where.
   exprs_entry.signal_activate().connect(
     sigc::mem_fun(*this, &spreadsheet::on_get_expr) );
   (*expressions_table).attach((exprs_entry),1,2,0,1,Gtk::FILL,Gtk::FILL,5);
@@ -546,12 +573,11 @@ spreadsheet::filling_expressions_table()
   (*label).set_alignment(Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER);
   (*expressions_table).attach((*label),0,1,2,3,Gtk::FILL,Gtk::FILL,5);
 
-  // TODO: hook callback functions to Delete and Activate.
-  label = Gtk::manage(new Gtk::Label("Delete?"));
+  label = Gtk::manage(new Gtk::Label("Delete"));
   (*label).set_alignment(Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER);
   (*expressions_table).attach((*label),2,3,1,2,Gtk::FILL,Gtk::FILL,5);
 
-  label = Gtk::manage(new Gtk::Label("Activate?"));
+  label = Gtk::manage(new Gtk::Label("Activate"));
   (*label).set_alignment(Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER);
   (*expressions_table).attach((*label),3,4,1,2,Gtk::FILL,Gtk::FILL,5);
   act_exp_checkbutton = Gtk::manage(new Gtk::RadioButton);
@@ -561,32 +587,40 @@ spreadsheet::filling_expressions_table()
   int i = 2;
   for (sit = expressions.begin(); sit != expressions.end(); sit++, i++)
   {
-    // Entry with the current expression as in Set expressions.
+    // Entry with the current expression as in the set::expressions.
     entry = Gtk::manage(new Gtk::Entry());
     (*entry).set_text(*sit);
-//    std::cout << " " << *sit << std::endl;
+    std::cout << "Looking at " << *sit << std::endl;
     (*expressions_table).attach((*entry),1,2,i,i+1,Gtk::FILL,Gtk::FILL,5);
     entry->signal_activate().connect(
       sigc::bind(
         sigc::mem_fun(*this,&spreadsheet::on_change_expr), entry) );
 
-    // CheckButton to "Delete?" button
+    // CheckButton to "Delete" button
     checkbutton = Gtk::manage(new Gtk::CheckButton());
     (*checkbutton).set_alignment(Gtk::ALIGN_CENTER, Gtk::ALIGN_TOP);
     (*expressions_table).attach((*checkbutton), 2, 3, i, i+1,
-                               Gtk::FILL,Gtk::FILL,5);
+                               Gtk::FILL,Gtk::FILL,15);
     (*checkbutton).signal_toggled().connect(
       sigc::bind(
         sigc::mem_fun(*this,&spreadsheet::on_delete_expr), (*sit) ));
 
-    // RadioButon to "Activate?" button
+    // RadioButon to "Activate" button
     act_exp_checkbutton = Gtk::manage(new Gtk::RadioButton);
     (*act_exp_checkbutton).set_group(active_group);
     (*act_exp_checkbutton).set_alignment(Gtk::ALIGN_CENTER, Gtk::ALIGN_TOP);
+    // if my reasoing is right, redraw_comp_button will be clicked since 
+    // the act_exp_checkbutton is activated. TO CHECK. no...
     if ((*sit) == (*TLstuff).expression)
+    {
+      std::cout << "Active expression : " << std::endl << "  *sit = "
+        << (*sit) << std::endl << "  *TLstuff).expression = " <<
+        (*TLstuff).expression << std::endl;
       (*act_exp_checkbutton).set_active();
+      on_active_expr((act_exp_checkbutton), (*sit));
+    }
     (*expressions_table).attach((*act_exp_checkbutton), 3, 4, i, i+1,
-                                Gtk::FILL,Gtk::FILL,5);
+                                Gtk::FILL,Gtk::FILL,15);
     (*act_exp_checkbutton).signal_toggled().connect(
       sigc::bind(
         sigc::mem_fun(*this,&spreadsheet::on_active_expr),
@@ -993,7 +1027,7 @@ spreadsheet::display_comp_all(int row_range, int col_range,
   label = Gtk::manage(new Gtk::Label( pivot.v_dim + " \\ " + pivot.h_dim ));
   (*label).set_width_chars(10);
   (*label).set_line_wrap(true);
-  (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
+  (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK,5,5);
 
   //  Drawing horizontal index 
   for (int i = 0 ; i != row_range ; ++i)
@@ -1001,7 +1035,7 @@ spreadsheet::display_comp_all(int row_range, int col_range,
     std::stringstream ss;
     ss << h_min + i ;
     label = Gtk::manage(new Gtk::Label(ss.str()));
-    (*comp_table).attach(*label, i+1, i+2, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
+    (*comp_table).attach(*label, i+1, i+2, 0, 1, Gtk::SHRINK, Gtk::SHRINK,5,5);
   }
 
   //  Drawing vertical index 
@@ -1010,7 +1044,7 @@ spreadsheet::display_comp_all(int row_range, int col_range,
     std::stringstream ss;
     ss << v_min + j ;
     label = Gtk::manage(new Gtk::Label(ss.str()));
-    (*comp_table).attach(*label, 0, 1, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK);
+    (*comp_table).attach(*label, 0, 1, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK,5,5);
   }
 
   // Drawing content
@@ -1064,7 +1098,7 @@ spreadsheet::display_comp_row(int row_range, int h_min)
   label = Gtk::manage(new Gtk::Label(pivot.h_dim));
   (*label).set_width_chars(10);
   (*label).set_line_wrap(true);
-  (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
+  (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK,5,5);
 
   for (int i = 0 ; i != row_range ; ++i)
   {
@@ -1072,7 +1106,7 @@ spreadsheet::display_comp_row(int row_range, int h_min)
     std::stringstream ss;
     ss << h_min + i ;
     label = Gtk::manage(new Gtk::Label(ss.str()));
-    (*comp_table).attach(*label, i+1, i+2, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
+    (*comp_table).attach(*label, i+1, i+2, 0, 1, Gtk::SHRINK, Gtk::SHRINK,5,5);
 
     // Drawing content
     // Creating a string with expressions and context, calling TL for evaluation
@@ -1117,7 +1151,7 @@ spreadsheet::display_comp_col(int col_range, int v_min)
   label = Gtk::manage(new Gtk::Label(pivot.v_dim));
   (*label).set_width_chars(10);
   (*label).set_line_wrap(true);
-  (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK);
+  (*comp_table).attach(*label, 0, 1, 0, 1, Gtk::SHRINK, Gtk::SHRINK,5,5);
 
   for (int j = 0 ; j != col_range ; ++j)
   {
@@ -1125,7 +1159,7 @@ spreadsheet::display_comp_col(int col_range, int v_min)
     std::stringstream ss;
     ss << v_min + j ;
     label = Gtk::manage(new Gtk::Label(ss.str()));
-    (*comp_table).attach(*label, 0, 1, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK);
+    (*comp_table).attach(*label, 0, 1, j+1, j+2, Gtk::SHRINK, Gtk::SHRINK,5,5);
 
     // Drawing content
     // Creating a string with expressions and context, calling TL for evaluation

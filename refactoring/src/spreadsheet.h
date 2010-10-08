@@ -30,7 +30,7 @@ protected:
   Gtk::VBox main_box;
   Gtk::HBox title_hbox,
             system_hbox,
-            entities_hbox,
+            new_equation_hbox,
             expressions_hbox,
             pivot_comp_hbox,
             last_hbox;
@@ -50,6 +50,8 @@ protected:
              * pivot_table,
                system_table,
              * expressions_table,
+               equations_show_table,
+//               expr_table,
              * equations_table;
 
   Gtk::Frame   pivot_frame,
@@ -82,7 +84,7 @@ protected:
                    * del_exp_checkbutton;
 
   Gtk::Entry  exprs_entry,
-              eqns_entry,
+              eqn_entry,
               filename_eqns_entry,
               filename_header_entry,
               filename_expr_entry,
