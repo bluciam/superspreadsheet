@@ -31,7 +31,7 @@ protected:
   Gtk::HBox title_hbox,
             system_hbox,
             new_equation_hbox,
-            expressions_hbox,
+            new_expression_hbox,
             pivot_comp_hbox,
             last_hbox;
   Gtk::VBox pivot_vbox,
@@ -51,7 +51,7 @@ protected:
                system_table,
              * expressions_table,
                equations_show_table,
-//               expr_table,
+               expressions_show_table,
              * equations_table;
 
   Gtk::Frame   pivot_frame,
@@ -83,8 +83,8 @@ protected:
   Gtk::CheckButton * checkbutton,
                    * del_exp_checkbutton;
 
-  Gtk::Entry  exprs_entry,
-              eqn_entry,
+  Gtk::Entry  expression_entry,
+              equation_entry,
               filename_eqns_entry,
               filename_header_entry,
               filename_expr_entry,
@@ -101,7 +101,8 @@ protected:
   // Signal handlers:
   void on_tick_time();
   void on_update_system();
-  void on_get_expr();
+  void on_new_expression();
+  void on_new_equation();
   void on_filename_header();
   void on_filename_eqns();
 
@@ -140,19 +141,20 @@ protected:
 
 
   //TESTING FOR THE ENTITIES DISPLAY and other things
-  List_uuid_n_content equations;
+  List_uuid_n_content equations; // class with pairs (uuid, string) 
   void filling_equations_table();
   void on_delete_ticked_equations();
   void on_browse_headerfile();
   void on_browse_equationsfile();
   std::set<Glib::ustring> expressions;
+  std::set<TransLucid::uuid> equations_to_del;
   void filling_expressions_table();
   void on_change_expr(Gtk::Entry * entry);
 
   // Hooking up callbacks; to sort when the code is tested a bit more.
-  void on_active_expr(Gtk::RadioButton * active, Glib::ustring expr);
-  void on_delete_expr(Glib::ustring expr);
-
+  void on_active_expr(Gtk::RadioButton * active, Glib::ustring expression);
+  void on_delete_expr(Gtk::RadioButton * active, Glib::ustring expression);
+  void on_tick_equation(Gtk::CheckButton * del, TransLucid::uuid  uuid);
 };
 
 #endif // SPREADSHEET_H

@@ -24,4 +24,5 @@ bool
 List_uuid_n_content::del_entity(TransLucid::uuid uuid)
 {
   std::cout << "Deleting equation"  << std::endl;
+  entities.erase(uuid);
 }
