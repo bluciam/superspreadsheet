@@ -85,7 +85,6 @@ spreadsheet::spreadsheet() :
   system_hbox.pack_start(system_table);
   system_hbox.pack_end(infoBar_system_status);
   // Begin system_table
-
     // Header file
   label = Gtk::manage(new Gtk::Label("Header file name"));
   (*label).set_alignment(Gtk::ALIGN_LEFT, Gtk::ALIGN_CENTER);
