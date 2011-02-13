@@ -4,6 +4,9 @@ ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
 bin_PROGRAMS = spreadsheet
 
+EXTRA_DIST = ack fact fib header 
+
+
 spreadsheet_SOURCES = spreadsheet.h spreadsheet.cc \
                       TLobjects.h TLobjects.cc \
                       Pivot.h Pivot.cc \

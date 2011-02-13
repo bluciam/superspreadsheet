@@ -53,8 +53,13 @@ TLobjects::calculate_expr (std::u32string tuple32)
   return s;
 }
 
+
+HERE!
+
 int
 TLobjects::get_time() 
 {
-  return 0;
+    //ss << "The current time is " << (*our_system).theTime() << std::endl;
+
+  return (*our_system).theTime();
 }

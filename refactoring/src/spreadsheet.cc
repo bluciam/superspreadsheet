@@ -349,7 +349,11 @@ spreadsheet::filling_equations_table()
   equations_table = Gtk::manage(new Gtk::Table(row_size,4,false));
   (*equations_table).set_col_spacings(10);
   if ((equations.entities.empty()))
+  {
+    equations_show_table.attach((*equations_table), 0, 1, 1, 2,
+                                 Gtk::FILL,Gtk::FILL,5,15);
     return;
+  }
 
   label = Gtk::manage(new Gtk::Label("  UUID  "));
   (*equations_table).attach((*label), 0, 1, 0, 1,Gtk::FILL,Gtk::FILL,5,8);
@@ -428,6 +432,26 @@ spreadsheet::on_system_status_clicked()
   ss << "  infixl ustring<-> ustring<operator-> 5" << std::endl;
   ss << "  infixl ustring<+> ustring<operator+> 5" << std::endl;
   ss << "  infixl ustring<*> ustring<operator*> 10" << std::endl;
+  ss << std::endl;
+  TransLucid::HD* our_systemHD = &((*TLstuff).traductor.system());
+
+  TransLucid::SystemHD * our_system =
+         dynamic_cast<TransLucid::SystemHD *> (our_systemHD);
+  if (!our_system) 
+  { 
+     std::cout << "Could not cast to a SystemHD. " << std::endl;
+  }
+  else
+  {
+    ss << "The current time is " << (*our_system).theTime() << std::endl;
+
+HERE
+
+    std::string the_time_str = "#time";
+    std::u32string the_time (the_time_str.begin(), the_time_str.end());
+    Glib::ustring the_time_now = (*TLstuff).calculate_expr(the_time);
+    ss << "The other current time is " << the_time_now << std::endl;
+  }
   std::string text = ss.str();
 
   label_system_status.set_text(text);
@@ -502,6 +526,9 @@ spreadsheet::on_update_system()
 void
 spreadsheet::on_tick_time()
 {
+
+HERE
+
   int current_time = (*TLstuff).get_time();
   std::stringstream ss;
   ss << current_time;

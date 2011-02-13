@@ -1,0 +1,22 @@
+Known bugs or problems not dealt with:
+
+
+• Handle the minus sign
+• There is absolutely no error checking. Need to catch TL errors,
+  perhaps in TLentities :
+  1. When an equation defines a dimension not added to the
+     header, TL explodes. Need to catch the error.
+  2. Factorial of negative numbers explodes
+  3. etc
+• System dimensions are now in another structure. Need to fix that
+  part of the code.
+• Instead of (pivot.ords)[dimname] = piv, I should have a function
+  on pivot.add(piv);
+• ./spreadsheet --header=header-file --equations=equations-file
+                --expressions=expressions-file
+• New code on filechooserdialog might need improvement.
+• display_comp_*() methods can probably be condensed.
+• add, delete and modify equations: need to clarify TIME (the
+  micro and macro instants) to have Jarryd implement what is
+  needed.
+
