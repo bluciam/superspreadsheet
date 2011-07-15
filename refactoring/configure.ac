@@ -6,7 +6,7 @@ AC_INIT([The Cartesian SpreadSheet], [0.0])
 # Checks for programs.
 AM_INIT_AUTOMAKE
 AC_PROG_CXX
-AC_LANG(C++])
+AC_LANG([C++])
 
 # check for the correct version of gcc
 AC_MSG_CHECKING([for gcc >= 4.5.0])

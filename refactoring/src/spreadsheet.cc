@@ -14,11 +14,9 @@ spreadsheet::spreadsheet() :
   // false: child widgets don't have the same width
   //    10: distance in pixels between widgets
   main_box  (false, 10),
-  title_hbox (false, 10),
   last_hbox (false, 10),
   new_equation_hbox(false,10),
   new_expression_hbox(false,10),
-  //  window_header("The TransLucid browser" ), \\Label
   system_table (3,3,false),
   equations_show_table(2,2,false),
 
@@ -32,7 +30,7 @@ spreadsheet::spreadsheet() :
   equations_box(Gtk::BUTTONBOX_END, 30),
   system_box(Gtk::BUTTONBOX_SPREAD, 30),
   system_status_button(" _Show Current System Status ", true), 
-  redraw_comp_button(" _Redraw SpreadSheet  ", true), 
+//  redraw_comp_button(" _Redraw SpreadSheet  ", true), 
   tick_button(" Commit: _Tick Time  ", true),
   close_button("_Quit", true)       // to use alt-C to close app
 
@@ -43,7 +41,6 @@ spreadsheet::spreadsheet() :
   add(main_box);
   // main_box.set_size_request(800,600);
   //Put the inner boxes in the outer box:
-//  main_box.pack_start(title_hbox, false, false, 10);
   main_box.pack_start(system_box, false, false, 20);
   main_box.pack_start(system_frame,false,false,0);
   main_box.pack_start(expressions_frame,false,false,0);
@@ -53,16 +50,12 @@ spreadsheet::spreadsheet() :
   main_box.pack_start(status_bar, false, false, 0);
 
   // Set the boxes' spacing around the outside of the container to 5 pixels
-//  title_hbox.set_border_width(5); 
   system_hbox.set_border_width(5);
   pivot_comp_hbox.set_border_width(5);
   last_hbox.set_border_width(5);
   pivot_vbox.set_border_width(5);
   new_dim_vbox.set_border_width(5);
 
-// Begin title_hbox 
-  title_hbox.pack_start(window_header);
-// End title_hbox 
 
 
 // Begin system_box
@@ -136,7 +129,7 @@ spreadsheet::spreadsheet() :
   new_expression_hbox.pack_start(expression_entry,false,false,3);
   expressions_show_table.attach(new_expression_hbox, 0, 1, 0, 1,
                               Gtk::FILL,Gtk::FILL,15,10);
-  // expression_table
+  // expressions_table
   expressions.insert ((*TLstuff).expression);
   filling_expressions_table();
   expressions_frame.set_shadow_type(Gtk::SHADOW_IN);
@@ -445,7 +438,7 @@ spreadsheet::on_system_status_clicked()
   {
     ss << "The current time is " << (*our_system).theTime() << std::endl;
 
-HERE
+//HERE  ???
 
     std::string the_time_str = "#time";
     std::u32string the_time (the_time_str.begin(), the_time_str.end());
@@ -527,7 +520,7 @@ void
 spreadsheet::on_tick_time()
 {
 
-HERE
+// HERE ??
 
   int current_time = (*TLstuff).get_time();
   std::stringstream ss;

@@ -28,8 +28,7 @@ public:
 protected:
   //Child widgets:
   Gtk::VBox main_box;
-  Gtk::HBox title_hbox,
-            system_hbox,
+  Gtk::HBox system_hbox,
             new_equation_hbox,
             new_expression_hbox,
             pivot_comp_hbox,
@@ -93,8 +92,7 @@ protected:
               new_pivot_entry;
 
   Gtk::Label   label_system_status,
-               * label,
-               window_header;
+               * label;
 
   Gtk::InfoBar infoBar_system_status;
 

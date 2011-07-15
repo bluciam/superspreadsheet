@@ -54,12 +54,12 @@ TLobjects::calculate_expr (std::u32string tuple32)
 }
 
 
-HERE!
+// HERE! ??
 
 int
 TLobjects::get_time() 
 {
     //ss << "The current time is " << (*our_system).theTime() << std::endl;
 
-  return (*our_system).theTime();
+//   return (*our_system).theTime();
 }
