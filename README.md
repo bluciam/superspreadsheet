@@ -9,7 +9,7 @@ You can find some blog entries related to this project
 The project was put on hold waiting further design development and
 implementation of the TransLucid project.
 
-## About the TransLucid project
+### About the TransLucid project
 
 - [TransLucid on the Web](http://translucid.web.cse.unsw.edu.au/tlweb)
 - [Information](http://translucid.web.cse.unsw.edu.au/)
