@@ -1,3 +1,7 @@
+# The SuperSpreadSheet Project 
+
+Le S3 was developed in `gtkmm` with C++.
+
 SuperSpreadSheet or S3 is a project to create an interface to the
 TransLucid core and library by allowing browsing of dimension and
 ordinates, and for now, evaluation of expression. The aim is to allow for
