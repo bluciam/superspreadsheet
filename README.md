@@ -22,6 +22,6 @@ followed by development and implementation of the TransLucid language.
 
 - [TransLucid on the Web](http://translucid.web.cse.unsw.edu.au/tlweb)
 - [Information](http://translucid.web.cse.unsw.edu.au/)
-- [Sourceforge](http://sourceforge.net/projects/translucid/). 
+- [Sourceforge](http://sourceforge.net/projects/translucid/)
 - [Cartesian Programming](http://cartesianprogramming.com/)
 
